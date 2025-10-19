@@ -17,7 +17,7 @@ import {
   Trash2,
   Eye
 } from 'lucide-react';
-import { PropertyImage } from '../PropertyImage';
+import { PropertyImage } from './PropertyImage';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface FavoriteProperty {
