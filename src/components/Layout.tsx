@@ -68,7 +68,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, userType,
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <MapPin className="h-5 w-5 text-white" />
             </div>
-            <span className="font-semibold text-lg text-foreground">Sunday</span>
+            <span className="font-semibold text-lg text-foreground">☀️ Sundap</span>
           </div>
         </div>
         
@@ -106,7 +106,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, userType,
               <MapPin className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="font-semibold text-lg text-foreground">Sunday</span>
+              <span className="font-semibold text-lg text-foreground">☀️ Sundap</span>
               <p className="text-xs text-muted-foreground">Properties</p>
             </div>
           </div>
@@ -196,7 +196,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, userType,
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <MapPin className="h-5 w-5 text-white" />
                 </div>
-                <span className="font-semibold text-lg text-foreground">Sunday</span>
+                <span className="font-semibold text-lg text-foreground">☀️ Sundap</span>
               </div>
               <Button
                 variant="ghost"

@@ -1,5 +1,5 @@
 {
-      "name": "User Management and Property Wizard",
+      "name": "sundap-properties",
       "version": "0.1.0",
       "private": true,
       "dependencies": {
