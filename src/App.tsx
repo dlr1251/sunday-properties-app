@@ -1,116 +1,168 @@
-import { useState } from "react";
-import { Layout } from "./components/Layout";
-import { DiscoveryView } from "./components/DiscoveryView";
-import { PropertyDetailView } from "./components/PropertyDetailView";
-import { PropertyUploadWizard } from "./components/PropertyUploadWizard";
-import { VisitManagementView } from "./components/VisitManagementView";
-import { NegotiationPanelView } from "./components/NegotiationPanelView";
-import { FinancialAnalysisView } from "./components/FinancialAnalysisView";
-import { Toaster } from "./components/ui/sonner";
+import React, { useState } from 'react';
+import { Layout } from './components/Layout';
+import { DiscoveryView } from './components/DiscoveryView';
+import { PropertyDetailView } from './components/PropertyDetailView';
+import { PropertyUploadWizard } from './components/PropertyUploadWizard';
+import { VisitManagementView } from './components/VisitManagementView';
+import { NegotiationPanelView } from './components/NegotiationPanelView';
+import { FinancialAnalysisView } from './components/FinancialAnalysisView';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { BlogList } from './components/blog/BlogList';
+import { BlogPost } from './components/blog/BlogPost';
+import { FavoritesView } from './components/FavoritesView';
+import { LawyerDashboard } from './components/dashboards/LawyerDashboard';
+import { SuperAdminDashboard } from './components/dashboards/SuperAdminDashboard';
+import { UserDashboard } from './components/dashboards/UserDashboard';
+import { Toaster } from './components/ui/sonner';
 
-type View = "discover" | "negotiations" | "favorites" | "documents" | "my-properties";
+function App() {
+  const [currentView, setCurrentView] = useState('discover');
+  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
+  const [selectedBlogPost, setSelectedBlogPost] = useState<string | null>(null);
 
-export default function App() {
-  const [currentView, setCurrentView] = useState<View>("discover");
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
-  const [userType] = useState<"visitor" | "registered" | "verified" | "premium" | "admin">("verified");
-
-  const handlePropertyClick = (propertyId: string) => {
-    setSelectedPropertyId(propertyId);
-    setCurrentView("discover"); // Will show property detail in discovery view
+  const handleViewChange = (view: string) => {
+    setCurrentView(view);
+    setSelectedProperty(null);
+    setSelectedBlogPost(null);
   };
 
-  const handleBackToDiscovery = () => {
-    setCurrentView("discover");
-    setSelectedPropertyId(null);
+  const handlePropertySelect = (propertyId: string) => {
+    setSelectedProperty(propertyId);
+    setCurrentView('property-detail');
   };
 
-  const handleUploadComplete = () => {
-    setCurrentView("my-properties");
+  const handleBlogPostSelect = (postId: string) => {
+    setSelectedBlogPost(postId);
+    setCurrentView('blog-post');
   };
 
-  const handleUploadCancel = () => {
-    setCurrentView("discover");
-  };
-
-  const handleUploadProperty = () => {
-    setCurrentView("upload");
-  };
-
-  const renderView = () => {
+  const renderContent = () => {
     switch (currentView) {
-      case "discover":
-        return <DiscoveryView />;
-      case "negotiations":
-        return <NegotiationPanelView />;
-      case "favorites":
+      case 'discover':
+        return <DiscoveryView onPropertySelect={handlePropertySelect} />;
+      case 'property-detail':
+        return selectedProperty ? (
+          <PropertyDetailView 
+            propertyId={selectedProperty} 
+            onBack={() => setCurrentView('discover')}
+          />
+        ) : null;
+      case 'upload-property':
         return (
-          <div className="min-h-screen bg-muted/30 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-4">Mis Favoritos</h2>
-              <p className="text-muted-foreground">Aquí aparecerán las propiedades que hayas marcado como favoritas</p>
-            </div>
-          </div>
+          <ProtectedRoute requiredRole="verified">
+            <PropertyUploadWizard onComplete={() => setCurrentView('my-properties')} />
+          </ProtectedRoute>
         );
-      case "documents":
+      case 'visits':
         return (
-          <div className="min-h-screen bg-muted/30 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-4">Mis Documentos</h2>
-              <p className="text-muted-foreground">Gestiona tus contratos y documentos legales</p>
-            </div>
-          </div>
+          <ProtectedRoute requiredRole="registered">
+            <VisitManagementView />
+          </ProtectedRoute>
         );
-      case "my-properties":
+      case 'negotiations':
         return (
-          <div className="min-h-screen bg-muted/30">
-            <div className="bg-white border-b border-border px-4 py-4 lg:px-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-xl font-semibold">Mis Propiedades</h1>
-                  <p className="text-muted-foreground">Gestiona las propiedades que has publicado</p>
-                </div>
-                <button
-                  onClick={() => setCurrentView("discover")}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  Publicar Nueva Propiedad
-                </button>
-              </div>
+          <ProtectedRoute requiredRole="verified">
+            <NegotiationPanelView />
+          </ProtectedRoute>
+        );
+      case 'financial-analysis':
+        return (
+          <ProtectedRoute requiredRole="verified">
+            <FinancialAnalysisView />
+          </ProtectedRoute>
+        );
+      case 'blog':
+        return <BlogList onPostSelect={handleBlogPostSelect} />;
+      case 'blog-post':
+        return selectedBlogPost ? (
+          <BlogPost 
+            postId={selectedBlogPost} 
+            onBack={() => setCurrentView('blog')}
+          />
+        ) : null;
+      case 'favorites':
+        return (
+          <ProtectedRoute requiredRole="registered">
+            <FavoritesView />
+          </ProtectedRoute>
+        );
+      case 'cases':
+        return (
+          <ProtectedRoute requiredRole="lawyer">
+            <LawyerDashboard />
+          </ProtectedRoute>
+        );
+      case 'chat':
+        return (
+          <ProtectedRoute requiredRole="lawyer">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Chat</h1>
+              <p className="text-muted-foreground">Sistema de chat en desarrollo...</p>
             </div>
-            <div className="max-w-7xl mx-auto px-4 py-6 lg:px-6">
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-semibold mb-4">Tus Propiedades</h2>
-                <p className="text-muted-foreground mb-6">Aquí aparecerán las propiedades que hayas publicado</p>
-                <button
-                  onClick={() => setCurrentView("discover")}
-                  className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  Publicar Primera Propiedad
-                </button>
-              </div>
+          </ProtectedRoute>
+        );
+      case 'admin':
+        return (
+          <ProtectedRoute requiredRole="superadmin">
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        );
+      case 'analytics':
+        return (
+          <ProtectedRoute requiredRole="superadmin">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Analíticas</h1>
+              <p className="text-muted-foreground">Panel de analíticas en desarrollo...</p>
             </div>
-          </div>
+          </ProtectedRoute>
+        );
+      case 'dashboard':
+        return (
+          <ProtectedRoute requiredRole="registered">
+            <UserDashboard />
+          </ProtectedRoute>
+        );
+      case 'my-properties':
+        return (
+          <ProtectedRoute requiredRole="verified">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Mis Propiedades</h1>
+              <p className="text-muted-foreground">Gestión de propiedades en desarrollo...</p>
+            </div>
+          </ProtectedRoute>
+        );
+      case 'documents':
+        return (
+          <ProtectedRoute requiredRole="registered">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Documentos</h1>
+              <p className="text-muted-foreground">Gestión de documentos en desarrollo...</p>
+            </div>
+          </ProtectedRoute>
+        );
+      case 'notifications':
+        return (
+          <ProtectedRoute requiredRole="registered">
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Notificaciones</h1>
+              <p className="text-muted-foreground">Centro de notificaciones en desarrollo...</p>
+            </div>
+          </ProtectedRoute>
         );
       default:
-        return <DiscoveryView />;
+        return <DiscoveryView onPropertySelect={handlePropertySelect} />;
     }
   };
 
-  // Show upload wizard when needed
-  if (currentView === "upload") {
-    return (
-      <PropertyUploadWizard 
-        onComplete={handleUploadComplete}
-        onCancel={handleUploadCancel}
-      />
-    );
-  }
-
   return (
-    <Layout currentView={currentView} userType={userType} onUploadProperty={handleUploadProperty}>
-      {renderView()}
-      <Toaster />
-    </Layout>
+    <AuthProvider>
+      <Layout currentView={currentView} onViewChange={handleViewChange}>
+        {renderContent()}
+        <Toaster />
+      </Layout>
+    </AuthProvider>
   );
 }
+
+export default App;

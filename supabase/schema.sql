@@ -12,7 +12,7 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     avatar TEXT,
-    user_type VARCHAR(20) DEFAULT 'registered' CHECK (user_type IN ('visitor', 'registered', 'verified', 'premium', 'admin')),
+    user_type VARCHAR(20) DEFAULT 'registered' CHECK (user_type IN ('visitor', 'registered', 'verified', 'premium', 'admin', 'lawyer', 'superadmin')),
     verified_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -42,6 +42,7 @@ CREATE TABLE properties (
     
     -- Precio y condiciones
     price BIGINT NOT NULL CHECK (price > 0),
+    minimum_offer_price BIGINT,
     monthly_costs INTEGER,
     accepts_crypto BOOLEAN DEFAULT FALSE,
     financing BOOLEAN DEFAULT FALSE,
@@ -108,6 +109,7 @@ CREATE TABLE offers (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
     buyer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    lawyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
     offer_price BIGINT NOT NULL CHECK (offer_price > 0),
     original_price BIGINT NOT NULL CHECK (original_price > 0),
     
@@ -247,12 +249,151 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Tabla de roles de usuario con permisos granulares
+CREATE TABLE user_roles (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_name VARCHAR(50) NOT NULL,
+    permissions JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, role_name)
+);
+
+-- Tabla de casos para abogados
+CREATE TABLE cases (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    lawyer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    buyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    seller_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    property_id UUID REFERENCES properties(id) ON DELETE SET NULL,
+    
+    -- Información del caso
+    case_number VARCHAR(50) UNIQUE NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'closed', 'pending', 'on_hold')),
+    
+    -- Fechas importantes
+    start_date DATE DEFAULT CURRENT_DATE,
+    expected_close_date DATE,
+    actual_close_date DATE,
+    
+    -- Metadatos
+    tags TEXT[] DEFAULT '{}',
+    notes TEXT,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla de documentos de casos
+CREATE TABLE case_documents (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    case_id UUID NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    document_type VARCHAR(50) NOT NULL CHECK (document_type IN ('promesa', 'otrosi', 'oferta', 'escritura', 'legal', 'other')),
+    document_name VARCHAR(255) NOT NULL,
+    document_url TEXT,
+    document_content TEXT,
+    
+    -- Estado del documento
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'review', 'signed', 'finalized', 'archived')),
+    
+    -- Firmas
+    signed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    signed_at TIMESTAMP WITH TIME ZONE,
+    signature_data JSONB,
+    
+    -- Metadatos
+    version INTEGER DEFAULT 1,
+    file_size BIGINT,
+    file_type VARCHAR(50),
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla de mensajes de chat
+CREATE TABLE chat_messages (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    case_id UUID REFERENCES cases(id) ON DELETE CASCADE,
+    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Contenido del mensaje
+    message TEXT NOT NULL,
+    message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text', 'document', 'image', 'system')),
+    
+    -- Estado del mensaje
+    read BOOLEAN DEFAULT FALSE,
+    read_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Adjuntos
+    attachments JSONB DEFAULT '[]',
+    
+    -- Metadatos
+    is_system_message BOOLEAN DEFAULT FALSE,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla de blog posts
+CREATE TABLE blog_posts (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    content TEXT NOT NULL,
+    excerpt TEXT,
+    author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Categorización
+    category VARCHAR(100) NOT NULL,
+    tags TEXT[] DEFAULT '{}',
+    
+    -- Estado de publicación
+    published BOOLEAN DEFAULT FALSE,
+    published_at TIMESTAMP WITH TIME ZONE,
+    
+    -- SEO
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+    featured_image TEXT,
+    
+    -- Estadísticas
+    view_count INTEGER DEFAULT 0,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Tabla de favoritos
+CREATE TABLE favorites (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+    
+    -- Notas del usuario
+    notes TEXT,
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, property_id)
+);
+
 -- Triggers para actualizar updated_at automáticamente
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_properties_updated_at BEFORE UPDATE ON properties FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_visits_updated_at BEFORE UPDATE ON visits FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_offers_updated_at BEFORE UPDATE ON offers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_financial_analysis_updated_at BEFORE UPDATE ON financial_analysis FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_user_roles_updated_at BEFORE UPDATE ON user_roles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_cases_updated_at BEFORE UPDATE ON cases FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_case_documents_updated_at BEFORE UPDATE ON case_documents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_blog_posts_updated_at BEFORE UPDATE ON blog_posts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Políticas de seguridad RLS (Row Level Security)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -262,6 +403,12 @@ ALTER TABLE offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE financial_analysis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE case_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE favorites ENABLE ROW LEVEL SECURITY;
 
 -- Políticas básicas (ajustar según necesidades)
 CREATE POLICY "Users can view their own data" ON users FOR SELECT USING (auth.uid()::text = id::text);
@@ -281,3 +428,92 @@ CREATE POLICY "Users can update their own notifications" ON notifications FOR UP
 
 CREATE POLICY "Users can view their own financial analysis" ON financial_analysis FOR SELECT USING (auth.uid()::text = user_id::text);
 CREATE POLICY "Users can create financial analysis" ON financial_analysis FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+
+-- Políticas para nuevas tablas
+CREATE POLICY "Users can view their own roles" ON user_roles FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Superadmin can manage all roles" ON user_roles FOR ALL USING (
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND user_type = 'superadmin')
+);
+
+CREATE POLICY "Lawyers can view their assigned cases" ON cases FOR SELECT USING (
+    auth.uid()::text = lawyer_id::text OR 
+    auth.uid()::text = buyer_id::text OR 
+    auth.uid()::text = seller_id::text OR
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND user_type = 'superadmin')
+);
+CREATE POLICY "Lawyers can manage their cases" ON cases FOR ALL USING (
+    auth.uid()::text = lawyer_id::text OR
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND user_type = 'superadmin')
+);
+
+CREATE POLICY "Case participants can view case documents" ON case_documents FOR SELECT USING (
+    EXISTS (
+        SELECT 1 FROM cases c 
+        WHERE c.id = case_documents.case_id 
+        AND (c.lawyer_id = auth.uid() OR c.buyer_id = auth.uid() OR c.seller_id = auth.uid())
+    ) OR
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND user_type = 'superadmin')
+);
+CREATE POLICY "Lawyers can manage case documents" ON case_documents FOR ALL USING (
+    EXISTS (
+        SELECT 1 FROM cases c 
+        WHERE c.id = case_documents.case_id 
+        AND c.lawyer_id = auth.uid()
+    ) OR
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND user_type = 'superadmin')
+);
+
+CREATE POLICY "Case participants can view chat messages" ON chat_messages FOR SELECT USING (
+    auth.uid()::text = sender_id::text OR 
+    auth.uid()::text = receiver_id::text OR
+    EXISTS (
+        SELECT 1 FROM cases c 
+        WHERE c.id = chat_messages.case_id 
+        AND (c.lawyer_id = auth.uid() OR c.buyer_id = auth.uid() OR c.seller_id = auth.uid())
+    ) OR
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND user_type = 'superadmin')
+);
+CREATE POLICY "Case participants can send messages" ON chat_messages FOR INSERT WITH CHECK (
+    auth.uid()::text = sender_id::text AND (
+        auth.uid()::text = receiver_id::text OR
+        EXISTS (
+            SELECT 1 FROM cases c 
+            WHERE c.id = chat_messages.case_id 
+            AND (c.lawyer_id = auth.uid() OR c.buyer_id = auth.uid() OR c.seller_id = auth.uid())
+        )
+    )
+);
+
+CREATE POLICY "Anyone can view published blog posts" ON blog_posts FOR SELECT USING (published = true);
+CREATE POLICY "Authors can manage their blog posts" ON blog_posts FOR ALL USING (auth.uid()::text = author_id::text);
+CREATE POLICY "Superadmin can manage all blog posts" ON blog_posts FOR ALL USING (
+    EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND user_type = 'superadmin')
+);
+
+CREATE POLICY "Users can view their own favorites" ON favorites FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users can manage their own favorites" ON favorites FOR ALL USING (auth.uid()::text = user_id::text);
+
+-- Índices para nuevas tablas
+CREATE INDEX idx_user_roles_user ON user_roles (user_id);
+CREATE INDEX idx_cases_lawyer ON cases (lawyer_id);
+CREATE INDEX idx_cases_buyer ON cases (buyer_id);
+CREATE INDEX idx_cases_seller ON cases (seller_id);
+CREATE INDEX idx_cases_property ON cases (property_id);
+CREATE INDEX idx_cases_status ON cases (status);
+
+CREATE INDEX idx_case_documents_case ON case_documents (case_id);
+CREATE INDEX idx_case_documents_type ON case_documents (document_type);
+CREATE INDEX idx_case_documents_status ON case_documents (status);
+
+CREATE INDEX idx_chat_messages_case ON chat_messages (case_id);
+CREATE INDEX idx_chat_messages_sender ON chat_messages (sender_id);
+CREATE INDEX idx_chat_messages_receiver ON chat_messages (receiver_id);
+CREATE INDEX idx_chat_messages_read ON chat_messages (read);
+
+CREATE INDEX idx_blog_posts_author ON blog_posts (author_id);
+CREATE INDEX idx_blog_posts_category ON blog_posts (category);
+CREATE INDEX idx_blog_posts_published ON blog_posts (published);
+CREATE INDEX idx_blog_posts_slug ON blog_posts (slug);
+
+CREATE INDEX idx_favorites_user ON favorites (user_id);
+CREATE INDEX idx_favorites_property ON favorites (property_id);
