@@ -15,7 +15,7 @@ import {
   Calendar,
   Bell
 } from 'lucide-react';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const LawyerDashboard: React.FC = () => {
   const { user } = useAuth();
