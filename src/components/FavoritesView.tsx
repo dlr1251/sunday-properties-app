@@ -18,7 +18,7 @@ import {
   Eye
 } from 'lucide-react';
 import { PropertyImage } from './PropertyImage';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface FavoriteProperty {
   id: string;
