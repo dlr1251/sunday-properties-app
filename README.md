@@ -1,190 +1,178 @@
-# Sunday Properties - Prototipo Completo
+# 🏠 Sunday Properties
 
-Una plataforma web completa para comprar, vender y negociar propiedades inmobiliarias en Medellín de forma segura, con respaldo legal de abogados.
+Una plataforma inmobiliaria moderna para Medellín, construida con React, TypeScript, Tailwind CSS y Supabase.
 
-## 🎨 Diseño y Estilo
+## ✨ Características
 
-- **Paleta de colores**: Azules profundos (#1E3A8A, #3B82F6), blancos (#FFFFFF), grises claros (#F3F4F6) y acentos verdes (#10B981)
-- **Tipografía**: Sans-serif limpia (Inter)
-- **Componentes**: Cards redondeadas con sombras suaves, botones prominentes con gradientes sutiles
-- **Iconos**: Feather Icons (Lucide React)
-- **Responsive**: Mobile-first design
+- 🏠 **Gestión de propiedades** - Publica, edita y gestiona propiedades
+- 📱 **Diseño responsive** - Mobile-first, optimizado para todos los dispositivos
+- 🔐 **Autenticación segura** - Login con email, Google, Facebook
+- 💰 **Análisis financiero** - Calculadoras de ROI, VPN, IRR
+- 📊 **Dashboard de métricas** - Estadísticas en tiempo real
+- 🗺️ **Integración con mapas** - Visualización geográfica de propiedades
+- 💬 **Sistema de ofertas** - Negociación segura entre compradores y vendedores
+- 📅 **Gestión de visitas** - Programación y seguimiento de visitas
+- 📄 **Contratos digitales** - Generación y firma de contratos
 
-## 🚀 Características Principales
+## 🛠️ Tecnologías
 
-### 1. **Discovery (Descubrir)**
-- Mapa interactivo con pines de propiedades
-- Vista de lista con filtros avanzados
-- Cards de propiedades con información detallada
-- Búsqueda por ubicación y características
-- Filtros por precio, habitaciones, baños, área
+- **Frontend**: React 18, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Despliegue**: Vercel
+- **Base de datos**: PostgreSQL con Row Level Security
+- **Autenticación**: Supabase Auth
+- **Mapas**: Google Maps API
+- **Pagos**: Stripe, PayPal, Crypto
 
-### 2. **Gestión de Propiedades**
-- Wizard de 6 pasos para publicar propiedades:
-  1. Información básica (nombre, ubicación)
-  2. Características (área, habitaciones, baños)
-  3. Fotografías (drag & drop, preview IA)
-  4. Documentos legales (libertad y tradición)
-  5. Condiciones de venta (precio, crypto, financiación)
-  6. Revisión final y publicación
+## 🚀 Setup Rápido
 
-### 3. **Sistema de Visitas**
-- Calendario de booking con fechas disponibles
-- Pago de visita ($49,000 COP)
-- NDA checkbox obligatorio
-- Notificaciones push/email
-- Feedback post-visita
-- Desbloqueo de documentos privados
-
-### 4. **Panel de Negociación**
-- Formulario de ofertas con validaciones
-- Historial de negociaciones con timeline
-- Comparador visual de ofertas
-- Contraofertas con métricas financieras
-- Chat interno con vendedor/abogado
-- Firma digital con resumen PDF
-
-### 5. **Análisis Financiero**
-- Calculadora integrada con métricas:
-  - VPN (Valor Presente Neto)
-  - ROI (Retorno sobre Inversión)
-  - IRR (Tasa Interna de Retorno)
-  - Cash-on-Cash
-  - Cap Rate
-  - DSCR (Debt Service Coverage Ratio)
-- Gráficos interactivos
-- Comparador de propiedades
-- Análisis de riesgo
-
-## 👥 Tipos de Usuario
-
-### **Visitante**
-- Solo mapa/lista pública
-- Blog y highlights
-- Prompt de registro al intentar visitar
-
-### **Registrado**
-- Dashboard preview
-- Favoritos básicos
-
-### **Verificado (Azul)**
-- Todas las funciones
-- Subida de propiedades
-- Visitas y ofertas
-
-### **Verificado Premium (Verde)**
-- Métricas avanzadas
-- Contratos ilimitados
-
-### **SuperAdmin/Agente**
-- Dashboards dedicados
-- Gestión de usuarios
-- Métricas de plataforma
-
-## 🛠️ Tecnologías Utilizadas
-
-- **React 18** con TypeScript
-- **Tailwind CSS** para estilos
-- **shadcn/ui** para componentes
-- **Lucide React** para iconos
-- **Vite** como bundler
-
-## 📱 Responsive Design
-
-- **Mobile**: Bottom navigation, cards apiladas
-- **Tablet**: Layout híbrido con sidebar colapsable
-- **Desktop**: Sidebar fijo, grid layouts
-
-## 🔒 Seguridad y Verificación
-
-- **Badges de verificación**:
-  - Azul: Verificado básico
-  - Verde: Pagos integrados
-- **Timelines de progreso** para transacciones
-- **Comparadores visuales** para transparencia
-- **Firma digital** para contratos
-
-## 💰 Monetización
-
-- **Comisión de plataforma**: 2.5% sobre venta
-- **Visitas**: $49,000 COP por visita
-- **Premium**: Métricas avanzadas y contratos ilimitados
-- **Agentes**: Comisión 1.5%
-
-## 🎯 Flujos Principales
-
-### **Flujo de Compra**
-1. Discovery → Detalle → Visita → Oferta → Negociación → Contrato → Cierre
-
-### **Flujo de Venta**
-1. Upload Wizard → Revisión Admin → Publicación → Visitas → Ofertas → Negociación → Cierre
-
-### **Flujo de Visita**
-1. Selección fecha → Pago → NDA → Visita → Feedback → Desbloqueo documentos
-
-## 🚀 Instalación y Uso
+### Opción 1: Script Automático (Recomendado)
 
 ```bash
-# Instalar dependencias
-npm install
-
-# Ejecutar en desarrollo
-npm run dev
-
-# Construir para producción
-npm run build
+# Ejecutar script de configuración completa
+./setup-complete.sh
 ```
 
-## 📁 Estructura de Componentes
+### Opción 2: Setup Manual
+
+#### 1. Instalar dependencias
+```bash
+npm install
+```
+
+#### 2. Configurar Supabase
+```bash
+# Login en Supabase
+supabase login
+
+# Crear proyecto
+supabase projects create "sunday-properties" --region us-east-1
+
+# Vincular proyecto
+supabase link --project-ref YOUR_PROJECT_REF
+
+# Desplegar esquema
+supabase db push
+```
+
+#### 3. Configurar variables de entorno
+```bash
+# Crear archivo .env.local
+cp env.example .env.local
+
+# Actualizar con tus valores de Supabase
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+#### 4. Desplegar a Vercel
+```bash
+# Login en Vercel
+vercel login
+
+# Desplegar
+vercel --prod
+```
+
+## 📁 Estructura del Proyecto
 
 ```
 src/
-├── components/
-│   ├── Layout.tsx                 # Layout principal con navegación
-│   ├── DiscoveryView.tsx          # Vista de descubrimiento
-│   ├── PropertyDetailView.tsx     # Detalle de propiedad
-│   ├── PropertyUploadWizard.tsx   # Wizard de subida
-│   ├── VisitManagementView.tsx    # Gestión de visitas
-│   ├── NegotiationPanelView.tsx   # Panel de negociación
-│   ├── FinancialAnalysisView.tsx  # Análisis financiero
-│   └── ui/                        # Componentes UI base
-├── styles/
-│   └── globals.css                # Estilos globales y variables CSS
-└── App.tsx                        # Componente principal
+├── components/          # Componentes React
+│   ├── ui/             # Componentes de UI (shadcn)
+│   ├── home/           # Componentes de inicio
+│   ├── real-estate/    # Componentes inmobiliarios
+│   └── ...
+├── hooks/              # Hooks personalizados
+│   └── useSupabase.ts  # Hooks para Supabase
+├── lib/                # Configuración y utilidades
+│   └── supabase.ts     # Cliente Supabase
+├── types/              # Tipos TypeScript
+│   └── database.ts     # Tipos de base de datos
+├── data/               # Datos mock
+│   └── mockData.ts     # Datos de ejemplo
+└── utils/              # Utilidades
+    └── imageUtils.ts   # Utilidades de imágenes
+
+supabase/
+└── schema.sql          # Scripts de base de datos
+
+vercel.json             # Configuración de Vercel
 ```
 
-## 🎨 Personalización
+## 🗄️ Base de Datos
 
-### **Colores**
-Los colores se pueden personalizar en `src/styles/globals.css`:
+### Tablas principales:
+- **users** - Usuarios del sistema
+- **properties** - Propiedades inmobiliarias
+- **visits** - Visitas programadas
+- **offers** - Ofertas de compra
+- **contracts** - Contratos digitales
+- **notifications** - Sistema de notificaciones
+- **financial_analysis** - Análisis financiero
 
-```css
-:root {
-  --primary: #1e3a8a;        /* Azul profundo */
-  --secondary: #3b82f6;      /* Azul medio */
-  --accent: #10b981;         /* Verde acento */
-  --background: #ffffff;      /* Blanco */
-  --muted: #f3f4f6;          /* Gris claro */
-}
+### Políticas de seguridad:
+- Row Level Security (RLS) habilitado
+- Políticas personalizadas por tabla
+- Autenticación requerida para operaciones sensibles
+
+## 🔧 Comandos Útiles
+
+```bash
+# Desarrollo
+npm run dev              # Servidor de desarrollo
+npm run build            # Build de producción
+npm run preview          # Preview de producción
+
+# Supabase
+supabase start           # Iniciar Supabase local
+supabase db push         # Desplegar esquema
+supabase gen types       # Generar tipos TypeScript
+
+# Vercel
+vercel dev               # Desarrollo con Vercel
+vercel --prod            # Desplegar a producción
+vercel env add           # Agregar variable de entorno
+
+# Git
+git add .                # Agregar cambios
+git commit -m "feat: ..." # Commit con mensaje
+git push                 # Subir cambios
 ```
 
-### **Componentes**
-Todos los componentes están construidos con shadcn/ui y son completamente personalizables.
+## 🌐 URLs Importantes
 
-## 🔮 Próximas Características
+- **GitHub**: https://github.com/dlr1251/sunday-properties-app
+- **Vercel**: (Se genera automáticamente)
+- **Supabase Dashboard**: (Tu proyecto específico)
 
-- [ ] Integración con Google Maps
-- [ ] Sistema de pagos con crypto
-- [ ] Chat en tiempo real
-- [ ] Notificaciones push
-- [ ] App móvil nativa
-- [ ] IA para análisis de documentos
-- [ ] Tours virtuales 360°
+## 📚 Documentación
 
-## 📞 Soporte
+- [Guía de Despliegue](DEPLOYMENT.md) - Instrucciones detalladas
+- [Supabase Docs](https://supabase.com/docs) - Documentación oficial
+- [Vercel Docs](https://vercel.com/docs) - Documentación de Vercel
 
-Para soporte técnico o consultas sobre el desarrollo, contacta al equipo de desarrollo.
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
+
+## 🆘 Soporte
+
+Si tienes problemas:
+
+1. Revisa los logs en Vercel
+2. Verifica la configuración en Supabase
+3. Consulta la documentación oficial
+4. Abre un issue en GitHub
 
 ---
 
-**Sunday Properties** - Conectando compradores, vendedores e intermediarios con herramientas seguras y eficientes para el mercado inmobiliario de Medellín.
+**¡Sunday Properties está listo para revolucionar el mercado inmobiliario en Medellín! 🚀**
