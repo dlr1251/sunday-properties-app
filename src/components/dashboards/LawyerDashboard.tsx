@@ -16,6 +16,8 @@ import {
   Bell
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { CaseManager } from '../lawyer/CaseManager';
+import { ChatPanel } from '../chat/ChatPanel';
 
 export const LawyerDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -215,56 +217,7 @@ export const LawyerDashboard: React.FC = () => {
 
         {/* Cases Tab */}
         <TabsContent value="cases" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Casos Asignados</h2>
-            <Button>
-              <Briefcase className="mr-2 h-4 w-4" />
-              Nuevo Caso
-            </Button>
-          </div>
-
-          <div className="grid gap-4">
-            {cases.map((caseItem) => (
-              <Card key={caseItem.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-semibold">{caseItem.title}</h3>
-                        {getStatusBadge(caseItem.status)}
-                        {getPriorityBadge(caseItem.priority)}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {caseItem.caseNumber}
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <Users className="h-4 w-4" />
-                          <span>{caseItem.buyer} → {caseItem.seller}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <FileText className="h-4 w-4" />
-                          <span>{caseItem.documents} documentos</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{caseItem.lastActivity}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        Ver Detalles
-                      </Button>
-                      <Button size="sm">
-                        Abrir Chat
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CaseManager />
         </TabsContent>
 
         {/* Notifications Tab */}
@@ -310,43 +263,8 @@ export const LawyerDashboard: React.FC = () => {
 
         {/* Messages Tab */}
         <TabsContent value="messages" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Mensajes Recientes</h2>
-            <Button>
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Nuevo Mensaje
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {recentMessages.map((message) => (
-              <Card key={message.id} className={message.unread ? 'border-blue-200 bg-blue-50/50' : ''}>
-                <CardContent className="p-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                      <Users className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-medium">{message.sender}</h3>
-                        {message.unread && (
-                          <Badge variant="destructive" className="text-xs">Nuevo</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {message.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {message.time}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Responder
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="h-[600px]">
+            <ChatPanel />
           </div>
         </TabsContent>
       </Tabs>
