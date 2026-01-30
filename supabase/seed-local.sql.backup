@@ -1,0 +1,63 @@
+-- Seed data for local development
+-- Run this after creating auth users and profiles
+
+-- Get user IDs (these need to match the auth users created)
+-- Note: Replace these UUIDs with actual user IDs from your auth.users table
+
+-- Insert profiles for auth users (linking by email) with correct roles
+INSERT INTO public.profiles (id, email, full_name, role, status, verification_status)
+SELECT
+  au.id,
+  au.email,
+  COALESCE(au.raw_user_meta_data->>'full_name', au.email),
+  CASE
+    WHEN au.email = 'superadmin@sunday.local' THEN 'super_admin'
+    WHEN au.email IN ('admin@sunday.local', 'admin1@sunday.local') THEN 'admin'
+    WHEN au.email IN ('lawyer1@sunday.local', 'lawyer2@sunday.local', 'lawyer3@sunday.local') THEN 'lawyer'
+    WHEN au.email IN ('agent1@sunday.local', 'agent2@sunday.local', 'premium1@sunday.local', 'premium2@sunday.local') THEN 'agent'
+    WHEN au.email IN ('verified1@sunday.local', 'verified2@sunday.local') THEN 'user'
+    WHEN au.email IN ('registered1@sunday.local', 'registered2@sunday.local', 'user1@sunday.local', 'user2@sunday.local', 'user3@sunday.local') THEN 'user'
+    ELSE 'user'
+  END,
+  'active',
+  CASE
+    WHEN au.email IN ('superadmin@sunday.local', 'admin@sunday.local', 'admin1@sunday.local', 'lawyer1@sunday.local', 'lawyer2@sunday.local', 'lawyer3@sunday.local', 'agent1@sunday.local', 'agent2@sunday.local', 'premium1@sunday.local', 'premium2@sunday.local', 'verified1@sunday.local', 'verified2@sunday.local') THEN 'verified'
+    ELSE 'unverified'
+  END
+FROM auth.users au
+WHERE au.email LIKE '%@sunday.local'
+ON CONFLICT (id) DO UPDATE SET
+  email = EXCLUDED.email,
+  full_name = EXCLUDED.full_name,
+  role = EXCLUDED.role,
+  verification_status = EXCLUDED.verification_status;
+
+-- Insert sample properties (3 properties for simplicity) - only if we have users
+DO $$
+DECLARE
+    user1_id UUID;
+    user2_id UUID;
+    agent_id UUID;
+BEGIN
+    -- Get some user IDs
+    SELECT id INTO user1_id FROM auth.users WHERE email = 'user1@sunday.local' LIMIT 1;
+    SELECT id INTO user2_id FROM auth.users WHERE email = 'user2@sunday.local' LIMIT 1;
+    SELECT id INTO agent_id FROM auth.users WHERE email = 'agent1@sunday.local' LIMIT 1;
+
+    -- Only insert properties if we have the required users
+    IF user1_id IS NOT NULL AND user2_id IS NOT NULL AND agent_id IS NOT NULL THEN
+        INSERT INTO public.properties (
+          title, description, address, neighborhood, city, coordinates,
+          bedrooms, bathrooms, area, parking, property_type, strata,
+          price, minimum_offer_price, monthly_costs, owner_id, agent_id,
+          status, verified, images, features
+        ) VALUES
+        ('Apartamento Ejecutivo Chapinero', 'Hermoso apartamento completamente remodelado en el corazón de Chapinero', 'Calle 67 #12-34', 'Chapinero', 'Bogotá', '[-74.0636, 4.6483]'::jsonb, 3, 2, 120, 1, 'apartment', 4, 650000000, 600000000, 180000, user1_id, agent_id, 'published', true, '{"https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800"}', '{"Piscina", "Gimnasio"}'),
+
+        ('Penthouse Zona G', 'Exclusivo penthouse con terraza privada y vista panorámica', 'Carrera 7 #85-20', 'Zona G', 'Bogotá', '[-74.0676, 4.6583]'::jsonb, 4, 3, 200, 2, 'apartment', 5, 1200000000, 1100000000, 350000, user2_id, agent_id, 'published', true, '{"https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800"}', '{"Terraza privada", "Vista panorámica"}'),
+
+        ('Casa Moderna Usaquén', 'Casa contemporánea con jardín y piscina', 'Calle 120 #15-45', 'Usaquén', 'Bogotá', '[-74.0336, 4.6783]'::jsonb, 4, 4, 350, 2, 'house', null, 1800000000, 1700000000, 450000, user1_id, agent_id, 'published', true, '{"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800"}', '{"Jardín", "Piscina"}');
+    END IF;
+END $$;
+
+-- Seed completed successfully with basic data!

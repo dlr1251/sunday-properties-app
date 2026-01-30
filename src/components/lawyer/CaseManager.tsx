@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Briefcase, 
   FileText, 
@@ -18,127 +18,31 @@ import {
   MapPin
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-
-interface Case {
-  id: string;
-  lawyer_id: string;
-  buyer_id: string;
-  seller_id: string;
-  property_id: string;
-  status: 'active' | 'closed' | 'pending';
-  created_at: string;
-  updated_at: string;
-  buyer_name: string;
-  seller_name: string;
-  property_title: string;
-  property_address: string;
-  property_price: number;
-  documents: CaseDocument[];
-}
-
-interface CaseDocument {
-  id: string;
-  case_id: string;
-  document_type: 'promesa' | 'otrosi' | 'oferta' | 'escritura' | 'legal';
-  document_url: string;
-  signed_by: string | null;
-  signed_at: string | null;
-  status: 'draft' | 'pending_signature' | 'signed' | 'completed';
-  created_at: string;
-  title: string;
-  description: string;
-}
+import { useCases } from '../../hooks/useCases';
+import { Case, CaseDocument } from '../../lib/db/repositories/cases.repo';
+import { ChatWindow } from '../chat/ChatWindow';
+import { useNavigate } from 'react-router-dom';
 
 export const CaseManager: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { cases, loading, error, getCaseDocuments } = useCases();
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
+  const [caseDocuments, setCaseDocuments] = useState<CaseDocument[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [caseConversationId, setCaseConversationId] = useState<string | null>(null);
 
-  // Mock data - in real app this would come from Supabase
-  const mockCases: Case[] = [
-    {
-      id: 'case-1',
-      lawyer_id: user?.id || '',
-      buyer_id: 'user-6',
-      seller_id: 'user-5',
-      property_id: 'prop-1',
-      status: 'active',
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-20T14:30:00Z',
-      buyer_name: 'Laura Fernández',
-      seller_name: 'Pedro Sánchez',
-      property_title: 'Apartamento en El Poblado',
-      property_address: 'Carrera 43A #5-15, El Poblado, Medellín',
-      property_price: 380000000,
-      documents: [
-        {
-          id: 'doc-1',
-          case_id: 'case-1',
-          document_type: 'promesa',
-          document_url: '/documents/promesa-case-1.pdf',
-          signed_by: 'user-5',
-          signed_at: '2024-01-18T16:00:00Z',
-          status: 'signed',
-          created_at: '2024-01-16T09:00:00Z',
-          title: 'Promesa de Compraventa - Apartamento El Poblado',
-          description: 'Documento principal de la promesa de compraventa entre Laura Fernández y Pedro Sánchez'
-        },
-        {
-          id: 'doc-2',
-          case_id: 'case-1',
-          document_type: 'otrosi',
-          document_url: '/documents/otrosi-case-1.pdf',
-          signed_by: null,
-          signed_at: null,
-          status: 'pending_signature',
-          created_at: '2024-01-19T11:00:00Z',
-          title: 'Otrosí - Modificación de Plazos',
-          description: 'Modificación de los plazos de pago acordados en la promesa original'
-        }
-      ]
-    },
-    {
-      id: 'case-2',
-      lawyer_id: user?.id || '',
-      buyer_id: 'user-4',
-      seller_id: 'user-7',
-      property_id: 'prop-2',
-      status: 'active',
-      created_at: '2024-01-10T08:00:00Z',
-      updated_at: '2024-01-22T12:00:00Z',
-      buyer_name: 'Ana Gómez',
-      seller_name: 'Roberto Torres',
-      property_title: 'Casa en Laureles',
-      property_address: 'Calle 70 #45-23, Laureles, Medellín',
-      property_price: 520000000,
-      documents: [
-        {
-          id: 'doc-3',
-          case_id: 'case-2',
-          document_type: 'promesa',
-          document_url: '/documents/promesa-case-2.pdf',
-          signed_by: null,
-          signed_at: null,
-          status: 'draft',
-          created_at: '2024-01-20T14:00:00Z',
-          title: 'Promesa de Compraventa - Casa Laureles',
-          description: 'Borrador de la promesa de compraventa entre Ana Gómez y Roberto Torres'
-        },
-        {
-          id: 'doc-4',
-          case_id: 'case-2',
-          document_type: 'oferta',
-          document_url: '/documents/oferta-case-2.pdf',
-          signed_by: 'user-4',
-          signed_at: '2024-01-15T10:30:00Z',
-          status: 'signed',
-          created_at: '2024-01-12T15:00:00Z',
-          title: 'Oferta de Compra - Casa Laureles',
-          description: 'Oferta inicial de compra presentada por Ana Gómez'
-        }
-      ]
+  // Fetch documents when a case is selected
+  React.useEffect(() => {
+    if (selectedCase) {
+      setLoadingDocuments(true);
+      getCaseDocuments(selectedCase.id).then((docs) => {
+        setCaseDocuments(docs);
+        setLoadingDocuments(false);
+      });
     }
-  ];
+  }, [selectedCase, getCaseDocuments]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -199,7 +103,7 @@ export const CaseManager: React.FC = () => {
           </p>
         </div>
         <Badge variant="outline" className="text-sm">
-          {mockCases.length} casos activos
+          {cases.length} casos activos
         </Badge>
       </div>
 
@@ -214,7 +118,18 @@ export const CaseManager: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {mockCases.map((caseItem) => (
+              {loading ? (
+                <div className="text-center p-4">
+                  <Clock className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Cargando casos...</p>
+                </div>
+              ) : cases.length === 0 ? (
+                <div className="text-center p-4">
+                  <AlertCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">No tienes casos asignados</p>
+                </div>
+              ) : (
+                cases.map((caseItem) => (
                 <div
                   key={caseItem.id}
                   className={`p-4 rounded-lg border cursor-pointer transition-colors ${
@@ -225,7 +140,7 @@ export const CaseManager: React.FC = () => {
                   onClick={() => setSelectedCase(caseItem)}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-sm">{caseItem.property_title}</h3>
+                    <h3 className="font-semibold text-sm">{caseItem.property?.title || 'Propiedad sin título'}</h3>
                     <Badge className={getStatusColor(caseItem.status)}>
                       {caseItem.status}
                     </Badge>
@@ -233,15 +148,15 @@ export const CaseManager: React.FC = () => {
                   <div className="space-y-1 text-xs text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Users className="h-3 w-3" />
-                      <span>{caseItem.buyer_name} → {caseItem.seller_name}</span>
+                      <span>{caseItem.buyer?.full_name || 'Comprador'} → {caseItem.seller?.full_name || 'Vendedor'}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <MapPin className="h-3 w-3" />
-                      <span>{caseItem.property_address}</span>
+                      <span>{caseItem.property?.address || 'Dirección no disponible'}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <DollarSign className="h-3 w-3" />
-                      <span>{formatPrice(caseItem.property_price)}</span>
+                      <span>{caseItem.property?.price ? formatPrice(caseItem.property.price) : 'Precio no disponible'}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-3 w-3" />
@@ -250,14 +165,15 @@ export const CaseManager: React.FC = () => {
                   </div>
                   <div className="mt-2 flex items-center space-x-2">
                     <Badge variant="outline" className="text-xs">
-                      {caseItem.documents.length} documentos
+                      {caseDocuments.filter(doc => doc.case_id === caseItem.id).length} documentos
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {caseItem.documents.filter(doc => doc.status === 'pending_signature').length} pendientes
+                      {caseDocuments.filter(doc => doc.case_id === caseItem.id && doc.status === 'pending_signature').length} pendientes
                     </Badge>
                   </div>
                 </div>
-              ))}
+              ))
+              )}
             </CardContent>
           </Card>
         </div>
@@ -271,10 +187,10 @@ export const CaseManager: React.FC = () => {
                   <div>
                     <CardTitle className="flex items-center space-x-2">
                       <Home className="h-5 w-5" />
-                      <span>{selectedCase.property_title}</span>
+                      <span>{selectedCase.property?.title || 'Propiedad sin título'}</span>
                     </CardTitle>
                     <CardDescription className="mt-2">
-                      {selectedCase.property_address}
+                      {selectedCase.property?.address || 'Dirección no disponible'}
                     </CardDescription>
                   </div>
                   <Badge className={getStatusColor(selectedCase.status)}>
@@ -284,11 +200,12 @@ export const CaseManager: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="overview">Resumen</TabsTrigger>
                     <TabsTrigger value="documents">Documentos</TabsTrigger>
                     <TabsTrigger value="timeline">Timeline</TabsTrigger>
                     <TabsTrigger value="parties">Partes</TabsTrigger>
+                    <TabsTrigger value="chat">Chat</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-4">
@@ -302,7 +219,7 @@ export const CaseManager: React.FC = () => {
                           </div>
                           <div className="flex justify-between">
                             <span>Precio:</span>
-                            <span className="font-semibold">{formatPrice(selectedCase.property_price)}</span>
+                            <span className="font-semibold">{selectedCase.property?.price ? formatPrice(selectedCase.property.price) : 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Creado:</span>
@@ -319,24 +236,24 @@ export const CaseManager: React.FC = () => {
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span>Total documentos:</span>
-                            <span>{selectedCase.documents.length}</span>
+                            <span>{caseDocuments.length}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Firmados:</span>
                             <span className="text-green-600">
-                              {selectedCase.documents.filter(doc => doc.status === 'signed').length}
+                              {caseDocuments.filter(doc => doc.status === 'signed').length}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span>Pendientes:</span>
                             <span className="text-yellow-600">
-                              {selectedCase.documents.filter(doc => doc.status === 'pending_signature').length}
+                              {caseDocuments.filter(doc => doc.status === 'pending_signature').length}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span>Borradores:</span>
                             <span className="text-blue-600">
-                              {selectedCase.documents.filter(doc => doc.status === 'draft').length}
+                              {caseDocuments.filter(doc => doc.status === 'draft').length}
                             </span>
                           </div>
                         </div>
@@ -346,7 +263,18 @@ export const CaseManager: React.FC = () => {
 
                   <TabsContent value="documents" className="space-y-4">
                     <div className="space-y-3">
-                      {selectedCase.documents.map((document) => (
+                      {loadingDocuments ? (
+                        <div className="text-center p-4">
+                          <Clock className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">Cargando documentos...</p>
+                        </div>
+                      ) : caseDocuments.length === 0 ? (
+                        <div className="text-center p-4">
+                          <AlertCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">No hay documentos para este caso</p>
+                        </div>
+                      ) : (
+                        caseDocuments.map((document) => (
                         <div key={document.id} className="flex items-center justify-between p-4 border rounded-lg">
                           <div className="flex items-center space-x-3">
                             {getDocumentTypeIcon(document.document_type)}
@@ -382,13 +310,14 @@ export const CaseManager: React.FC = () => {
                             )}
                           </div>
                         </div>
-                      ))}
+                      ))
+                      )}
                     </div>
                   </TabsContent>
 
                   <TabsContent value="timeline" className="space-y-4">
                     <div className="space-y-4">
-                      {selectedCase.documents.map((document, index) => (
+                      {caseDocuments.map((document, index) => (
                         <div key={document.id} className="flex items-start space-x-3">
                           <div className="flex-shrink-0">
                             <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
@@ -427,8 +356,11 @@ export const CaseManager: React.FC = () => {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-2">
-                            <div className="font-semibold">{selectedCase.buyer_name}</div>
-                            <div className="text-sm text-muted-foreground">ID: {selectedCase.buyer_id}</div>
+                            <div className="font-semibold">{selectedCase.buyer?.full_name || 'Comprador'}</div>
+                            <div className="text-sm text-muted-foreground">Email: {selectedCase.buyer?.email || 'N/A'}</div>
+                            {selectedCase.buyer?.phone && (
+                              <div className="text-sm text-muted-foreground">Tel: {selectedCase.buyer.phone}</div>
+                            )}
                             <Badge variant="outline" className="text-xs">Comprador</Badge>
                           </div>
                         </CardContent>
@@ -439,12 +371,31 @@ export const CaseManager: React.FC = () => {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-2">
-                            <div className="font-semibold">{selectedCase.seller_name}</div>
-                            <div className="text-sm text-muted-foreground">ID: {selectedCase.seller_id}</div>
+                            <div className="font-semibold">{selectedCase.seller?.full_name || 'Vendedor'}</div>
+                            <div className="text-sm text-muted-foreground">Email: {selectedCase.seller?.email || 'N/A'}</div>
+                            {selectedCase.seller?.phone && (
+                              <div className="text-sm text-muted-foreground">Tel: {selectedCase.seller.phone}</div>
+                            )}
                             <Badge variant="outline" className="text-xs">Vendedor</Badge>
                           </div>
                         </CardContent>
                       </Card>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="chat" className="space-y-4">
+                    <div className="h-[500px]">
+                      <Button
+                        onClick={() => navigate(`/messages?caseId=${selectedCase.id}`)}
+                        className="w-full mb-4"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Abrir Chat del Caso
+                      </Button>
+                      <p className="text-sm text-muted-foreground text-center">
+                        El chat del caso permite la comunicación entre el abogado, comprador y vendedor.
+                        Haz clic en el botón de arriba para abrir la ventana de chat completa.
+                      </p>
                     </div>
                   </TabsContent>
                 </Tabs>

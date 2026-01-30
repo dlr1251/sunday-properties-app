@@ -1,0 +1,41 @@
+-- Admin Management RLS Policies
+-- Allow SuperAdmin to manage admin roles
+
+-- First, ensure we have the right policies for profiles table
+-- Drop existing conflicting policies
+DROP POLICY IF EXISTS "SuperAdmin can manage admin roles" ON profiles;
+DROP POLICY IF EXISTS "SuperAdmin can update admin roles" ON profiles;
+
+-- SuperAdmin can update admin roles (promote/demote admins)
+CREATE POLICY "SuperAdmin can manage admin roles" ON profiles
+  FOR UPDATE USING (
+    -- Allow SuperAdmin to update admin roles
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+      AND p.role = 'super_admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+      AND p.role = 'super_admin'
+    )
+  );
+
+-- SuperAdmin can create new admin accounts
+CREATE POLICY "SuperAdmin can create admin accounts" ON profiles
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+      AND p.role = 'super_admin'
+    )
+  );
+
+-- Ensure audit logging for admin role changes
+-- This will be handled by the existing audit trigger
+
+COMMENT ON POLICY "SuperAdmin can manage admin roles" ON profiles IS 'Allows SuperAdmin to promote/demote admin users';
+COMMENT ON POLICY "SuperAdmin can create admin accounts" ON profiles IS 'Allows SuperAdmin to create new admin accounts';

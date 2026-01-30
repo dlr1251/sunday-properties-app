@@ -1,189 +1,208 @@
-"use client";
+import React, { useState, useRef, useEffect, createContext, useContext } from 'react';
+import { ChevronDown, Check } from 'lucide-react';
 
-import * as React from "react";
-import * as SelectPrimitive from "@radix-ui/react-select@2.1.6";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from "lucide-react@0.487.0";
-
-import { cn } from "./utils";
-
-function Select({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />;
+interface SelectContextType {
+  value: string;
+  onValueChange: (value: string) => void;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  triggerRef: React.RefObject<HTMLDivElement>;
+  displayText: string;
 }
 
-function SelectGroup({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Group>) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />;
+const SelectContext = createContext<SelectContextType | undefined>(undefined);
+
+interface SelectProps {
+  value: string;
+  onValueChange: (value: string) => void;
+  children: React.ReactNode;
 }
 
-function SelectValue({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
-}
+// Simple mapping for common values - can be extended
+const valueToDisplayText: Record<string, string> = {
+  // User roles
+  user: 'Comprador / Vendedor',
+  agent: 'Agente Inmobiliario',
+  lawyer: 'Abogado',
+  // Lead sources
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  google: 'Google Search',
+  real_estate_website: 'Sitio web inmobiliario',
+  friend_referral: 'Referencia de amigo',
+  agent_referral: 'Referencia de agente',
+  other: 'Otro',
+};
 
-function SelectTrigger({
-  className,
-  size = "default",
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  size?: "sm" | "default";
-}) {
+export const Select: React.FC<SelectProps> = ({ value, onValueChange, children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const displayText = value ? (valueToDisplayText[value] || value) : '';
+
   return (
-    <SelectPrimitive.Trigger
-      data-slot="select-trigger"
-      data-size={size}
-      className={cn(
-        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-full items-center justify-between gap-2 rounded-md border bg-input-background px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
-      </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
+    <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, triggerRef, displayText }}>
+      <div className="relative">
+        {children}
+      </div>
+    </SelectContext.Provider>
   );
-}
+};
 
-function SelectContent({
-  className,
-  children,
-  position = "popper",
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Content
-        data-slot="select-content"
-        className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
-          position === "popper" &&
-            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+export const SelectTrigger = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className = '', children, ...props }, ref) => {
+    const context = useContext(SelectContext);
+    if (!context) throw new Error('SelectTrigger must be used within Select');
+
+    return (
+      <div
+        ref={context.triggerRef}
+        className={[
+          // Base styles
+          'flex h-10 w-full items-center justify-between rounded-lg px-3 py-2',
+          // Border and background
+          'border border-input bg-background',
+          // Typography
+          'text-sm',
+          // Interactive states
+          'cursor-pointer',
+          'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          // Disabled state
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          // Transition
+          'transition-colors duration-200',
           className,
-        )}
-        position={position}
+        ].filter(Boolean).join(' ')}
+        onClick={() => context.setIsOpen(!context.isOpen)}
+        tabIndex={0}
+        role="combobox"
+        aria-expanded={context.isOpen}
         {...props}
       >
-        <SelectScrollUpButton />
-        <SelectPrimitive.Viewport
-          className={cn(
-            "p-1",
-            position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1",
-          )}
-        >
-          {children}
-        </SelectPrimitive.Viewport>
-        <SelectScrollDownButton />
-      </SelectPrimitive.Content>
-    </SelectPrimitive.Portal>
-  );
+        {children}
+        <ChevronDown 
+          className={[
+            'h-4 w-4 opacity-50',
+            'transition-transform duration-200 ease-out',
+            context.isOpen ? 'rotate-180' : '',
+          ].join(' ')} 
+        />
+      </div>
+    );
+  }
+);
+SelectTrigger.displayName = 'SelectTrigger';
+
+interface SelectValueProps {
+  placeholder?: string;
 }
 
-function SelectLabel({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Label>) {
+export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
+  const context = useContext(SelectContext);
+  if (!context) throw new Error('SelectValue must be used within Select');
+
   return (
-    <SelectPrimitive.Label
-      data-slot="select-label"
-      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
-      {...props}
-    />
+    <span className={context.displayText ? 'text-foreground' : 'text-muted-foreground'}>
+      {context.displayText || placeholder}
+    </span>
   );
-}
-
-function SelectItem({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
-  return (
-    <SelectPrimitive.Item
-      data-slot="select-item"
-      className={cn(
-        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        className,
-      )}
-      {...props}
-    >
-      <span className="absolute right-2 flex size-3.5 items-center justify-center">
-        <SelectPrimitive.ItemIndicator>
-          <CheckIcon className="size-4" />
-        </SelectPrimitive.ItemIndicator>
-      </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
-  );
-}
-
-function SelectSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
-  return (
-    <SelectPrimitive.Separator
-      data-slot="select-separator"
-      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
-      {...props}
-    />
-  );
-}
-
-function SelectScrollUpButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
-  return (
-    <SelectPrimitive.ScrollUpButton
-      data-slot="select-scroll-up-button"
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        className,
-      )}
-      {...props}
-    >
-      <ChevronUpIcon className="size-4" />
-    </SelectPrimitive.ScrollUpButton>
-  );
-}
-
-function SelectScrollDownButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
-  return (
-    <SelectPrimitive.ScrollDownButton
-      data-slot="select-scroll-down-button"
-      className={cn(
-        "flex cursor-default items-center justify-center py-1",
-        className,
-      )}
-      {...props}
-    >
-      <ChevronDownIcon className="size-4" />
-    </SelectPrimitive.ScrollDownButton>
-  );
-}
-
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
 };
+
+export const SelectContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className = '', children, ...props }, ref) => {
+    const context = useContext(SelectContext);
+    if (!context) throw new Error('SelectContent must be used within Select');
+
+    if (!context.isOpen) return null;
+
+    return (
+      <div
+        ref={ref}
+        className={[
+          // Positioning
+          'absolute top-full left-0 right-0 z-50 mt-1',
+          // Appearance
+          'rounded-lg border border-border bg-popover text-popover-foreground',
+          // Shadow
+          'shadow-elevated',
+          // Scrolling
+          'max-h-60 overflow-auto',
+          // Animation
+          'animate-fade-in',
+          // Custom scrollbar
+          'scrollbar-thin',
+          className,
+        ].filter(Boolean).join(' ')}
+        role="listbox"
+        {...props}
+      >
+        <div className="p-1">
+          {children}
+        </div>
+      </div>
+    );
+  }
+);
+SelectContent.displayName = 'SelectContent';
+
+interface SelectItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  value: string;
+}
+
+export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
+  ({ value, className = '', children, onClick, ...props }, ref) => {
+    const context = useContext(SelectContext);
+    if (!context) throw new Error('SelectItem must be used within Select');
+
+    const isSelected = context.value === value;
+
+    return (
+      <div
+        ref={ref}
+        className={[
+          // Base styles
+          'relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-2',
+          // Typography
+          'text-sm',
+          // Interactive states
+          'outline-none',
+          'hover:bg-accent hover:text-accent-foreground',
+          'focus:bg-accent focus:text-accent-foreground',
+          // Selected state
+          isSelected ? 'bg-accent/50 font-medium' : '',
+          // Transition
+          'transition-colors duration-150',
+          className,
+        ].filter(Boolean).join(' ')}
+        onClick={(e) => {
+          context.onValueChange(value);
+          context.setIsOpen(false);
+          onClick?.(e);
+        }}
+        role="option"
+        aria-selected={isSelected}
+        {...props}
+      >
+        {/* Check icon for selected state */}
+        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+          {isSelected && <Check className="h-4 w-4" />}
+        </span>
+        {children}
+      </div>
+    );
+  }
+);
+SelectItem.displayName = 'SelectItem';
+
+

@@ -1,257 +1,330 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Switch } from './ui/switch';
+import { Badge } from './ui/badge';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "./ui/dialog";
-import { Card, CardContent } from "./ui/card";
-import { Switch } from "./ui/switch";
-import { Badge } from "./ui/badge";
-import { Clock, Calendar as CalendarIcon, Plus, X } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+  Clock,
+  Plus,
+  X,
+  Save,
+  Calendar,
+  AlertCircle
+} from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
+
+interface AvailabilitySlot {
+  id?: string;
+  weekday: number; // 0 = Sunday, 6 = Saturday
+  start_time: string;
+  end_time: string;
+  exceptions?: any[];
+}
 
 interface PropertyAvailabilitySettingsProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  propertyTitle: string;
+  propertyId?: string;
+  onSave?: () => void;
 }
 
-interface DaySchedule {
-  day: string;
-  enabled: boolean;
-  slots: string[];
-}
-
-const initialSchedule: DaySchedule[] = [
-  { day: "Lunes", enabled: true, slots: ["09:00 AM - 12:00 PM", "02:00 PM - 05:00 PM"] },
-  { day: "Martes", enabled: true, slots: ["09:00 AM - 12:00 PM", "02:00 PM - 05:00 PM"] },
-  { day: "Miércoles", enabled: true, slots: ["09:00 AM - 12:00 PM", "02:00 PM - 05:00 PM"] },
-  { day: "Jueves", enabled: true, slots: ["09:00 AM - 12:00 PM", "02:00 PM - 05:00 PM"] },
-  { day: "Viernes", enabled: true, slots: ["09:00 AM - 12:00 PM", "02:00 PM - 05:00 PM"] },
-  { day: "Sábado", enabled: true, slots: ["10:00 AM - 02:00 PM"] },
-  { day: "Domingo", enabled: false, slots: [] },
+const weekdays = [
+  { value: 1, label: 'Lunes' },
+  { value: 2, label: 'Martes' },
+  { value: 3, label: 'Miércoles' },
+  { value: 4, label: 'Jueves' },
+  { value: 5, label: 'Viernes' },
+  { value: 6, label: 'Sábado' },
+  { value: 0, label: 'Domingo' }
 ];
 
-const timeOptions = [
-  "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
-  "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM"
-];
+export const PropertyAvailabilitySettings: React.FC<PropertyAvailabilitySettingsProps> = ({
+  propertyId,
+  onSave
+}) => {
+  const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [newSlot, setNewSlot] = useState({
+    weekday: 1,
+    start_time: '09:00',
+    end_time: '17:00'
+  });
 
-export function PropertyAvailabilitySettings({
-  open,
-  onOpenChange,
-  propertyTitle,
-}: PropertyAvailabilitySettingsProps) {
-  const [schedule, setSchedule] = useState<DaySchedule[]>(initialSchedule);
-  const [visitDuration, setVisitDuration] = useState(60); // minutes
-  const [maxVisitsPerDay, setMaxVisitsPerDay] = useState(5);
-  const [advanceBooking, setAdvanceBooking] = useState(24); // hours
+  const fetchAvailability = async () => {
+    // Validar que propertyId existe antes de hacer la consulta
+    if (!propertyId) {
+      console.warn('PropertyAvailabilitySettings: propertyId is undefined');
+      setLoading(false);
+      return;
+    }
 
-  const toggleDay = (index: number) => {
-    const newSchedule = [...schedule];
-    newSchedule[index].enabled = !newSchedule[index].enabled;
-    setSchedule(newSchedule);
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('property_availability')
+        .select('*')
+        .eq('property_id', propertyId)
+        .order('weekday', { ascending: true });
+
+      if (error) throw error;
+      setAvailability(data || []);
+    } catch (error: any) {
+      toast.error('Error cargando disponibilidad: ' + error.message);
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const addTimeSlot = (dayIndex: number) => {
-    const newSchedule = [...schedule];
-    newSchedule[dayIndex].slots.push("09:00 AM - 10:00 AM");
-    setSchedule(newSchedule);
+  const saveAvailability = async () => {
+    // Validar que propertyId existe antes de guardar
+    if (!propertyId) {
+      toast.error('No se puede guardar: ID de propiedad no válido');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Delete existing slots
+      const { error: deleteError } = await supabase
+        .from('property_availability')
+        .delete()
+        .eq('property_id', propertyId);
+
+      if (deleteError) throw deleteError;
+
+      // Insert new slots
+      if (availability.length > 0) {
+        const { error: insertError } = await supabase
+          .from('property_availability')
+          .insert(
+            availability.map(slot => ({
+              property_id: propertyId,
+              weekday: slot.weekday,
+              start_time: slot.start_time,
+              end_time: slot.end_time,
+              exceptions: slot.exceptions || []
+            }))
+          );
+
+        if (insertError) throw insertError;
+      }
+
+      toast.success('Disponibilidad guardada correctamente');
+      onSave?.();
+    } catch (error: any) {
+      toast.error('Error guardando disponibilidad: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const removeTimeSlot = (dayIndex: number, slotIndex: number) => {
-    const newSchedule = [...schedule];
-    newSchedule[dayIndex].slots.splice(slotIndex, 1);
-    setSchedule(newSchedule);
+  const addSlot = () => {
+    // Check if slot already exists for this weekday
+    const exists = availability.some(slot => slot.weekday === newSlot.weekday);
+    if (exists) {
+      toast.error('Ya existe un horario para este día');
+      return;
+    }
+
+    setAvailability(prev => [...prev, { ...newSlot }]);
+    setNewSlot({
+      weekday: 1,
+      start_time: '09:00',
+      end_time: '17:00'
+    });
   };
 
-  const handleSave = () => {
-    toast.success("Disponibilidad actualizada exitosamente");
-    onOpenChange(false);
+  const removeSlot = (index: number) => {
+    setAvailability(prev => prev.filter((_, i) => i !== index));
   };
 
-  const applyToAll = () => {
-    const mondaySlots = schedule[0].slots;
-    const newSchedule = schedule.map((day, index) => ({
-      ...day,
-      slots: index === 6 ? day.slots : [...mondaySlots], // Don't apply to Sunday
-      enabled: index === 6 ? day.enabled : true,
-    }));
-    setSchedule(newSchedule);
-    toast.success("Horario de lunes aplicado a todos los días");
+  const updateSlot = (index: number, field: keyof AvailabilitySlot, value: any) => {
+    setAvailability(prev => prev.map((slot, i) =>
+      i === index ? { ...slot, [field]: value } : slot
+    ));
   };
+
+  const getWeekdayLabel = (weekday: number) => {
+    return weekdays.find(w => w.value === weekday)?.label || 'Desconocido';
+  };
+
+  const getWeekdaySlots = (weekday: number) => {
+    return availability.filter(slot => slot.weekday === weekday);
+  };
+
+  useEffect(() => {
+    if (propertyId) {
+      fetchAvailability();
+    } else {
+      setLoading(false);
+    }
+  }, [propertyId]);
+
+  if (!propertyId) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">
+            <AlertCircle className="h-6 w-6 mx-auto mb-4 opacity-50" />
+            <p>No se ha seleccionado una propiedad</p>
+            <p className="text-sm mt-2">Por favor selecciona una propiedad para configurar su disponibilidad</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <Clock className="h-6 w-6 animate-spin mr-2" />
+            Cargando disponibilidad...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-['Inter:Black',_sans-serif] font-black text-[20px]">
-            Configurar Disponibilidad de Visitas
-          </DialogTitle>
-          <p className="text-muted-foreground">{propertyTitle}</p>
-        </DialogHeader>
-
-        <div className="space-y-6 py-4">
-          {/* General Settings */}
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <h3 className="font-bold">Configuración General</h3>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duración de Visita (min)</Label>
-                  <select
-                    id="duration"
-                    value={visitDuration}
-                    onChange={(e) => setVisitDuration(Number(e.target.value))}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value={30}>30 minutos</option>
-                    <option value={60}>60 minutos</option>
-                    <option value={90}>90 minutos</option>
-                    <option value={120}>120 minutos</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="maxVisits">Máximo Visitas/Día</Label>
-                  <select
-                    id="maxVisits"
-                    value={maxVisitsPerDay}
-                    onChange={(e) => setMaxVisitsPerDay(Number(e.target.value))}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value={3}>3 visitas</option>
-                    <option value={5}>5 visitas</option>
-                    <option value={8}>8 visitas</option>
-                    <option value={10}>10 visitas</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="advance">Reserva Anticipada (hrs)</Label>
-                  <select
-                    id="advance"
-                    value={advanceBooking}
-                    onChange={(e) => setAdvanceBooking(Number(e.target.value))}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value={12}>12 horas</option>
-                    <option value={24}>24 horas</option>
-                    <option value={48}>48 horas</option>
-                    <option value={72}>72 horas</option>
-                  </select>
-                </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Disponibilidad para Visitas
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Current availability overview */}
+          <div className="space-y-4">
+            <h4 className="font-medium">Horarios Configurados</h4>
+            {availability.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No hay horarios configurados</p>
+                <p className="text-sm">Los visitantes no podrán agendar visitas</p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Weekly Schedule */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
-                Horario Semanal
-              </h3>
-              <Button variant="outline" size="sm" onClick={applyToAll}>
-                Aplicar lunes a todos los días
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              {schedule.map((daySchedule, dayIndex) => (
-                <Card key={daySchedule.day}>
-                  <CardContent className="pt-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Switch
-                            checked={daySchedule.enabled}
-                            onCheckedChange={() => toggleDay(dayIndex)}
-                          />
-                          <Label className="font-bold w-24">{daySchedule.day}</Label>
-                          {!daySchedule.enabled && (
-                            <Badge variant="outline" className="text-muted-foreground">
-                              No disponible
-                            </Badge>
-                          )}
-                        </div>
-                        {daySchedule.enabled && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addTimeSlot(dayIndex)}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Agregar horario
-                          </Button>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {weekdays.map(day => {
+                  const daySlots = getWeekdaySlots(day.value);
+                  return (
+                    <Card key={day.value} className={`border-2 ${daySlots.length > 0 ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
+                      <CardContent className="p-4">
+                        <h5 className="font-medium mb-2">{day.label}</h5>
+                        {daySlots.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">No disponible</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {daySlots.map((slot, index) => (
+                              <div key={index} className="flex items-center justify-between bg-white rounded p-2 border">
+                                <span className="text-sm font-mono">
+                                  {slot.start_time} - {slot.end_time}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeSlot(availability.findIndex(s => s === slot))}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                      </div>
-
-                      {daySchedule.enabled && daySchedule.slots.length > 0 && (
-                        <div className="flex flex-wrap gap-2 ml-12">
-                          {daySchedule.slots.map((slot, slotIndex) => (
-                            <Badge
-                              key={slotIndex}
-                              className="bg-[#2dc97b] text-[#150f0f] pr-1 gap-2"
-                            >
-                              <Clock className="h-3 w-3" />
-                              {slot}
-                              <button
-                                onClick={() => removeTimeSlot(dayIndex, slotIndex)}
-                                className="hover:bg-white/20 rounded-full p-0.5"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Quick Templates */}
-          <Card className="bg-[#f4f4f4]">
-            <CardContent className="pt-6">
-              <h4 className="font-bold mb-3">Plantillas Rápidas</h4>
-              <div className="flex gap-2 flex-wrap">
-                <Button variant="outline" size="sm">
-                  Solo Fines de Semana
-                </Button>
-                <Button variant="outline" size="sm">
-                  Lunes a Viernes
-                </Button>
-                <Button variant="outline" size="sm">
-                  Solo Mañanas
-                </Button>
-                <Button variant="outline" size="sm">
-                  Solo Tardes
-                </Button>
+          {/* Add new slot */}
+          <Card className="border-dashed border-2">
+            <CardContent className="p-4">
+              <h4 className="font-medium mb-4">Agregar Nuevo Horario</h4>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <Label>Día de la semana</Label>
+                  <Select
+                    value={newSlot.weekday.toString()}
+                    onValueChange={(value) => setNewSlot(prev => ({ ...prev, weekday: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {weekdays.map(day => (
+                        <SelectItem key={day.value} value={day.value.toString()}>
+                          {day.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Hora inicio</Label>
+                  <Input
+                    type="time"
+                    value={newSlot.start_time}
+                    onChange={(e) => setNewSlot(prev => ({ ...prev, start_time: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <Label>Hora fin</Label>
+                  <Input
+                    type="time"
+                    value={newSlot.end_time}
+                    onChange={(e) => setNewSlot(prev => ({ ...prev, end_time: e.target.value }))}
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <Button onClick={addSlot} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSave}
-            className="bg-[#ff9b4e] text-black hover:bg-[#ff8a35]"
-          >
-            Guardar Disponibilidad
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          {/* Save button */}
+          <div className="flex justify-end">
+            <Button onClick={saveAvailability} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Guardando...' : 'Guardar Disponibilidad'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Information card */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-blue-900">Información sobre disponibilidad</h4>
+              <ul className="text-blue-700 text-sm mt-2 space-y-1">
+                <li>• Los horarios configurados son cuando los visitantes pueden agendar citas</li>
+                <li>• Puedes configurar múltiples franjas horarias por día</li>
+                <li>• Si no configuras horarios, nadie podrá agendar visitas</li>
+                <li>• Los visitantes solo verán propiedades con horarios disponibles</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
-}
+};

@@ -1,214 +1,308 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { User, Session, createClient } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { User, AuthSession, LoginCredentials, RegisterCredentials, AuthContextType } from '../types/auth';
+
+interface Profile {
+  id: string;
+  email: string;
+  full_name: string;
+  phone?: string;
+  role: string;
+  status: string;
+  verification_status?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface SignUpOptions {
+  name?: string;
+  phone?: string;
+  role?: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  profile: Profile | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, options?: SignUpOptions) => Promise<void>;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    console.warn('useAuth called outside AuthProvider, returning default context');
+    // Return a default context to prevent crashes during HMR
+    return {
+      user: null,
+      profile: null,
+      loading: true,
+      signIn: async () => {
+        console.warn('signIn called outside AuthProvider');
+      },
+      signUp: async () => {
+        console.warn('signUp called outside AuthProvider');
+      },
+      signOut: async () => {
+        console.warn('signOut called outside AuthProvider');
+      },
+      refreshProfile: async () => {
+        console.warn('refreshProfile called outside AuthProvider');
+      },
+    };
   }
   return context;
 };
 
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<AuthSession | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const profileCache = useRef<Map<string, Profile>>(new Map());
 
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Error getting session:', error);
-      } else if (session) {
-        setSession(session as AuthSession);
-        await fetchUserProfile(session.user.id);
-      }
-      setLoading(false);
-    };
+  // Fetch profile data for authenticated user with caching
+  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+    // Check cache first
+    if (profileCache.current.has(userId)) {
+      return profileCache.current.get(userId)!;
+    }
 
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          setSession(session as AuthSession);
-          await fetchUserProfile(session.user.id);
-        } else {
-          setSession(null);
-          setUser(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchUserProfile = async (userId: string) => {
     try {
+      // First check if we have a valid session
+      const { data: session } = await supabase.auth.getSession();
+
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
-        return;
+        console.error('👤 fetchProfile: Database error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+
+        // Handle RLS policy issues gracefully
+        if (error.message?.includes('infinite recursion detected') ||
+            error.message?.includes('Could not find the table')) {
+          console.warn('⚠️ Profiles table access blocked by RLS policies. Using auth user data instead.');
+          // Return a basic profile from auth user data
+          return {
+            id: userId,
+            email: session?.user?.email || '',
+            full_name: session?.user?.user_metadata?.full_name || session?.user?.email || '',
+            phone: session?.user?.phone || '',
+            role: 'user',
+            status: 'active',
+            created_at: session?.user?.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+        }
+
+        return null;
       }
 
-      setUser(data);
+      // Cache the profile
+      profileCache.current.set(userId, data);
+      return data;
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('👤 fetchProfile: Exception:', error);
+      return null;
+    }
+  }, []);
+
+  // Refresh profile data
+  const refreshProfile = async () => {
+    if (user) {
+      const profileData = await fetchProfile(user.id);
+      setProfile(profileData);
     }
   };
 
-  const signIn = async (credentials: LoginCredentials) => {
+  // Sign in function
+  const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
+        email,
+        password,
       });
 
       if (error) {
+        console.error('❌ AuthContext: Sign in failed:', error.message);
         throw error;
       }
 
-      if (data.user) {
-        await fetchUserProfile(data.user.id);
-      }
+      // The auth state change handler will manage loading state and profile fetching
+
     } catch (error) {
-      console.error('Error signing in:', error);
+      console.error('❌ AuthContext: Sign in error:', error);
+      setLoading(false); // Reset loading on error
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
-  const signUp = async (credentials: RegisterCredentials) => {
+  // Sign up function
+  const signUp = async (email: string, password: string, options?: SignUpOptions) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signUp({
-        email: credentials.email,
-        password: credentials.password,
+        email,
+        password,
         options: {
           data: {
-            name: credentials.name,
-            phone: credentials.phone,
-            user_type: credentials.user_type || 'registered',
+            full_name: options?.name ?? '',
+            phone: options?.phone ?? '',
+            role: options?.role ?? 'user',
           },
         },
       });
 
       if (error) {
+        console.error('❌ AuthContext: Sign up failed:', error.message);
         throw error;
       }
 
-      if (data.user) {
-        // Create user profile in our users table
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: credentials.email,
-            name: credentials.name,
-            phone: credentials.phone,
-            user_type: credentials.user_type || 'registered',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-        }
+      // Auth state change handler will set user/profile when session is ready
+      if (data?.user && !data?.session) {
+        // Email confirmation may be required
+        setUser(data.user);
+        setProfile(null);
       }
     } catch (error) {
-      console.error('Error signing up:', error);
-      throw error;
-    } finally {
+      console.error('❌ AuthContext: Sign up error:', error);
       setLoading(false);
+      throw error;
     }
   };
 
+  // Sign out function - simplified
   const signOut = async () => {
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
+      // Call supabase signOut - let auth state change handle cleanup
+      await supabase.auth.signOut();
+
+    } catch (error) {
+      console.error('❌ AuthContext: Sign out error:', error);
+      // Force cleanup even on error
       setUser(null);
-      setSession(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
+      setProfile(null);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
-  const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) {
-        throw error;
+  // Handle auth state changes
+  useEffect(() => {
+    let mounted = true;
+    let currentLoading = true;
+
+    // Initialize auth without clearing existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('❌ AuthContext: Session error:', error);
+          return;
+        }
+
+        if (mounted) {
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            fetchProfile(session.user.id).then(profileData => {
+              setProfile(profileData);
+              if (mounted) {
+                currentLoading = false;
+                setLoading(false);
+              }
+            }).catch(error => {
+              console.error('❌ AuthContext: Failed to fetch profile on init:', error);
+              setProfile(null);
+              if (mounted) {
+                currentLoading = false;
+                setLoading(false);
+              }
+            });
+          } else {
+            setProfile(null);
+            currentLoading = false;
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('❌ AuthContext: Error initializing auth:', error);
+        if (mounted) {
+          setUser(null);
+          setProfile(null);
+          currentLoading = false;
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      throw error;
-    }
-  };
+    };
 
-  const updateProfile = async (updates: Partial<User>) => {
-    if (!user) return;
+    // Start initialization
+    initializeAuth();
 
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (error) {
-        throw error;
+    // Fallback timeout reduced to 3 seconds
+    const fallbackTimeout = setTimeout(() => {
+      if (mounted && currentLoading) {
+        currentLoading = false;
+        setLoading(false);
       }
+    }, 3000);
 
-      // Update local user state
-      setUser({ ...user, ...updates });
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      throw error;
-    }
-  };
+    // Listen for auth changes - simplified
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+
+        const hasUser = !!session?.user;
+        setUser(session?.user ?? null);
+
+        if (hasUser && session?.user) {
+          // Fetch profile synchronously to ensure it completes before setting loading to false
+          fetchProfile(session.user.id).then(profileData => {
+            setProfile(profileData);
+            // Only set loading to false after profile is loaded
+            currentLoading = false;
+            setLoading(false);
+          }).catch(error => {
+            console.error('❌ AuthContext: Failed to fetch profile in auth state change:', error);
+            setProfile(null);
+            currentLoading = false;
+            setLoading(false);
+          });
+        } else {
+          setProfile(null);
+          currentLoading = false;
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => {
+      mounted = false;
+      clearTimeout(fallbackTimeout);
+      subscription.unsubscribe();
+    };
+  }, [fetchProfile]); // Include fetchProfile as dependency
 
   const value: AuthContextType = {
     user,
-    session,
+    profile,
     loading,
     signIn,
     signUp,
     signOut,
-    resetPassword,
-    updateProfile,
+    refreshProfile,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

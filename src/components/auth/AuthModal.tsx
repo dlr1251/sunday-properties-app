@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 
@@ -7,37 +8,60 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultMode?: 'login' | 'register';
+  mode?: string;
+  onModeChange?: (mode: string) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ 
   isOpen, 
   onClose, 
-  defaultMode = 'login' 
+  defaultMode = 'login',
+  mode: controlledMode,
+  onModeChange
 }) => {
-  const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
+  const { t } = useTranslation();
+  const [internalMode, setInternalMode] = useState<'login' | 'register'>(defaultMode);
+  
+  // Use controlled mode if provided, otherwise use internal state
+  const currentMode = (controlledMode as 'login' | 'register') || internalMode;
+  
+  // Sync internal mode with controlled mode
+  useEffect(() => {
+    if (controlledMode && (controlledMode === 'login' || controlledMode === 'register')) {
+      setInternalMode(controlledMode);
+    }
+  }, [controlledMode]);
 
   const handleSuccess = () => {
     onClose();
   };
 
   const switchToRegister = () => {
-    setMode('register');
+    if (onModeChange) {
+      onModeChange('register');
+    } else {
+      setInternalMode('register');
+    }
   };
 
   const switchToLogin = () => {
-    setMode('login');
+    if (onModeChange) {
+      onModeChange('login');
+    } else {
+      setInternalMode('login');
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="sr-only">
-            {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+          <DialogTitle>
+            {currentMode === 'login' ? t('auth.loginTitle') : t('auth.registerTitle')}
           </DialogTitle>
         </DialogHeader>
         
-        {mode === 'login' ? (
+        {currentMode === 'login' ? (
           <LoginForm 
             onSuccess={handleSuccess}
             onSwitchToRegister={switchToRegister}

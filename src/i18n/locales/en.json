@@ -1,0 +1,468 @@
+{
+  "home": {
+    "hero": {
+      "announcement": "New: AI-powered Negotiation",
+      "title": "Find your next",
+      "titleHighlight": "home",
+      "subtitle": "Colombia's most modern real estate platform. Discover verified properties, negotiate smartly, and close deals with confidence.",
+      "exploreProperties": "Explore properties",
+      "learnMore": "Learn more",
+      "trustedBy": "Used by top real estate agencies"
+    },
+    "features": {
+      "properties": "10,000+ properties",
+      "secure": "Secure transactions",
+      "smart": "Smart negotiation"
+    },
+    "sections": {
+      "featuredTitle": "Featured Properties",
+      "featuredSubtitle": "Exclusive selection of the best properties of the week",
+      "howItWorksTitle": "How It Works",
+      "howItWorksSubtitle": "A simple and transparent process to buy or sell your property",
+      "exploreTitle": "Explore Properties",
+      "exploreSubtitle": "Discover unique opportunities in the best locations"
+    },
+    "howItWorks": {
+      "badge": "How does Sunday work?",
+      "mainTitle": "Simple Process,",
+      "mainTitleHighlight": "Safe Results",
+      "mainSubtitle": "A complete platform that connects sellers and buyers with secure, verified processes backed by specialized lawyers.",
+      "forSellers": "For Sellers",
+      "sellersTitle": "Sell your property with confidence",
+      "sellersSubtitle": "Simple and secure process to sell your property with the support of our specialized lawyers",
+      "forBuyers": "For Buyers",
+      "buyersTitle": "Buy with total peace of mind",
+      "buyersSubtitle": "Safe and guided experience for your real estate investment with complete legal support",
+      "commission": "Single 1.5% commission per successful sale",
+      "protection": "All transactions protected by specialized lawyers",
+      "whyChoose": "Why choose Sunday?",
+      "readyToStart": "Ready to start?",
+      "readySubtitle": "Join thousands of users who already trust Sunday for their real estate transactions",
+      "startNow": "Start Now",
+      "learnMore": "Learn More",
+      "sellerSteps": {
+        "upload": {
+          "title": "Upload your property",
+          "description": "List your property with professional photos and all necessary information. Our team will review and verify your property."
+        },
+        "verification": {
+          "title": "Wait for verification",
+          "description": "Our certified verifiers validate the authenticity of your property and documents within 24-48 hours."
+        },
+        "offers": {
+          "title": "Receive smart offers",
+          "description": "Compare offers with detailed financial metrics and market analysis. Get legal support from our specialized lawyers."
+        },
+        "close": {
+          "title": "Close the deal",
+          "description": "Finalize the transaction securely with our legal backing. Single 1.5% commission per successful sale."
+        }
+      },
+      "buyerSteps": {
+        "search": {
+          "title": "Search properties",
+          "description": "Use our advanced filters to find the perfect property based on your budget, location, and preferences."
+        },
+        "schedule": {
+          "title": "Schedule a visit",
+          "description": "Book guided visits with certified agents. Choose the time that works best for you."
+        },
+        "evaluate": {
+          "title": "Evaluate the property",
+          "description": "Inspect the property at your pace. Our agents will guide you and answer all your questions."
+        },
+        "offer": {
+          "title": "Make smart offers",
+          "description": "Receive personalized financial analysis and create competitive offers based on market data."
+        },
+        "negotiate": {
+          "title": "Negotiate with confidence",
+          "description": "Handle counteroffers with the support of our lawyers specialized in real estate negotiation."
+        },
+        "legal": {
+          "title": "Legal verification",
+          "description": "Our lawyers verify property titles, freedom from liens, and all legal documentation."
+        },
+        "sign": {
+          "title": "Sign documents",
+          "description": "Complete the notarial process with full legal security and professional backing."
+        },
+        "purchase": {
+          "title": "Secure purchase",
+          "description": "Finalize your real estate investment with total peace of mind and complete legal backing."
+        }
+      },
+      "whyFeatures": {
+        "security": {
+          "title": "Legal Security",
+          "description": "All transactions are backed by lawyers specialized in real estate law"
+        },
+        "verification": {
+          "title": "Complete Verification",
+          "description": "Properties and users verified by our expert team with certified processes"
+        },
+        "analysis": {
+          "title": "Financial Analysis",
+          "description": "Advanced metrics and market analysis to make the best investment decisions"
+        }
+      }
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "optional": "optional",
+    "required": "required",
+    "viewMore": "View more",
+    "viewLess": "View less",
+    "seeAll": "See all",
+    "noResults": "No results found",
+    "tryAgain": "Try again",
+    "comingSoon": "Coming soon"
+  },
+  "nav": {
+    "home": "Home",
+    "properties": "Properties",
+    "company": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "contact": "Contact",
+    "dev": "Dev",
+    "docs": "Documentation",
+    "testingUsers": "Testing Users",
+    "implementationReview": "Implementation Review",
+    "databaseSchema": "Database Schema",
+    "dashboard": "Dashboard",
+    "profile": "My Profile",
+    "settings": "Settings",
+    "signOut": "Sign Out",
+    "development": "Development"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Sign Up",
+    "logout": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "fullName": "Full name",
+    "phone": "Phone",
+    "userType": "User type",
+    "loginTitle": "Sign In",
+    "loginSubtitle": "Access your Sunday Properties account",
+    "registerTitle": "Create Account",
+    "registerSubtitle": "Join Sunday Properties",
+    "loggingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "registerHere": "Sign up here",
+    "loginHere": "Sign in here",
+    "forgotPassword": "Forgot your password?",
+    "forgotPasswordComingSoon": "Password recovery feature coming soon",
+    "accountCreated": "Account Created!",
+    "accountCreatedMessage": "Your account has been created successfully. Redirecting you shortly...",
+    "termsAgree": "By creating an account, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy",
+    "placeholders": {
+      "email": "you@email.com",
+      "password": "••••••••",
+      "fullName": "Your full name",
+      "phone": "+1 555 123 4567",
+      "selectUserType": "Select your user type"
+    },
+    "userTypes": {
+      "user": "Buyer / Seller",
+      "agent": "Real Estate Agent",
+      "lawyer": "Lawyer"
+    },
+    "errors": {
+      "loginFailed": "Login failed",
+      "registerFailed": "Failed to create account",
+      "passwordMismatch": "Passwords don't match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Email is not valid",
+      "invalidCredentials": "Invalid credentials",
+      "emailInUse": "This email is already registered",
+      "sessionExpired": "Your session has expired"
+    }
+  },
+  "properties": {
+    "title": "Properties",
+    "searchPlaceholder": "Search by title or location...",
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "price": "Price",
+    "priceRange": "Price range",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "area": "Area",
+    "location": "Location",
+    "type": "Type",
+    "status": "Status",
+    "loading": "Loading properties...",
+    "noProperties": "No properties found",
+    "verified": "Verified",
+    "premium": "Premium",
+    "acceptsCrypto": "Accepts Crypto",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "viewDetails": "View details",
+    "scheduleVisit": "Schedule visit",
+    "contactOwner": "Contact owner",
+    "makeOffer": "Make offer",
+    "share": "Share",
+    "types": {
+      "apartment": "Apartment",
+      "house": "House",
+      "countryHouse": "Country House",
+      "commercial": "Commercial",
+      "land": "Land",
+      "office": "Office",
+      "warehouse": "Warehouse"
+    },
+    "statusTypes": {
+      "available": "Available",
+      "sold": "Sold",
+      "rented": "Rented",
+      "reserved": "Reserved",
+      "pending": "Pending"
+    },
+    "sortOptions": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low",
+      "areaAsc": "Area: small to large",
+      "areaDesc": "Area: large to small"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome",
+    "loading": "Loading dashboard...",
+    "profileLoading": "Loading profile...",
+    "verifyingPermissions": "Verifying permissions...",
+    "accessDenied": "Access denied",
+    "noPermission": "You don't have permission to access this section",
+    "overview": "Overview",
+    "myProperties": "My Properties",
+    "myFavorites": "My Favorites",
+    "myVisits": "My Visits",
+    "myNegotiations": "My Negotiations",
+    "myOffers": "My Offers",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "stats": {
+      "totalProperties": "Total Properties",
+      "activeNegotiations": "Active Negotiations",
+      "pendingVisits": "Pending Visits",
+      "unreadMessages": "Unread Messages"
+    }
+  },
+  "negotiations": {
+    "title": "Negotiations",
+    "notFound": "Negotiation not found",
+    "noPermission": "You don't have permission to access this negotiation",
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "countered": "Countered",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "actions": {
+      "accept": "Accept",
+      "reject": "Reject",
+      "counter": "Counter",
+      "cancel": "Cancel",
+      "withdraw": "Withdraw"
+    },
+    "offer": {
+      "title": "Offer",
+      "amount": "Amount",
+      "conditions": "Conditions",
+      "validUntil": "Valid until",
+      "message": "Message"
+    }
+  },
+  "visits": {
+    "title": "Visits",
+    "schedule": "Schedule Visit",
+    "scheduled": "Scheduled",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "noShow": "No show",
+    "selectDate": "Select date",
+    "selectTime": "Select time",
+    "confirmVisit": "Confirm visit",
+    "cancelVisit": "Cancel visit",
+    "reschedule": "Reschedule"
+  },
+  "chat": {
+    "title": "Messages",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "typing": "typing...",
+    "noMessages": "No messages yet",
+    "startConversation": "Start a conversation"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit profile",
+    "changePhoto": "Change photo",
+    "personalInfo": "Personal information",
+    "contactInfo": "Contact information",
+    "accountSettings": "Account settings",
+    "verificationStatus": "Verification status",
+    "verified": "Verified",
+    "notVerified": "Not verified",
+    "pendingVerification": "Verification pending"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "security": "Security",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "users": "Users",
+    "properties": "Properties",
+    "verifications": "Verifications",
+    "reports": "Reports",
+    "lawyers": "Lawyers",
+    "agents": "Agents",
+    "deals": "Deals",
+    "platformConfig": "Platform configuration"
+  },
+  "errors": {
+    "general": "Something went wrong",
+    "notFound": "Page not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access denied",
+    "serverError": "Server error",
+    "networkError": "Connection error",
+    "validationError": "Validation error",
+    "tryAgainLater": "Please try again later"
+  },
+  "user": "User",
+  "toggleTheme": "Toggle theme",
+  "pages": {
+    "about": {
+      "badge": "Transforming the real estate market",
+      "title": "About Sunday",
+      "subtitle": "Revolutionizing the Colombian real estate market with transparency, technology, and trust since 2020.",
+      "stats": {
+        "properties": "Verified properties",
+        "users": "Active users",
+        "satisfaction": "Customer satisfaction",
+        "support": "Support available"
+      },
+      "mission": {
+        "title": "Our Mission",
+        "description": "Democratize access to verified properties in Colombia, eliminating unnecessary intermediaries and guaranteeing transparency in every transaction.",
+        "whyChoose": "Why choose Sunday?",
+        "features": {
+          "verified": "100% verified properties by our team of experts",
+          "simplified": "Simplified and completely secure purchase process",
+          "blockchain": "Blockchain technology for smart contracts",
+          "legal": "Specialized legal support included in every transaction",
+          "financing": "Direct financing with the best market rates",
+          "guarantee": "Satisfaction guarantee or money back"
+        }
+      },
+      "values": {
+        "title": "Our Values",
+        "subtitle": "The principles that guide every decision and action at Sunday",
+        "transparency": {
+          "title": "Total Transparency",
+          "description": "Each property is personally verified by our team of experts to ensure authenticity and quality."
+        },
+        "excellence": {
+          "title": "Excellence",
+          "description": "We are committed to the highest standards in everything we do, from selection to service."
+        },
+        "trust": {
+          "title": "Trust",
+          "description": "We build lasting relationships based on honesty, respect, and integrity in every transaction."
+        },
+        "innovation": {
+          "title": "Innovation",
+          "description": "We use cutting-edge technology to improve your experience and simplify the buying process."
+        }
+      },
+      "team": {
+        "title": "Our Team",
+        "subtitle": "Professionals passionate about transforming the Colombian real estate market"
+      },
+      "history": {
+        "title": "Our History",
+        "subtitle": "The path that has brought us to where we are today"
+      },
+      "cta": {
+        "title": "Ready to get started?",
+        "subtitle": "Join thousands of Colombians who already trust Sunday for their real estate transactions.",
+        "explore": "Explore Properties",
+        "contact": "Contact Sales"
+      }
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "We are here to help you. Our team of experts is ready to answer your questions about properties in Colombia.",
+      "form": {
+        "title": "Send us a message",
+        "name": "Your full name",
+        "email": "you@email.com",
+        "phone": "Your phone",
+        "message": "How can we help you?",
+        "submit": "Send message"
+      },
+      "info": {
+        "title": "Contact information",
+        "office": "Main Office",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "help": {
+        "title": "Need immediate help?",
+        "subtitle": "Our support team is available to resolve your questions.",
+        "chat": "Live chat"
+      }
+    }
+  }
+}

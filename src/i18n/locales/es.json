@@ -1,0 +1,468 @@
+{
+  "home": {
+    "hero": {
+      "announcement": "Nueva: Negociación con IA",
+      "title": "Encuentra tu próximo",
+      "titleHighlight": "hogar",
+      "subtitle": "La plataforma inmobiliaria más moderna de Colombia. Descubre propiedades verificadas, negocia de forma inteligente y cierra tratos con confianza.",
+      "exploreProperties": "Explorar propiedades",
+      "learnMore": "Conocer más",
+      "trustedBy": "Utilizado por las mejores inmobiliarias"
+    },
+    "features": {
+      "properties": "10,000+ propiedades",
+      "secure": "Transacciones seguras",
+      "smart": "Negociación inteligente"
+    },
+    "sections": {
+      "featuredTitle": "Propiedades destacadas",
+      "featuredSubtitle": "Selección exclusiva de las mejores propiedades de la semana",
+      "howItWorksTitle": "Cómo funciona",
+      "howItWorksSubtitle": "Un proceso simple y transparente para comprar o vender tu propiedad",
+      "exploreTitle": "Explora propiedades",
+      "exploreSubtitle": "Descubre oportunidades únicas en las mejores ubicaciones"
+    },
+    "howItWorks": {
+      "badge": "¿Cómo funciona Sunday?",
+      "mainTitle": "Proceso Simple,",
+      "mainTitleHighlight": "Resultados Seguros",
+      "mainSubtitle": "Una plataforma completa que conecta vendedores y compradores con procesos seguros, verificados y respaldados por abogados especializados.",
+      "forSellers": "Para Vendedores",
+      "sellersTitle": "Vende tu propiedad con confianza",
+      "sellersSubtitle": "Proceso simple y seguro para vender tu propiedad con el respaldo de nuestros abogados especializados",
+      "forBuyers": "Para Compradores",
+      "buyersTitle": "Compra con total tranquilidad",
+      "buyersSubtitle": "Experiencia segura y guiada para tu inversión inmobiliaria con respaldo legal completo",
+      "commission": "Comisión única del 1.5% por venta exitosa",
+      "protection": "Todas las transacciones protegidas por abogados especializados",
+      "whyChoose": "¿Por qué elegir Sunday?",
+      "readyToStart": "¿Listo para comenzar?",
+      "readySubtitle": "Únete a miles de usuarios que ya confían en Sunday para sus transacciones inmobiliarias",
+      "startNow": "Comenzar Ahora",
+      "learnMore": "Saber Más",
+      "sellerSteps": {
+        "upload": {
+          "title": "Sube tu propiedad",
+          "description": "Publica tu inmueble con fotos profesionales y toda la información necesaria. Nuestro equipo revisará y verificará tu propiedad."
+        },
+        "verification": {
+          "title": "Espera verificación",
+          "description": "Nuestros verificadores certificados validan la autenticidad de tu propiedad y documentos en 24-48 horas."
+        },
+        "offers": {
+          "title": "Recibe ofertas inteligentes",
+          "description": "Compara ofertas con métricas financieras detalladas y análisis de mercado. Recibe apoyo legal de nuestros abogados especializados."
+        },
+        "close": {
+          "title": "Cierra el negocio",
+          "description": "Finaliza la transacción de forma segura con nuestro respaldo legal. Comisión única del 1.5% por venta exitosa."
+        }
+      },
+      "buyerSteps": {
+        "search": {
+          "title": "Busca propiedades",
+          "description": "Utiliza nuestros filtros avanzados para encontrar la propiedad perfecta según tu presupuesto, ubicación y preferencias."
+        },
+        "schedule": {
+          "title": "Agenda visita",
+          "description": "Programa visitas guiadas con agentes certificados. Elige el horario que mejor te convenga."
+        },
+        "evaluate": {
+          "title": "Evalúa el inmueble",
+          "description": "Inspecciona la propiedad con calma. Nuestros agentes te guiarán y responderán todas tus preguntas."
+        },
+        "offer": {
+          "title": "Haz ofertas inteligentes",
+          "description": "Recibe análisis financiero personalizado y crea ofertas competitivas basadas en datos del mercado."
+        },
+        "negotiate": {
+          "title": "Negocia con confianza",
+          "description": "Gestiona contraofertas con el respaldo de nuestros abogados especializados en negociación inmobiliaria."
+        },
+        "legal": {
+          "title": "Verificación legal",
+          "description": "Nuestros abogados verifican títulos de propiedad, libertad de gravámenes y toda la documentación legal."
+        },
+        "sign": {
+          "title": "Firma documentos",
+          "description": "Completa el proceso notarial con toda la seguridad jurídica y respaldo profesional."
+        },
+        "purchase": {
+          "title": "Compra segura",
+          "description": "Finaliza tu inversión inmobiliaria con total tranquilidad y respaldo legal completo."
+        }
+      },
+      "whyFeatures": {
+        "security": {
+          "title": "Seguridad Jurídica",
+          "description": "Todas las transacciones están respaldadas por abogados especializados en derecho inmobiliario"
+        },
+        "verification": {
+          "title": "Verificación Completa",
+          "description": "Propiedades y usuarios verificados por nuestro equipo experto con procesos certificados"
+        },
+        "analysis": {
+          "title": "Análisis Financiero",
+          "description": "Métricas y análisis de mercado avanzados para tomar las mejores decisiones de inversión"
+        }
+      }
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "yes": "Sí",
+    "no": "No",
+    "all": "Todos",
+    "none": "Ninguno",
+    "optional": "opcional",
+    "required": "requerido",
+    "viewMore": "Ver más",
+    "viewLess": "Ver menos",
+    "seeAll": "Ver todos",
+    "noResults": "No se encontraron resultados",
+    "tryAgain": "Intentar de nuevo",
+    "comingSoon": "Próximamente"
+  },
+  "nav": {
+    "home": "Inicio",
+    "properties": "Propiedades",
+    "company": "Empresa",
+    "about": "Acerca de",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "dev": "Dev",
+    "docs": "Documentación",
+    "testingUsers": "Testing Users",
+    "implementationReview": "Implementation Review",
+    "databaseSchema": "Database Schema",
+    "dashboard": "Dashboard",
+    "profile": "Mi Perfil",
+    "settings": "Configuración",
+    "signOut": "Cerrar Sesión",
+    "development": "Desarrollo"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "fullName": "Nombre completo",
+    "phone": "Teléfono",
+    "userType": "Tipo de usuario",
+    "loginTitle": "Iniciar Sesión",
+    "loginSubtitle": "Accede a tu cuenta de Sunday Properties",
+    "registerTitle": "Crear Cuenta",
+    "registerSubtitle": "Únete a Sunday Properties",
+    "loggingIn": "Iniciando sesión...",
+    "creatingAccount": "Creando cuenta...",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "registerHere": "Regístrate aquí",
+    "loginHere": "Inicia sesión aquí",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "forgotPasswordComingSoon": "Función de recuperación de contraseña próximamente",
+    "accountCreated": "¡Cuenta Creada!",
+    "accountCreatedMessage": "Tu cuenta ha sido creada exitosamente. Te redirigiremos en un momento...",
+    "termsAgree": "Al crear una cuenta, aceptas nuestros",
+    "termsOfService": "Términos de Servicio",
+    "and": "y",
+    "privacyPolicy": "Política de Privacidad",
+    "placeholders": {
+      "email": "tu@email.com",
+      "password": "••••••••",
+      "fullName": "Tu nombre completo",
+      "phone": "+57 300 123 4567",
+      "selectUserType": "Selecciona tu tipo de usuario"
+    },
+    "userTypes": {
+      "user": "Comprador / Vendedor",
+      "agent": "Agente Inmobiliario",
+      "lawyer": "Abogado"
+    },
+    "errors": {
+      "loginFailed": "Error al iniciar sesión",
+      "registerFailed": "Error al crear la cuenta",
+      "passwordMismatch": "Las contraseñas no coinciden",
+      "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+      "nameRequired": "El nombre es requerido",
+      "emailRequired": "El correo electrónico es requerido",
+      "invalidEmail": "El correo electrónico no es válido",
+      "invalidCredentials": "Credenciales inválidas",
+      "emailInUse": "Este correo ya está registrado",
+      "sessionExpired": "Tu sesión ha expirado"
+    }
+  },
+  "properties": {
+    "title": "Propiedades",
+    "searchPlaceholder": "Buscar por título o ubicación...",
+    "filters": "Filtros",
+    "sortBy": "Ordenar por",
+    "price": "Precio",
+    "priceRange": "Rango de precio",
+    "bedrooms": "Habitaciones",
+    "bathrooms": "Baños",
+    "area": "Área",
+    "location": "Ubicación",
+    "type": "Tipo",
+    "status": "Estado",
+    "loading": "Cargando propiedades...",
+    "noProperties": "No se encontraron propiedades",
+    "verified": "Verificado",
+    "premium": "Premium",
+    "acceptsCrypto": "Acepta Crypto",
+    "addToFavorites": "Agregar a favoritos",
+    "removeFromFavorites": "Quitar de favoritos",
+    "viewDetails": "Ver detalles",
+    "scheduleVisit": "Agendar visita",
+    "contactOwner": "Contactar propietario",
+    "makeOffer": "Hacer oferta",
+    "share": "Compartir",
+    "types": {
+      "apartment": "Apartamento",
+      "house": "Casa",
+      "countryHouse": "Casa Campestre",
+      "commercial": "Local Comercial",
+      "land": "Terreno",
+      "office": "Oficina",
+      "warehouse": "Bodega"
+    },
+    "statusTypes": {
+      "available": "Disponible",
+      "sold": "Vendido",
+      "rented": "Arrendado",
+      "reserved": "Reservado",
+      "pending": "Pendiente"
+    },
+    "sortOptions": {
+      "newest": "Más recientes",
+      "oldest": "Más antiguos",
+      "priceAsc": "Precio: menor a mayor",
+      "priceDesc": "Precio: mayor a menor",
+      "areaAsc": "Área: menor a mayor",
+      "areaDesc": "Área: mayor a menor"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bienvenido",
+    "loading": "Cargando dashboard...",
+    "profileLoading": "Cargando perfil...",
+    "verifyingPermissions": "Verificando permisos...",
+    "accessDenied": "Acceso denegado",
+    "noPermission": "No tienes permisos para acceder a esta sección",
+    "overview": "Resumen",
+    "myProperties": "Mis Propiedades",
+    "myFavorites": "Mis Favoritos",
+    "myVisits": "Mis Visitas",
+    "myNegotiations": "Mis Negociaciones",
+    "myOffers": "Mis Ofertas",
+    "messages": "Mensajes",
+    "notifications": "Notificaciones",
+    "stats": {
+      "totalProperties": "Propiedades Totales",
+      "activeNegotiations": "Negociaciones Activas",
+      "pendingVisits": "Visitas Pendientes",
+      "unreadMessages": "Mensajes sin leer"
+    }
+  },
+  "negotiations": {
+    "title": "Negociaciones",
+    "notFound": "Negociación no encontrada",
+    "noPermission": "No tienes permisos para acceder a esta negociación",
+    "status": {
+      "pending": "Pendiente",
+      "active": "Activa",
+      "accepted": "Aceptada",
+      "rejected": "Rechazada",
+      "countered": "Contraofertada",
+      "expired": "Expirada",
+      "cancelled": "Cancelada",
+      "completed": "Completada"
+    },
+    "actions": {
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "counter": "Contraofertar",
+      "cancel": "Cancelar",
+      "withdraw": "Retirar"
+    },
+    "offer": {
+      "title": "Oferta",
+      "amount": "Monto",
+      "conditions": "Condiciones",
+      "validUntil": "Válida hasta",
+      "message": "Mensaje"
+    }
+  },
+  "visits": {
+    "title": "Visitas",
+    "schedule": "Agendar Visita",
+    "scheduled": "Programada",
+    "completed": "Completada",
+    "cancelled": "Cancelada",
+    "noShow": "No asistió",
+    "selectDate": "Seleccionar fecha",
+    "selectTime": "Seleccionar hora",
+    "confirmVisit": "Confirmar visita",
+    "cancelVisit": "Cancelar visita",
+    "reschedule": "Reprogramar"
+  },
+  "chat": {
+    "title": "Mensajes",
+    "placeholder": "Escribe un mensaje...",
+    "send": "Enviar",
+    "typing": "escribiendo...",
+    "noMessages": "No hay mensajes aún",
+    "startConversation": "Inicia una conversación"
+  },
+  "profile": {
+    "title": "Perfil",
+    "editProfile": "Editar perfil",
+    "changePhoto": "Cambiar foto",
+    "personalInfo": "Información personal",
+    "contactInfo": "Información de contacto",
+    "accountSettings": "Configuración de cuenta",
+    "verificationStatus": "Estado de verificación",
+    "verified": "Verificado",
+    "notVerified": "No verificado",
+    "pendingVerification": "Verificación pendiente"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma",
+    "theme": "Tema",
+    "notifications": "Notificaciones",
+    "privacy": "Privacidad",
+    "security": "Seguridad",
+    "themes": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    }
+  },
+  "admin": {
+    "title": "Administración",
+    "users": "Usuarios",
+    "properties": "Propiedades",
+    "verifications": "Verificaciones",
+    "reports": "Reportes",
+    "lawyers": "Abogados",
+    "agents": "Agentes",
+    "deals": "Transacciones",
+    "platformConfig": "Configuración de plataforma"
+  },
+  "errors": {
+    "general": "Algo salió mal",
+    "notFound": "Página no encontrada",
+    "unauthorized": "No autorizado",
+    "forbidden": "Acceso denegado",
+    "serverError": "Error del servidor",
+    "networkError": "Error de conexión",
+    "validationError": "Error de validación",
+    "tryAgainLater": "Por favor, intenta de nuevo más tarde"
+  },
+  "user": "Usuario",
+  "toggleTheme": "Cambiar tema",
+  "pages": {
+    "about": {
+      "badge": "Transformando el mercado inmobiliario",
+      "title": "Sobre Sunday",
+      "subtitle": "Revolucionando el mercado inmobiliario colombiano con transparencia, tecnología y confianza desde 2020.",
+      "stats": {
+        "properties": "Propiedades verificadas",
+        "users": "Usuarios activos",
+        "satisfaction": "Satisfacción del cliente",
+        "support": "Soporte disponible"
+      },
+      "mission": {
+        "title": "Nuestra Misión",
+        "description": "Democratizar el acceso a propiedades verificadas en Colombia, eliminando intermediarios innecesarios y garantizando transparencia en cada transacción.",
+        "whyChoose": "¿Por qué elegir Sunday?",
+        "features": {
+          "verified": "Propiedades 100% verificadas por nuestro equipo de expertos",
+          "simplified": "Proceso de compra simplificado y completamente seguro",
+          "blockchain": "Tecnología blockchain para contratos inteligentes",
+          "legal": "Soporte legal especializado incluido en cada transacción",
+          "financing": "Financiamiento directo con las mejores tasas del mercado",
+          "guarantee": "Garantía de satisfacción o devolución del dinero"
+        }
+      },
+      "values": {
+        "title": "Nuestros Valores",
+        "subtitle": "Los principios que guían cada decisión y acción en Sunday",
+        "transparency": {
+          "title": "Transparencia Total",
+          "description": "Cada propiedad es verificada personalmente por nuestro equipo de expertos para garantizar autenticidad y calidad."
+        },
+        "excellence": {
+          "title": "Excelencia",
+          "description": "Nos comprometemos con los más altos estándares en todo lo que hacemos, desde la selección hasta el servicio."
+        },
+        "trust": {
+          "title": "Confianza",
+          "description": "Construimos relaciones duraderas basadas en la honestidad, el respeto y la integridad en cada transacción."
+        },
+        "innovation": {
+          "title": "Innovación",
+          "description": "Utilizamos tecnología de vanguardia para mejorar tu experiencia y simplificar el proceso de compra."
+        }
+      },
+      "team": {
+        "title": "Nuestro Equipo",
+        "subtitle": "Profesionales apasionados por transformar el mercado inmobiliario colombiano"
+      },
+      "history": {
+        "title": "Nuestra Historia",
+        "subtitle": "El camino que nos ha llevado a donde estamos hoy"
+      },
+      "cta": {
+        "title": "¿Listo para comenzar?",
+        "subtitle": "Únete a miles de colombianos que ya confían en Sunday para sus transacciones inmobiliarias.",
+        "explore": "Explorar Propiedades",
+        "contact": "Contactar Ventas"
+      }
+    },
+    "contact": {
+      "title": "Contáctanos",
+      "subtitle": "Estamos aquí para ayudarte. Nuestro equipo de expertos está listo para responder tus preguntas sobre propiedades en Colombia.",
+      "form": {
+        "title": "Envíanos un mensaje",
+        "name": "Tu nombre completo",
+        "email": "tu@email.com",
+        "phone": "Tu teléfono",
+        "message": "¿En qué podemos ayudarte?",
+        "submit": "Enviar mensaje"
+      },
+      "info": {
+        "title": "Información de contacto",
+        "office": "Oficina Principal",
+        "phone": "Teléfono",
+        "email": "Email"
+      },
+      "help": {
+        "title": "¿Necesitas ayuda inmediata?",
+        "subtitle": "Nuestro equipo de soporte está disponible para resolver tus dudas.",
+        "chat": "Chat en vivo"
+      }
+    }
+  }
+}

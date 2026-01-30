@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   Search, 
   Calendar, 
@@ -62,10 +62,10 @@ export const BlogList: React.FC<BlogListProps> = ({ onPostSelect }) => {
     },
     {
       id: '3',
-      title: 'Cómo Usar Sundap Properties: Guía Paso a Paso',
-      slug: 'como-usar-sundap-properties-guia-paso-paso',
-      excerpt: 'Aprende a utilizar todas las funcionalidades de Sundap Properties para encontrar, negociar y comprar tu propiedad ideal de forma segura.',
-      author: 'Equipo Sundap',
+      title: 'Cómo Usar Sunday Properties: Guía Paso a Paso',
+      slug: 'como-usar-sunday-properties-guia-paso-paso',
+      excerpt: 'Aprende a utilizar todas las funcionalidades de Sunday Properties para encontrar, negociar y comprar tu propiedad ideal de forma segura.',
+      author: 'Equipo Sunday',
       category: 'Guías de Usuario',
       publishedAt: '2024-01-10',
       viewCount: 234,

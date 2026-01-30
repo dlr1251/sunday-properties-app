@@ -1,63 +1,156 @@
-"use client";
+import * as React from "react"
 
-import * as React from "react";
-import * as SliderPrimitive from "@radix-ui/react-slider@1.2.3";
-
-import { cn } from "./utils";
-
-function Slider({
-  className,
-  defaultValue,
-  value,
-  min = 0,
-  max = 100,
-  ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
-  const _values = React.useMemo(
-    () =>
-      Array.isArray(value)
-        ? value
-        : Array.isArray(defaultValue)
-          ? defaultValue
-          : [min, max],
-    [value, defaultValue, min, max],
-  );
-
-  return (
-    <SliderPrimitive.Root
-      data-slot="slider"
-      defaultValue={defaultValue}
-      value={value}
-      min={min}
-      max={max}
-      className={cn(
-        "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
-        className,
-      )}
-      {...props}
-    >
-      <SliderPrimitive.Track
-        data-slot="slider-track"
-        className={cn(
-          "bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-4 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
-        )}
-      >
-        <SliderPrimitive.Range
-          data-slot="slider-range"
-          className={cn(
-            "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
-          )}
-        />
-      </SliderPrimitive.Track>
-      {Array.from({ length: _values.length }, (_, index) => (
-        <SliderPrimitive.Thumb
-          data-slot="slider-thumb"
-          key={index}
-          className="border-primary bg-background ring-ring/50 block size-4 shrink-0 rounded-full border shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
-        />
-      ))}
-    </SliderPrimitive.Root>
-  );
+interface SliderProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
+  value?: number[]
+  onValueChange?: (value: number[]) => void
+  max?: number
+  min?: number
+  step?: number
+  className?: string
 }
 
-export { Slider };
+const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
+  ({ className = '', value = [0], onValueChange, max = 100, min = 0, step = 1, ...props }, ref) => {
+    // If it's a range slider (value.length === 2)
+    if (value.length === 2) {
+      const leftPercent = ((value[0] - min) / (max - min)) * 100
+      const rightPercent = ((value[1] - min) / (max - min)) * 100
+
+      return (
+        <div className={`relative flex w-full items-center ${className}`} style={{ height: '20px' }}>
+          <input
+            ref={ref}
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value[0]}
+            onChange={(e) => {
+              const newValue = parseFloat(e.target.value)
+              if (onValueChange && newValue <= value[1]) {
+                onValueChange([newValue, value[1]])
+              }
+            }}
+            className="absolute h-2 w-full appearance-none rounded-full bg-transparent outline-none cursor-pointer z-10"
+            style={{
+              background: 'transparent',
+            }}
+            {...props}
+          />
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value[1]}
+            onChange={(e) => {
+              const newValue = parseFloat(e.target.value)
+              if (onValueChange && newValue >= value[0]) {
+                onValueChange([value[0], newValue])
+              }
+            }}
+            className="absolute h-2 w-full appearance-none rounded-full bg-transparent outline-none cursor-pointer z-10"
+            style={{
+              background: 'transparent',
+            }}
+            {...props}
+          />
+          <div 
+            className="absolute h-2 rounded-full bg-blue-600 pointer-events-none z-0"
+            style={{
+              left: `${leftPercent}%`,
+              width: `${rightPercent - leftPercent}%`,
+            }}
+          />
+          <div 
+            className="absolute h-2 rounded-full bg-gray-200 pointer-events-none z-0"
+            style={{
+              width: '100%',
+            }}
+          />
+          <style>{`
+            input[type="range"]::-webkit-slider-thumb {
+              appearance: none;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              background: #3b82f6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            input[type="range"]::-moz-range-thumb {
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              background: #3b82f6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+          `}</style>
+        </div>
+      )
+    }
+
+    // Single value slider
+    const percent = ((value[0] - min) / (max - min)) * 100
+    return (
+      <div className={`relative flex w-full items-center ${className}`} style={{ height: '20px' }}>
+        <input
+          ref={ref}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value[0]}
+          onChange={(e) => {
+            const newValue = parseFloat(e.target.value)
+            if (onValueChange) {
+              onValueChange([newValue])
+            }
+          }}
+          className="absolute h-2 w-full appearance-none rounded-full bg-transparent outline-none cursor-pointer z-10"
+          {...props}
+        />
+        <div 
+          className="absolute h-2 rounded-full bg-gray-200 pointer-events-none z-0"
+          style={{
+            width: '100%',
+          }}
+        />
+        <div 
+          className="absolute h-2 rounded-full bg-blue-600 pointer-events-none z-0"
+          style={{
+            width: `${percent}%`,
+          }}
+        />
+        <style>{`
+          input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+        `}</style>
+      </div>
+    )
+  }
+)
+
+Slider.displayName = "Slider"
+
+export { Slider }

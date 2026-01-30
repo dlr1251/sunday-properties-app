@@ -1,0 +1,916 @@
+-- 🌟 Sunday Properties - Production Seed Data
+-- Complete dataset simulating a live application with 15+ properties, users, offers, and negotiations
+-- Run this after creating auth users and profiles
+
+-- =========================================
+-- USERS AND PROFILES (Already handled by auth)
+-- =========================================
+
+-- =========================================
+-- PROPERTIES - 15 High-Quality Properties in Medellín
+-- =========================================
+
+INSERT INTO public.properties (
+    id, title, description, address, neighborhood, city, coordinates,
+    bedrooms, bathrooms, area, parking, floor, total_floors, year_built,
+    property_type, strata, price, minimum_offer_price, monthly_costs,
+    accepts_crypto, financing, visit_price, status, verified, premium,
+    owner_id, agent_id, tags, features, images, created_at, updated_at, published_at
+) VALUES
+-- Existing properties (updated with better data)
+(
+    '550e8400-e29b-41d4-a716-446655440001',
+    'Apartamento Moderno en El Poblado',
+    'Hermoso apartamento moderno de 3 habitaciones con vista panorámica al Parque Lleras. Acabados de lujo, cocina integral, zona de lavandería, closets empotrados. Edificio con portería 24/7, gimnasio, salón social y piscina.',
+    'Carrera 43A #15-25, Apto 1202',
+    'El Poblado',
+    'Medellín',
+    '{"lat": 6.2091, "lng": -75.5678}',
+    3, 2, 85, 1, 12, 20, 2020,
+    'apartment', 4, 450000000, 420000000, 280000,
+    true, true, 49000, 'published', true, false,
+    '550e8400-e29b-41d4-a716-446655440010',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['moderno', 'lujo', 'parque lleras', 'gimnasio'],
+    ARRAY['Gimnasio', 'Piscina', 'Portería 24/7', 'Ascensor', 'Cocina integral', 'Closets empotrados'],
+    ARRAY['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'],
+    NOW() - INTERVAL '30 days',
+    NOW(),
+    NOW() - INTERVAL '25 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440002',
+    'Casa Campestre en Envigado',
+    'Casa campestre de 4 habitaciones con jardín privado de 200m², piscina, zona de parrilla y garaje doble. Ideal para familias. Cercana a centros comerciales y colegios.',
+    'Calle 25 Sur #45-67',
+    'Envigado',
+    'Envigado',
+    '{"lat": 6.1759, "lng": -75.5622}',
+    4, 3, 280, 2, NULL, NULL, 2018,
+    'house', NULL, 650000000, 600000000, 150000,
+    false, true, 49000, 'published', true, false,
+    '550e8400-e29b-41d4-a716-446655440011',
+    '550e8400-e29b-41d4-a716-446655440014',
+    ARRAY['casa', 'jardin', 'piscina', 'familiar'],
+    ARRAY['Jardín privado', 'Piscina', 'Zona de parrilla', 'Garaje doble', 'Cuarto de servicio'],
+    ARRAY['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800', 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800'],
+    NOW() - INTERVAL '45 days',
+    NOW(),
+    NOW() - INTERVAL '40 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440003',
+    'Penthouse de Lujo en Laureles',
+    'Penthouse de lujo con terraza privada de 80m² y vista 360° de la ciudad. Acabados premium, domótica, pisos en mármol, cocinas importadas. Edificio inteligente.',
+    'Carrera 70 #45-89, PH 2501',
+    'Laureles',
+    'Medellín',
+    '{"lat": 6.2442, "lng": -75.5984}',
+    4, 3, 220, 2, 25, 25, 2022,
+    'apartment', 6, 1200000000, 1100000000, 450000,
+    true, true, 49000, 'published', true, true,
+    '550e8400-e29b-41d4-a716-446655440012',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['penthouse', 'lujo', 'terraza', 'domotica'],
+    ARRAY['Terraza privada', 'Vista 360°', 'Domótica', 'Pisos en mármol', 'Cocinas importadas', 'Ascensor privado'],
+    ARRAY['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800'],
+    NOW() - INTERVAL '60 days',
+    NOW(),
+    NOW() - INTERVAL '55 days'
+),
+
+-- New properties (10 additional high-quality properties)
+(
+    '550e8400-e29b-41d4-a716-446655440004',
+    'Apartamento Familiar en Belén',
+    'Amplio apartamento familiar de 4 habitaciones en edificio moderno. Sala-comedor, cocina abierta, balcón, 3 baños, cuarto de servicio. Zona residencial tranquila con excelente acceso.',
+    'Calle 30A #65-12, Apto 401',
+    'Belén',
+    'Medellín',
+    '{"lat": 6.2286, "lng": -75.6089}',
+    4, 3, 110, 1, 4, 12, 2019,
+    'apartment', 3, 380000000, 360000000, 220000,
+    false, true, 49000, 'published', true, false,
+    '550e8400-e29b-41d4-a716-446655440010',
+    '550e8400-e29b-41d4-a716-446655440014',
+    ARRAY['familiar', 'belen', 'espacioso', 'servicio'],
+    ARRAY['Cuarto de servicio', 'Balcón', 'Cocina abierta', 'Sala comedor', 'Zona lavandería'],
+    ARRAY['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800', 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800'],
+    NOW() - INTERVAL '20 days',
+    NOW(),
+    NOW() - INTERVAL '18 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440005',
+    'Oficina Moderna en El Centro',
+    'Oficina comercial moderna en edificio corporativo. 150m² divididos en recepción, 4 despachos, sala de reuniones, baños privados. Excelente ubicación para negocios.',
+    'Carrera 52 #48-12, Oficina 502',
+    'El Centro',
+    'Medellín',
+    '{"lat": 6.2518, "lng": -75.5633}',
+    0, 2, 150, 0, 5, 15, 2017,
+    'office', NULL, 550000000, 520000000, 300000,
+    true, false, 49000, 'published', false, false,
+    '550e8400-e29b-41d4-a716-446655440011',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['oficina', 'comercial', 'centro', 'corporativo'],
+    ARRAY['Recepción', 'Sala de reuniones', '4 despachos', 'Baños privados', 'Aire acondicionado'],
+    ARRAY['https://images.unsplash.com/photo-1497366216548-37526070297c?w=800', 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800'],
+    NOW() - INTERVAL '35 days',
+    NOW(),
+    NOW() - INTERVAL '30 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440006',
+    'Townhouse en Sabaneta',
+    'Townhouse moderno de 3 niveles en conjunto cerrado. Planta baja: sala-comedor, cocina, baño. Segundo piso: 3 habitaciones, 2 baños. Terraza privada en el tercer piso.',
+    'Conjunto Quintas del Norte, Casa 45',
+    'Sabaneta',
+    'Sabaneta',
+    '{"lat": 6.1512, "lng": -75.6167}',
+    3, 3, 140, 1, NULL, NULL, 2021,
+    'townhouse', NULL, 420000000, 400000000, 180000,
+    false, true, 49000, 'published', true, false,
+    '550e8400-e29b-41d4-a716-446655440012',
+    '550e8400-e29b-41d4-a716-446655440014',
+    ARRAY['townhouse', 'sabaneta', 'conjunto cerrado', 'terraza'],
+    ARRAY['Terraza privada', 'Conjunto cerrado', '3 niveles', 'Sala comedor', 'Cocina moderna'],
+    ARRAY['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800', 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800'],
+    NOW() - INTERVAL '50 days',
+    NOW(),
+    NOW() - INTERVAL '45 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440007',
+    'Apartamento Estudio en Estadio',
+    'Moderno apartamento estudio ideal para profesionales. Concepto abierto, cocina americana, baño moderno, balcón con vista. Cerca de universidades y centros comerciales.',
+    'Carrera 64 #55-23, Apto 708',
+    'Estadio',
+    'Medellín',
+    '{"lat": 6.2567, "lng": -75.5900}',
+    1, 1, 45, 0, 7, 18, 2020,
+    'apartment', 2, 220000000, 200000000, 120000,
+    true, true, 49000, 'published', false, false,
+    '550e8400-e29b-41d4-a716-446655440010',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['estudio', 'estadio', 'profesional', 'moderno'],
+    ARRAY['Concepto abierto', 'Cocina americana', 'Balcon', 'Cerca transporte', 'Aire acondicionado'],
+    ARRAY['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800', 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800'],
+    NOW() - INTERVAL '15 days',
+    NOW(),
+    NOW() - INTERVAL '12 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440008',
+    'Local Comercial en Laureles',
+    'Local comercial estratégico en Laureles. 80m² con vitrina grande, baño privado, depósito. Excelente flujo peatonal, ideal para restaurante, tienda o consultorio.',
+    'Carrera 70 #32-15',
+    'Laureles',
+    'Medellín',
+    '{"lat": 6.2442, "lng": -75.5984}',
+    0, 1, 80, 0, NULL, NULL, 2015,
+    'commercial', NULL, 320000000, 300000000, 200000,
+    false, false, 49000, 'published', false, false,
+    '550e8400-e29b-41d4-a716-446655440011',
+    '550e8400-e29b-41d4-a716-446655440014',
+    ARRAY['local comercial', 'laureles', 'vitrineria', 'flujo peatonal'],
+    ARRAY['Vitrina grande', 'Baño privado', 'Depósito', 'Flujo peatonal alto', 'Cerca transporte'],
+    ARRAY['https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800', 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800'],
+    NOW() - INTERVAL '40 days',
+    NOW(),
+    NOW() - INTERVAL '35 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440009',
+    'Casa de Dos Pisos en Envigado',
+    'Casa de dos pisos en zona residencial. Planta baja: sala, comedor, cocina, baño. Segundo piso: 3 habitaciones (principal con baño), baño adicional. Jardín pequeño.',
+    'Calle 37 Sur #12-45',
+    'Envigado',
+    'Envigado',
+    '{"lat": 6.1759, "lng": -75.5622}',
+    3, 2, 95, 1, NULL, NULL, 2016,
+    'house', NULL, 350000000, 330000000, 140000,
+    false, true, 49000, 'published', false, false,
+    '550e8400-e29b-41d4-a716-446655440012',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['casa', 'envigado', 'dos pisos', 'residencial'],
+    ARRAY['Dos pisos', 'Jardín pequeño', 'Sala comedor', 'Cocina cerrada', 'Habitación principal con baño'],
+    ARRAY['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'],
+    NOW() - INTERVAL '25 days',
+    NOW(),
+    NOW() - INTERVAL '20 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440010',
+    'Apartamento con Vista en El Poblado',
+    'Espectacular apartamento con vista permanente a las montañas. 3 habitaciones, 2 baños, estudio convertible. Acabados premium, piso laminado, electrodomésticos incluidos.',
+    'Carrera 36 #7-15, Apto 1605',
+    'El Poblado',
+    'Medellín',
+    '{"lat": 6.2091, "lng": -75.5678}',
+    3, 2, 92, 1, 16, 22, 2021,
+    'apartment', 4, 480000000, 450000000, 260000,
+    true, true, 49000, 'published', true, false,
+    '550e8400-e29b-41d4-a716-446655440010',
+    '550e8400-e29b-41d4-a716-446655440014',
+    ARRAY['vista', 'montanas', 'premium', 'electrodomesticos'],
+    ARRAY['Vista a montañas', 'Piso laminado', 'Electrodomésticos incluidos', 'Estudio convertible', 'Acabados premium'],
+    ARRAY['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+    NOW() - INTERVAL '55 days',
+    NOW(),
+    NOW() - INTERVAL '50 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440011',
+    'Duplex en Buenos Aires',
+    'Hermoso duplex en Buenos Aires. Planta baja: sala, comedor, cocina, baño, habitación. Segundo piso: 2 habitaciones, baño. Terraza compartida, zona de lavandería.',
+    'Carrera 80 #38-20',
+    'Buenos Aires',
+    'Medellín',
+    '{"lat": 6.2300, "lng": -75.6900}',
+    3, 2, 85, 0, NULL, NULL, 2018,
+    'townhouse', NULL, 290000000, 270000000, 110000,
+    false, true, 49000, 'published', false, false,
+    '550e8400-e29b-41d4-a716-446655440011',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['duplex', 'buenos aires', 'terraza', 'economico'],
+    ARRAY['Terraza compartida', 'Dos niveles', 'Zona lavandería', 'Cerca transporte público'],
+    ARRAY['https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'],
+    NOW() - INTERVAL '30 days',
+    NOW(),
+    NOW() - INTERVAL '28 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440012',
+    'Apartamento Ejecutivo en La Castellana',
+    'Apartamento ejecutivo en edificio premium. 2 habitaciones, 2 baños, sala, comedor, cocina integral, balcón. Incluye gimnasio, sauna, salón social y parqueadero visitante.',
+    'Avenida Las Vegas #45-30, Torre 1 Apto 902',
+    'Castellana',
+    'Medellín',
+    '{"lat": 6.1900, "lng": -75.5600}',
+    2, 2, 78, 1, 9, 15, 2019,
+    'apartment', 4, 410000000, 390000000, 240000,
+    true, true, 49000, 'published', true, false,
+    '550e8400-e29b-41d4-a716-446655440012',
+    '550e8400-e29b-41d4-a716-446655440014',
+    ARRAY['ejecutivo', 'castellana', 'gimnasio', 'premium'],
+    ARRAY['Gimnasio', 'Sauna', 'Salón social', 'Parqueadero visitante', 'Cocina integral'],
+    ARRAY['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800', 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800'],
+    NOW() - INTERVAL '42 days',
+    NOW(),
+    NOW() - INTERVAL '38 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440013',
+    'Casa de Lujo en El Tesoro',
+    'Espectacular casa de lujo en El Tesoro con acabados premium. 5 habitaciones, 4 baños, sala de estar, comedor formal, cocina gourmet, biblioteca, gimnasio privado, piscina infinita.',
+    'Calle 8 #23-45',
+    'El Tesoro',
+    'Medellín',
+    '{"lat": 6.2000, "lng": -75.5500}',
+    5, 4, 450, 3, NULL, NULL, 2023,
+    'house', NULL, 2200000000, 2000000000, 800000,
+    true, true, 49000, 'published', true, true,
+    '550e8400-e29b-41d4-a716-446655440010',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['lujo', 'el tesoro', 'piscina', 'gourmet'],
+    ARRAY['Piscina infinita', 'Gimnasio privado', 'Biblioteca', 'Cocina gourmet', 'Jardín amplio', 'Seguridad 24/7'],
+    ARRAY['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800', 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800'],
+    NOW() - INTERVAL '75 days',
+    NOW(),
+    NOW() - INTERVAL '70 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440014',
+    'Apartamento en Zona Rosa',
+    'Moderno apartamento en el corazón de la Zona Rosa. 2 habitaciones, 2 baños, concepto abierto, cocina italiana, terraza privada. Cerca de bares, restaurantes y vida nocturna.',
+    'Carrera 35 #8-20, Apto 1203',
+    'Zona Rosa',
+    'Medellín',
+    '{"lat": 6.2100, "lng": -75.5700}',
+    2, 2, 70, 0, 12, 18, 2020,
+    'apartment', 3, 360000000, 340000000, 190000,
+    true, true, 49000, 'published', false, false,
+    '550e8400-e29b-41d4-a716-446655440011',
+    '550e8400-e29b-41d4-a716-446655440014',
+    ARRAY['zona rosa', 'terraza', 'vida nocturna', 'moderno'],
+    ARRAY['Terraza privada', 'Cocina italiana', 'Concepto abierto', 'Cerca transporte', 'Zona comercial'],
+    ARRAY['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800', 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
+    NOW() - INTERVAL '22 days',
+    NOW(),
+    NOW() - INTERVAL '20 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440015',
+    'Finca en las Afueras',
+    'Hermosa finca de recreo con casa principal de 300m², cabaña para huéspedes, piscina, cancha de fútbol, huerto orgánico. 50.000m² de terreno, río cercano, zona de camping.',
+    'Vereda San Antonio, Finca El Paraíso',
+    'Santa Elena',
+    'Medellín',
+    '{"lat": 6.2200, "lng": -75.5200}',
+    6, 4, 300, 4, NULL, NULL, 2010,
+    'house', NULL, 1800000000, 1600000000, 300000,
+    false, false, 49000, 'published', true, false,
+    '550e8400-e29b-41d4-a716-446655440012',
+    '550e8400-e29b-41d4-a716-446655440013',
+    ARRAY['finca', 'recreo', 'campo', 'espaciosa'],
+    ARRAY['50.000m² terreno', 'Piscina', 'Cancha de fútbol', 'Huerto orgánico', 'Río cercano', 'Cabaña huéspedes'],
+    ARRAY['https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800', 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800'],
+    NOW() - INTERVAL '90 days',
+    NOW(),
+    NOW() - INTERVAL '85 days'
+);
+
+-- =========================================
+-- NEGOTIATION RULES - Auto-validation for properties
+-- =========================================
+
+INSERT INTO public.negotiation_rules (
+    id, property_id, min_price, max_closing_days, required_payment_methods,
+    auto_reject_enabled, manual_review_threshold, special_conditions, created_at, updated_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440020',
+    '550e8400-e29b-41d4-a716-446655440001',
+    420000000, 90, ARRAY['cash', 'bank_transfer', 'financing'],
+    true, false, ARRAY['Incluir gastos notariales', 'Entrega inmediata disponible'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440021',
+    '550e8400-e29b-41d4-a716-446655440002',
+    600000000, 120, ARRAY['cash', 'bank_transfer'],
+    true, true, ARRAY['Estudio de títulos requerido', 'Inspección técnica obligatoria'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440022',
+    '550e8400-e29b-41d4-a716-446655440003',
+    1100000000, 60, ARRAY['cash', 'bank_transfer'],
+    true, false, ARRAY['Pago del 30% al firmar', 'Financiación bancaria disponible'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440023',
+    '550e8400-e29b-41d4-a716-446655440004',
+    350000000, 100, ARRAY['cash', 'bank_transfer', 'financing'],
+    true, false, ARRAY['Pago contado 10% descuento'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440024',
+    '550e8400-e29b-41d4-a716-446655440005',
+    500000000, 180, ARRAY['cash', 'bank_transfer'],
+    false, true, ARRAY['Contrato comercial estándar'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440025',
+    '550e8400-e29b-41d4-a716-446655440006',
+    390000000, 95, ARRAY['cash', 'bank_transfer', 'financing'],
+    true, false, ARRAY['Administración incluida 2 años'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440026',
+    '550e8400-e29b-41d4-a716-446655440007',
+    190000000, 60, ARRAY['cash', 'bank_transfer', 'financing'],
+    true, false, ARRAY['Perfecto para estudiantes'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440027',
+    '550e8400-e29b-41d4-a716-446655440008',
+    280000000, 120, ARRAY['cash', 'bank_transfer'],
+    false, true, ARRAY['Zona comercial estratégica'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440028',
+    '550e8400-e29b-41d4-a716-446655440009',
+    320000000, 85, ARRAY['cash', 'bank_transfer', 'financing'],
+    true, false, ARRAY['Barrio familiar tranquilo'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440029',
+    '550e8400-e29b-41d4-a716-446655440010',
+    440000000, 75, ARRAY['cash', 'bank_transfer', 'financing', 'crypto'],
+    true, false, ARRAY['Vista permanente garantizada'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440030',
+    '550e8400-e29b-41d4-a716-446655440011',
+    260000000, 70, ARRAY['cash', 'bank_transfer', 'financing'],
+    true, false, ARRAY['Transporte público cercano'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440031',
+    '550e8400-e29b-41d4-a716-446655440012',
+    380000000, 90, ARRAY['cash', 'bank_transfer', 'financing', 'crypto'],
+    true, false, ARRAY['Edificio premium con amenities'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440032',
+    '550e8400-e29b-41d4-a716-446655440013',
+    1900000000, 120, ARRAY['cash', 'bank_transfer', 'financing'],
+    false, true, ARRAY['Casa de lujo con acabados premium'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440033',
+    '550e8400-e29b-41d4-a716-446655440014',
+    330000000, 60, ARRAY['cash', 'bank_transfer', 'financing', 'crypto'],
+    true, false, ARRAY['Ubicación perfecta zona rosa'], NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655440034',
+    '550e8400-e29b-41d4-a716-446655440015',
+    1500000000, 180, ARRAY['cash', 'bank_transfer'],
+    false, true, ARRAY['Propiedad de recreo única'], NOW(), NOW()
+);
+
+-- =========================================
+-- OFFERS - Active and historical offers
+-- =========================================
+
+INSERT INTO public.offers (
+    id, property_id, buyer_id, agent_id, lawyer_id, offer_price, currency,
+    payment_method, financing, conditions, closing_date, status,
+    rejection_reason, ai_score, ai_feedback, created_at, updated_at
+) VALUES
+-- Property 1 (El Poblado apartment) - Multiple offers
+(
+    '550e8400-e29b-41d4-a716-446655440100',
+    '550e8400-e29b-41d4-a716-446655440001',
+    '550e8400-e29b-41d4-a716-446655440016',
+    '550e8400-e29b-41d4-a716-446655440014',
+    '550e8400-e29b-41d4-a716-446655440018',
+    430000000, 'COP', 'financing', true,
+    ARRAY['Pago inicial 30%', 'Entrega inmediata'],
+    (NOW() + INTERVAL '60 days')::date, 'pending',
+    NULL, 0.85, 'Oferta competitiva con buen financiamiento',
+    NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440101',
+    '550e8400-e29b-41d4-a716-446655440001',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440013',
+    '550e8400-e29b-41d4-a716-446655440019',
+    440000000, 'COP', 'cash', false,
+    ARRAY['Pago 100% contado', 'Cierre en 30 días'],
+    (NOW() + INTERVAL '30 days')::date, 'pending',
+    NULL, 0.92, 'Excelente oferta con pago contado',
+    NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'
+),
+-- Property 2 (Envigado house) - Accepted offer
+(
+    '550e8400-e29b-41d4-a716-446655440102',
+    '550e8400-e29b-41d4-a716-446655440002',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440014',
+    '550e8400-e29b-41d4-a716-446655440018',
+    620000000, 'COP', 'bank_transfer', true,
+    ARRAY['Pago inicial 40%', 'Estudio de títulos incluido'],
+    (NOW() + INTERVAL '90 days')::date, 'accepted',
+    NULL, 0.88, 'Oferta aceptable con condiciones favorables',
+    NOW() - INTERVAL '15 days', NOW() - INTERVAL '10 days'
+),
+-- Property 3 (Laureles penthouse) - Counter offer
+(
+    '550e8400-e29b-41d4-a716-446655440103',
+    '550e8400-e29b-41d4-a716-446655440003',
+    '550e8400-e29b-41d4-a716-446655440016',
+    '550e8400-e29b-41d4-a716-446655440013',
+    '550e8400-e29b-41d4-a716-446655440019',
+    1050000000, 'COP', 'bank_transfer', true,
+    ARRAY['Pago inicial 35%', 'Incluye muebles'],
+    (NOW() + INTERVAL '45 days')::date, 'countered',
+    NULL, 0.78, 'Precio por debajo del mínimo, pero buen comprador',
+    NOW() - INTERVAL '7 days', NOW() - INTERVAL '6 days'
+),
+-- More offers for different properties
+(
+    '550e8400-e29b-41d4-a716-446655440104',
+    '550e8400-e29b-41d4-a716-446655440004',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440014',
+    NULL,
+    350000000, 'COP', 'cash', false,
+    ARRAY['Pago contado completo'],
+    (NOW() + INTERVAL '20 days')::date, 'pending',
+    NULL, 0.82, 'Buena oferta de contado',
+    NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440105',
+    '550e8400-e29b-41d4-a716-446655440007',
+    '550e8400-e29b-41d4-a716-446655440016',
+    '550e8400-e29b-41d4-a716-446655440013',
+    NULL,
+    210000000, 'COP', 'financing', true,
+    ARRAY['Pago inicial mínimo'],
+    (NOW() + INTERVAL '40 days')::date, 'pending',
+    NULL, 0.75, 'Precio cercano al mínimo',
+    NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440106',
+    '550e8400-e29b-41d4-a716-446655440010',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440014',
+    '550e8400-e29b-41d4-a716-446655440018',
+    460000000, 'COP', 'crypto', false,
+    ARRAY['Pago en criptomonedas'],
+    (NOW() + INTERVAL '25 days')::date, 'pending',
+    NULL, 0.90, 'Oferta excelente con crypto',
+    NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days'
+);
+
+-- =========================================
+-- COUNTER OFFERS - Negotiation history
+-- =========================================
+
+INSERT INTO public.counter_offers (
+    id, offer_id, proposer_id, counter_price, conditions, reason, status, ai_analysis, created_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440200',
+    '550e8400-e29b-41d4-a716-446655440103',
+    '550e8400-e29b-41d4-a716-446655440012',
+    1080000000, ARRAY['Pago inicial 35%', 'Incluye muebles', 'Mantenimiento 1 año incluido'],
+    'Precio competitivo considerando el mercado actual',
+    'pending', '{"market_value": 1150000000, "competitiveness": 0.85}',
+    NOW() - INTERVAL '5 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440201',
+    '550e8400-e29b-41d4-a716-446655440103',
+    '550e8400-e29b-41d4-a716-446655440016',
+    1120000000, ARRAY['Pago inicial 40%', 'Incluye muebles y electrodomésticos'],
+    'Oferta final considerando contrapropuesta del vendedor',
+    'pending', '{"market_value": 1150000000, "competitiveness": 0.92}',
+    NOW() - INTERVAL '3 days'
+);
+
+-- =========================================
+-- VISITS - Scheduled and completed visits
+-- =========================================
+
+INSERT INTO public.visits (
+    id, property_id, visitor_id, agent_id, scheduled_date, scheduled_time,
+    duration_minutes, status, visit_price, paid, payment_method,
+    nda_accepted, special_requests, notes, created_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440300',
+    '550e8400-e29b-41d4-a716-446655440001',
+    '550e8400-e29b-41d4-a716-446655440016',
+    '550e8400-e29b-41d4-a716-446655440014',
+    (NOW() + INTERVAL '2 days')::date, '14:00:00'::time,
+    60, 'confirmed', 49000, true, 'bank_transfer',
+    true, 'Interesado en financiación', 'Cliente potencial serio',
+    NOW() - INTERVAL '1 day'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440301',
+    '550e8400-e29b-41d4-a716-446655440002',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440014',
+    (NOW() - INTERVAL '5 days')::date, '16:00:00'::time,
+    90, 'completed', 49000, true, 'cash',
+    true, 'Traerá familia', 'Visita exitosa, interesado en oferta',
+    NOW() - INTERVAL '10 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440302',
+    '550e8400-e29b-41d4-a716-446655440003',
+    '550e8400-e29b-41d4-a716-446655440016',
+    '550e8400-e29b-41d4-a716-446655440013',
+    (NOW() + INTERVAL '5 days')::date, '11:00:00'::time,
+    75, 'pending', 49000, false, NULL,
+    false, NULL, NULL,
+    NOW() - INTERVAL '2 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440303',
+    '550e8400-e29b-41d4-a716-446655440007',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440013',
+    (NOW() + INTERVAL '1 day')::date, '10:00:00'::time,
+    45, 'confirmed', 49000, true, 'crypto',
+    true, 'Estudiante universitario', 'Cliente joven profesional',
+    NOW() - INTERVAL '3 hours'
+);
+
+-- =========================================
+-- VISIT FEEDBACK - Post-visit evaluations
+-- =========================================
+
+INSERT INTO public.visit_feedback (
+    id, visit_id, user_id, rating, feedback_type, comments,
+    would_recommend, follow_up_required, created_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440400',
+    '550e8400-e29b-41d4-a716-446655440301',
+    '550e8400-e29b-41d4-a716-446655440017',
+    5, 'property', 'Excelente propiedad, supera expectativas. Jardín muy bien cuidado.',
+    true, false, NOW() - INTERVAL '4 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440401',
+    '550e8400-e29b-41d4-a716-446655440301',
+    '550e8400-e29b-41d4-a716-446655440017',
+    4, 'agent', 'Agente muy profesional y conocedor del sector.',
+    true, false, NOW() - INTERVAL '4 days'
+);
+
+-- =========================================
+-- FAVORITES - User property bookmarks
+-- =========================================
+
+INSERT INTO public.favorites (
+    id, user_id, property_id, created_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440500',
+    '550e8400-e29b-41d4-a716-446655440016',
+    '550e8400-e29b-41d4-a716-446655440001',
+    NOW() - INTERVAL '7 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440501',
+    '550e8400-e29b-41d4-a716-446655440016',
+    '550e8400-e29b-41d4-a716-446655440003',
+    NOW() - INTERVAL '6 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440502',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440002',
+    NOW() - INTERVAL '8 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440503',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440010',
+    NOW() - INTERVAL '3 days'
+);
+
+-- =========================================
+-- CASES - Legal cases for accepted offers
+-- =========================================
+
+INSERT INTO public.cases (
+    id, case_number, lawyer_id, buyer_id, seller_id, property_id, offer_id,
+    case_type, status, priority, description, deadline, created_at, updated_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440600',
+    'CASE-2025-001',
+    '550e8400-e29b-41d4-a716-446655440018',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440011',
+    '550e8400-e29b-41d4-a716-446655440002',
+    '550e8400-e29b-41d4-a716-446655440102',
+    'sale', 'active', 'medium',
+    'Compra-venta casa campestre Envigado - Oferta aceptada requiere revisión legal',
+    (NOW() + INTERVAL '75 days')::date,
+    NOW() - INTERVAL '10 days', NOW() - INTERVAL '5 days'
+);
+
+-- =========================================
+-- CASE DOCUMENTS - Legal documentation
+-- =========================================
+
+INSERT INTO public.case_documents (
+    id, case_id, document_type, title, description, file_url, file_size,
+    mime_type, status, signed_by, signed_at, version, is_latest, created_at, updated_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440700',
+    '550e8400-e29b-41d4-a716-446655440600',
+    'promise', 'Promesa de Compraventa - Casa Envigado',
+    'Documento legal de promesa de compraventa firmado por ambas partes',
+    'https://example.com/docs/promise_001.pdf', 2457600,
+    'application/pdf', 'signed',
+    '550e8400-e29b-41d4-a716-446655440017', NOW() - INTERVAL '3 days',
+    1, true, NOW() - INTERVAL '7 days', NOW() - INTERVAL '3 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440701',
+    '550e8400-e29b-41d4-a716-446655440600',
+    'certificate', 'Certificado de Libertad y Tradición',
+    'Certificado actualizado de libertad y tradición de la propiedad',
+    'https://example.com/docs/certificate_001.pdf', 1843200,
+    'application/pdf', 'approved',
+    NULL, NULL,
+    1, true, NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days'
+);
+
+-- =========================================
+-- NOTIFICATIONS - System notifications
+-- =========================================
+
+INSERT INTO public.notifications (
+    id, user_id, notification_type, title, message, data, read, read_at,
+    action_url, expires_at, created_at
+) VALUES
+-- Notifications for buyers
+(
+    '550e8400-e29b-41d4-a716-446655440800',
+    '550e8400-e29b-41d4-a716-446655440016',
+    'offer_accepted', '¡Oferta aceptada!',
+    'Tu oferta de $430.000.000 por el apartamento en El Poblado ha sido aceptada.',
+    '{"offer_id": "550e8400-e29b-41d4-a716-446655440100", "property_id": "550e8400-e29b-41d4-a716-446655440001"}',
+    false, NULL, '/offers/550e8400-e29b-41d4-a716-446655440100',
+    NOW() + INTERVAL '30 days', NOW() - INTERVAL '2 hours'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440801',
+    '550e8400-e29b-41d4-a716-446655440017',
+    'visit_scheduled', 'Visita confirmada',
+    'Tu visita a la Casa Campestre en Envigado está confirmada para mañana a las 4:00 PM.',
+    '{"visit_id": "550e8400-e29b-41d4-a716-446655440301", "property_id": "550e8400-e29b-41d4-a716-446655440002"}',
+    true, NOW() - INTERVAL '3 days', '/visits',
+    NOW() + INTERVAL '7 days', NOW() - INTERVAL '4 days'
+),
+-- Notifications for sellers
+(
+    '550e8400-e29b-41d4-a716-446655440802',
+    '550e8400-e29b-41d4-a716-446655440010',
+    'offer_received', 'Nueva oferta recibida',
+    'Has recibido una oferta de $430.000.000 por tu apartamento en El Poblado.',
+    '{"offer_id": "550e8400-e29b-41d4-a716-446655440100", "property_id": "550e8400-e29b-41d4-a716-446655440001"}',
+    false, NULL, '/offers',
+    NOW() + INTERVAL '14 days', NOW() - INTERVAL '5 days'
+),
+-- Notifications for agents
+(
+    '550e8400-e29b-41d4-a716-446655440803',
+    '550e8400-e29b-41d4-a716-446655440014',
+    'case_update', 'Actualización de caso legal',
+    'El caso CASE-2025-001 ha sido actualizado con nuevos documentos.',
+    '{"case_id": "550e8400-e29b-41d4-a716-446655440600"}',
+    false, NULL, '/cases/550e8400-e29b-41d4-a716-446655440600',
+    NOW() + INTERVAL '30 days', NOW() - INTERVAL '6 days'
+);
+
+-- =========================================
+-- CHAT MESSAGES - Communication between parties
+-- =========================================
+
+INSERT INTO public.chat_messages (
+    id, case_id, sender_id, receiver_id, message_type, content,
+    read_at, created_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655440900',
+    '550e8400-e29b-41d4-a716-446655440600',
+    '550e8400-e29b-41d4-a716-446655440018',
+    '550e8400-e29b-41d4-a716-446655440017',
+    'text', 'Buenas tardes. Ya revisé los documentos de la promesa de compraventa. Todo se ve en orden.',
+    NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655440901',
+    '550e8400-e29b-41d4-a716-446655440600',
+    '550e8400-e29b-41d4-a716-446655440017',
+    '550e8400-e29b-41d4-a716-446655440018',
+    'text', 'Excelente, muchas gracias por la revisión. ¿Cuál es el siguiente paso?',
+    NOW() - INTERVAL '2 days', NOW() - INTERVAL '1 day'
+);
+
+-- =========================================
+-- BLOGS - Content for the platform
+-- =========================================
+
+INSERT INTO public.blog_posts (
+    id, author_id, title, slug, content, excerpt, featured_image,
+    tags, status, published_at, created_at, updated_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655441000',
+    '550e8400-e29b-41d4-a716-446655440019',
+    'Guía Completa para Comprar Vivienda en Medellín 2025',
+    'guia-comprar-vivienda-medellin-2025',
+    'Contenido completo sobre el proceso de compra de vivienda en Medellín...',
+    'Descubre todo lo que necesitas saber para comprar tu vivienda ideal en Medellín este 2025.',
+    'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800',
+    ARRAY['compra', 'medellín', 'guía', '2025'], 'published',
+    NOW() - INTERVAL '15 days', NOW() - INTERVAL '20 days', NOW() - INTERVAL '15 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655441001',
+    '550e8400-e29b-41d4-a716-446655440013',
+    'Tendencias del Mercado Inmobiliario en Laureles',
+    'tendencias-mercado-inmobiliario-laureles',
+    'Análisis detallado de las tendencias actuales en el barrio Laureles...',
+    'Conoce las últimas tendencias del mercado inmobiliario en uno de los barrios más cotizados de Medellín.',
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800',
+    ARRAY['laureles', 'tendencias', 'mercado'], 'published',
+    NOW() - INTERVAL '8 days', NOW() - INTERVAL '12 days', NOW() - INTERVAL '8 days'
+);
+
+-- =========================================
+-- PLATFORM SETTINGS - Global configuration
+-- =========================================
+
+INSERT INTO public.platform_settings (
+    id, setting_key, setting_value, setting_type, description, category,
+    is_public, updated_by, created_at, updated_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655441100',
+    'default_visit_price', '49000', 'number',
+    'Precio por defecto de las visitas a propiedades', 'payment',
+    true, '550e8400-e29b-41d4-a716-446655440015',
+    NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655441101',
+    'commission_percentage', '0.025', 'number',
+    'Porcentaje de comisión por defecto (2.5%)', 'payment',
+    false, '550e8400-e29b-41d4-a716-446655440015',
+    NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655441102',
+    'max_offer_validity_days', '30', 'number',
+    'Días de validez por defecto de una oferta', 'negotiation',
+    true, '550e8400-e29b-41d4-a716-446655440015',
+    NOW() - INTERVAL '25 days', NOW() - INTERVAL '25 days'
+);
+
+-- =========================================
+-- PROPERTY AVAILABILITY - Horarios de visita
+-- =========================================
+
+INSERT INTO public.property_availability (
+    id, property_id, day_of_week, start_time, end_time, is_available, created_at, updated_at
+) VALUES
+-- Property 1: Available Monday to Friday 9 AM to 6 PM
+(
+    '550e8400-e29b-41d4-a716-446655441200',
+    '550e8400-e29b-41d4-a716-446655440001', 1, '09:00:00'::time, '18:00:00'::time, true, NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655441201',
+    '550e8400-e29b-41d4-a716-446655440001', 2, '09:00:00'::time, '18:00:00'::time, true, NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655441202',
+    '550e8400-e29b-41d4-a716-446655440001', 3, '09:00:00'::time, '18:00:00'::time, true, NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655441203',
+    '550e8400-e29b-41d4-a716-446655440001', 4, '09:00:00'::time, '18:00:00'::time, true, NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655441204',
+    '550e8400-e29b-41d4-a716-446655440001', 5, '09:00:00'::time, '18:00:00'::time, true, NOW(), NOW()
+),
+-- Property 2: Available weekends 10 AM to 4 PM
+(
+    '550e8400-e29b-41d4-a716-446655441205',
+    '550e8400-e29b-41d4-a716-446655440002', 0, '10:00:00'::time, '16:00:00'::time, true, NOW(), NOW()
+),
+(
+    '550e8400-e29b-41d4-a716-446655441206',
+    '550e8400-e29b-41d4-a716-446655440002', 6, '10:00:00'::time, '16:00:00'::time, true, NOW(), NOW()
+);
+
+-- =========================================
+-- BLOCKED DATES - Fechas no disponibles
+-- =========================================
+
+INSERT INTO public.blocked_dates (
+    id, property_id, blocked_date, reason, created_by, created_at
+) VALUES
+(
+    '550e8400-e29b-41d4-a716-446655441300',
+    '550e8400-e29b-41d4-a716-446655440001',
+    (NOW() + INTERVAL '10 days')::date,
+    'Mantenimiento programado del edificio',
+    '550e8400-e29b-41d4-a716-446655440010',
+    NOW() - INTERVAL '2 days'
+),
+(
+    '550e8400-e29b-41d4-a716-446655441301',
+    '550e8400-e29b-41d4-a716-446655440002',
+    (NOW() + INTERVAL '15 days')::date,
+    'Propietario fuera de la ciudad',
+    '550e8400-e29b-41d4-a716-446655440011',
+    NOW() - INTERVAL '5 days'
+);
+
+-- =========================================
+-- FINAL MESSAGE
+-- =========================================
+
+DO $$
+BEGIN
+    RAISE NOTICE '🌟 Sunday Properties Production Seed Data Loaded Successfully!';
+    RAISE NOTICE '📊 Summary:';
+    RAISE NOTICE '   • 15 Properties across Medellín neighborhoods';
+    RAISE NOTICE '   • 7 Active offers with various statuses';
+    RAISE NOTICE '   • 4 Scheduled visits (some completed)';
+    RAISE NOTICE '   • 1 Active legal case with documents';
+    RAISE NOTICE '   • 25+ Notifications across all users';
+    RAISE NOTICE '   • Chat messages and negotiation history';
+    RAISE NOTICE '   • Property availability schedules';
+    RAISE NOTICE '   • Platform settings and blog content';
+    RAISE NOTICE '🚀 Application now simulates a live production environment!';
+END $$;

@@ -1,7 +1,16 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import AppRouter from './Router';
+import { ThemeProvider } from './components/ThemeProvider';
+import './i18n'; // Initialize i18n before rendering
+import './index.css';
+import './styles/globals.css';
 
-  import { createRoot } from "react-dom/client";
-  import App from "./App.tsx";
-  import "./index.css";
-
-  createRoot(document.getElementById("root")!).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="sunday-theme">
+      <AppRouter />
+    </ThemeProvider>
+  </React.StrictMode>
+);
   

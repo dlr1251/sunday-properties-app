@@ -5,6 +5,8 @@ export interface User {
   phone?: string;
   avatar?: string;
   user_type: 'visitor' | 'registered' | 'verified' | 'premium' | 'admin' | 'lawyer' | 'superadmin';
+  email_verified?: boolean;
+  verification_status?: 'unverified' | 'pending' | 'verified' | 'rejected';
   verified_at?: string;
   created_at: string;
   updated_at: string;
@@ -42,13 +44,4 @@ export interface RegisterCredentials {
   user_type?: 'registered' | 'verified' | 'premium';
 }
 
-export interface AuthContextType {
-  user: User | null;
-  session: AuthSession | null;
-  loading: boolean;
-  signIn: (credentials: LoginCredentials) => Promise<void>;
-  signUp: (credentials: RegisterCredentials) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updateProfile: (updates: Partial<User>) => Promise<void>;
-}
+// AuthContextType is defined in AuthContext.tsx to avoid duplication
