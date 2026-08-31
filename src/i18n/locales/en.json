@@ -234,6 +234,11 @@
     "sidebarPeople": "Team",
     "sidebarOperations": "Operations"
   },
+  "ai": {
+    "disclaimer": {
+      "ui": "Sunday Properties is not a law firm. This content is informational and AI-generated; it is not legal advice. Consult a licensed attorney before you act. We do not commit to outcomes or accuracy, but it can be a useful starting point."
+    }
+  },
   "auth": {
     "login": "Sign In",
     "register": "Sign Up",

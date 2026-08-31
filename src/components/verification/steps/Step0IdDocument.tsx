@@ -7,6 +7,7 @@ import { Upload, FileText, Loader2, AlertCircle, CheckCircle, Eye, X } from 'luc
 import { useVerificationForm } from '../VerificationFormContext';
 import { documentAnalysisService, DocumentData } from '../../../services/documentAnalysis';
 import { toast } from 'sonner';
+import { AiLegalDisclaimer } from '@/components/ai/AiLegalDisclaimer';
 
 export const Step0IdDocument: React.FC = () => {
   const { t } = useTranslation();
@@ -122,6 +123,7 @@ export const Step0IdDocument: React.FC = () => {
         </Card>
       ) : (
         <div className="space-y-4">
+          <AiLegalDisclaimer />
           {/* Document Preview */}
           <Card className="p-4">
             <div className="flex items-center justify-between mb-4">

@@ -24,6 +24,7 @@ import {
   Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AiLegalDisclaimer } from '@/components/ai/AiLegalDisclaimer';
 
 interface Negotiation {
   id: string;
@@ -494,7 +495,8 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
 
           {/* Document Actions */}
           {!documentContent ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8 space-y-4">
+              <AiLegalDisclaimer className="text-left" />
               <p className="text-muted-foreground mb-4">
                 Genera la promesa de compraventa usando inteligencia artificial (Grok)
               </p>
@@ -519,6 +521,7 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
             </div>
           ) : (
             <div className="space-y-4">
+              <AiLegalDisclaimer />
               <div className="flex items-center justify-between">
                 <Badge variant="default" className="bg-green-100 text-green-800">
                   <CheckCircle className="w-3 h-3 mr-1" />

@@ -28,6 +28,7 @@ import {
 import { IntentLetter, Offer } from '../../types/database';
 import { supabase } from '../../lib/supabase';
 import { useNegotiation } from '../../hooks/useNegotiation';
+import { AiLegalDisclaimer } from '@/components/ai/AiLegalDisclaimer';
 
 interface IntentLetterEditorProps {
   offerId: string;
@@ -346,6 +347,8 @@ _________________________              _________________________
           </Badge>
         )}
       </div>
+
+      <AiLegalDisclaimer />
 
       {/* Letter Content */}
       <Tabs defaultValue="editor" className="space-y-4">

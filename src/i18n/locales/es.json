@@ -234,6 +234,11 @@
     "sidebarPeople": "Equipo",
     "sidebarOperations": "Operaciones"
   },
+  "ai": {
+    "disclaimer": {
+      "ui": "Sunday Properties no es un bufete de abogados. Este contenido es informativo y generado por IA; no constituye asesoría jurídica. Consulte con un abogado habilitado antes de actuar. No nos comprometemos a resultados ni exactitud, pero puede servir como buen punto de partida."
+    }
+  },
   "auth": {
     "login": "Iniciar Sesión",
     "register": "Registrarse",

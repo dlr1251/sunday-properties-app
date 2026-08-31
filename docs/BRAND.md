@@ -60,9 +60,9 @@ Use `<BrandLogo variant="default" | "onDark" | "gold" />`. Never stretch. Minimu
 - Firm operational contact may use `daniel@luquelaw.co` until `hello@sundayproperties.co` exists
 - Do **not** say "A Luque Law company" or mirror Luque Law legal voice ("we" as law firm)
 
-## Relation to Luque Law
+## AI / legal orientation
 
-Independent brand, same founder ecosystem. Cross-sell is organic, not forced in UI.
+All LLM prompts that produce legal or transactional content include a mandatory disclaimer: Sunday Properties is not a law firm; output is not legal advice; consult a licensed attorney; no commitment to accuracy — useful starting point only. UI surfaces use `<AiLegalDisclaimer />`.
 
 ## Assets source
 
