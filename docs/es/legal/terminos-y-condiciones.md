@@ -27,7 +27,7 @@ Sunday Properties es una plataforma para transacciones inmobiliarias. Los térmi
 
 ## Documento completo
 
-Para el texto íntegro y vigente, consulte el documento oficial de Términos y Condiciones (p. ej. en `docs/legal/TERMS_AND_CONDITIONS.md` o en la ruta que la aplicación indique para uso legal).
+Para el texto íntegro y vigente, consulte el documento oficial de Términos y Condiciones (p. ej. en `docs/_legacy/legal/TERMS_AND_CONDITIONS.md` o en la ruta que la aplicación indique para uso legal).
 
 ## Temas relacionados
 

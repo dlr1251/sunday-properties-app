@@ -73,6 +73,16 @@ Términos y privacidad.
 | [Términos y condiciones](es/legal/terminos-y-condiciones) | Condiciones de uso. |
 | [Privacidad](es/legal/privacidad) | Datos y cookies. |
 
+### Proyecto (interno)
+Roadmap, checklist, demos y resúmenes de implementación.
+
+| Documento | Descripción |
+|-----------|-------------|
+| [Hub de gestión](project/README) | Estado del proyecto y enlaces rápidos. |
+| [Roadmap](project/roadmap) | Plan de desarrollo por fases. |
+| [Checklist](project/checklist) | Tareas por módulo. |
+| [Propiedades reales](project/real-properties) | Seed de propiedades reales y SEO. |
+
 ---
 
 ## Estado del proyecto

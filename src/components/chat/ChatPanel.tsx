@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +17,12 @@ import {
   Users,
   Clock,
   Check,
-  CheckCheck
+  CheckCheck,
+  Download,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useIntlLocale } from '../../i18n/useDateFnsLocale';
 
 interface ChatMessage {
   id: string;
@@ -51,6 +55,8 @@ interface ChatConversation {
 }
 
 export const ChatPanel: React.FC = () => {
+  const { t } = useTranslation();
+  const intlLocale = useIntlLocale();
   const { user } = useAuth();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<ChatConversation | null>(null);
@@ -207,7 +213,7 @@ export const ChatPanel: React.FC = () => {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('es-CO', {
+    return date.toLocaleTimeString(intlLocale, {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -220,11 +226,11 @@ export const ChatPanel: React.FC = () => {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Hoy';
+      return t('chat.today');
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Ayer';
+      return t('chat.yesterday');
     } else {
-      return date.toLocaleDateString('es-CO', {
+      return date.toLocaleDateString(intlLocale, {
         day: 'numeric',
         month: 'short'
       });
@@ -236,18 +242,27 @@ export const ChatPanel: React.FC = () => {
     conv.participants.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const showConversationList = !selectedConversation;
+  const showChatArea = selectedConversation;
+
   return (
-    <div className="h-full flex">
-      {/* Conversations List */}
-      <div className="w-1/3 border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Conversaciones</h2>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+    <div className="h-full min-h-[400px] flex flex-col md:flex-row md:min-h-[500px]">
+      {/* Conversations List - full width on mobile when no chat selected, sidebar on md+ */}
+      <div
+        className={`
+          w-full md:w-1/3 md:min-w-[260px] lg:min-w-[280px] 
+          border-r border-border flex flex-col shrink-0
+          ${showConversationList ? 'flex' : 'hidden md:flex'}
+        `}
+      >
+        <div className="p-3 sm:p-4 border-b border-border shrink-0">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
+            <h2 className="text-base sm:text-lg font-semibold truncate">{t('chat.conversations')}</h2>
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <Button variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-9 p-0">
                 <Filter className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </div>
@@ -255,45 +270,45 @@ export const ChatPanel: React.FC = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar conversaciones..."
+              placeholder={t('chat.searchConversations')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-9 sm:h-10 text-sm"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {filteredConversations.map((conversation) => (
             <div
               key={conversation.id}
-              className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
+              className={`p-3 sm:p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
                 selectedConversation?.id === conversation.id ? 'bg-primary/5 border-primary/20' : ''
               }`}
               onClick={() => setSelectedConversation(conversation)}
             >
-              <div className="flex items-start space-x-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Users className="h-5 w-5 text-primary" />
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
                     <h3 className="font-semibold text-sm truncate">{conversation.case_title}</h3>
                     {conversation.unread_count > 0 && (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge variant="destructive" className="text-xs shrink-0">
                         {conversation.unread_count}
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-1">
-                    <span>{conversation.participants.map(p => p.name).join(', ')}</span>
-                  </div>
+                  <p className="text-xs text-muted-foreground truncate mb-0.5">
+                    {conversation.participants.map(p => p.name).join(', ')}
+                  </p>
                   {conversation.last_message && (
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground truncate">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground truncate flex-1 min-w-0">
                         {conversation.last_message.message}
                       </p>
-                      <span className="text-xs text-muted-foreground ml-2">
+                      <span className="text-xs text-muted-foreground shrink-0">
                         {formatTime(conversation.last_message.created_at)}
                       </span>
                     </div>
@@ -305,32 +320,46 @@ export const ChatPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      {/* Chat Area - full width on mobile when conversation selected, flex-1 on md+ */}
+      <div
+        className={`
+          flex-1 flex flex-col min-w-0 min-h-[300px]
+          ${showChatArea ? 'flex' : 'hidden md:flex'}
+        `}
+      >
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{selectedConversation.case_title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedConversation.participants.map(p => p.name).join(', ')}
-                    </p>
-                  </div>
+            <div className="p-3 sm:p-4 border-b border-border shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="md:hidden h-9 w-9 p-0 shrink-0"
+                  onClick={() => setSelectedConversation(null)}
+                  aria-label={t('chat.backToConversations')}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base truncate">
+                    {selectedConversation.case_title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                    {selectedConversation.participants.map(p => p.name).join(', ')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                  <Button variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-9 p-0">
                     <Phone className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-9 p-0 hidden sm:flex">
                     <Video className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-9 p-0">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </div>
@@ -338,7 +367,7 @@ export const ChatPanel: React.FC = () => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 min-h-0">
               {messages.map((message, index) => {
                 const isOwn = message.sender_id === user?.id;
                 const showDate = index === 0 || 
@@ -353,7 +382,7 @@ export const ChatPanel: React.FC = () => {
                       </div>
                     )}
                     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      <div className={`max-w-[85%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded-lg ${
                         isOwn 
                           ? 'bg-primary text-primary-foreground' 
                           : 'bg-muted text-foreground'
@@ -367,7 +396,7 @@ export const ChatPanel: React.FC = () => {
                             <p className="text-sm">{message.message}</p>
                             <Button size="sm" variant={isOwn ? 'secondary' : 'outline'}>
                               <Download className="h-4 w-4 mr-1" />
-                              Descargar
+                              {t('chat.download')}
                             </Button>
                           </div>
                         ) : (
@@ -394,14 +423,14 @@ export const ChatPanel: React.FC = () => {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-border">
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
+            <div className="p-3 sm:p-4 border-t border-border shrink-0">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-9 w-9 sm:h-10 sm:w-10 p-0 shrink-0">
                   <Paperclip className="h-4 w-4" />
                 </Button>
                 <div className="flex-1 relative">
                   <Input
-                    placeholder="Escribe un mensaje..."
+                    placeholder={t('chat.placeholder')}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
@@ -415,21 +444,22 @@ export const ChatPanel: React.FC = () => {
                     <Smile className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
-                  <Send className="h-4 w-4" />
+                <Button onClick={handleSendMessage} disabled={!newMessage.trim()} size="sm" className="shrink-0">
+                  <Send className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">{t('chat.send')}</span>
                 </Button>
               </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-                Selecciona una conversación
+          <div className="flex-1 flex items-center justify-center min-h-[200px] p-4">
+            <div className="text-center max-w-sm">
+              <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-muted-foreground mb-2">
+                {t('chat.selectConversation')}
               </h3>
-              <p className="text-sm text-muted-foreground">
-                Elige una conversación para comenzar a chatear
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {t('chat.selectConversationHint')}
               </p>
             </div>
           </div>

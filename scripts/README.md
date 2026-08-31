@@ -1,8 +1,62 @@
 # Scripts Directory
 
-This directory contains utility scripts for database management, seeding, testing, and maintenance.
+Utilidades para base de datos, seeding, setup, SQL ad-hoc y mantenimiento.
+
+## Estructura
+
+```
+scripts/
+├── setup/          # Configuración inicial (Supabase, Vercel, .env)
+├── sql/            # Consultas SQL sueltas (usuarios, propiedades de prueba)
+├── dev/            # Scripts de prueba manual (negociación, contraofertas)
+├── _archived/      # Scripts obsoletos conservados por referencia
+└── *.mjs, *.sh     # Seeders y utilidades activas
+```
+
+### Setup (`setup/`)
+
+| Script | Uso |
+|--------|-----|
+| `setup.sh` | Crea `.env.local` con plantilla — `npm run setup` |
+| `setup-local-supabase.sh` | Supabase local con Docker — `npm run setup:local-supabase` |
+| `setup-complete.sh` | Supabase remoto + Vercel — `npm run setup:complete` |
+
+### SQL (`sql/`)
+
+| Archivo | Propósito |
+|---------|-----------|
+| `confirm-all-users.sql` | Confirmar emails de usuarios en Supabase Auth |
+| `fix-problematic-users.sql` | Reparar usuarios con perfiles inconsistentes |
+| `insert-test-properties.sql` | Insertar propiedades de prueba |
+| `supabase-simple-schema.sql` | Esquema simplificado (referencia histórica) |
+| `verify-users-with-properties.sql` | Verificar relación usuario–propiedad |
+
+### Dev (`dev/`)
+
+| Script | Propósito |
+|--------|---------|
+| `test-counter-offer.js` | Probar flujo de contraoferta |
+| `test-negotiation-data.js` | Probar datos de negociación |
+
+---
 
 ## Active Scripts
+
+### Documentation
+
+#### `copy-docs-to-public.mjs`
+- **Purpose:** Copies bilingual `docs/es` and `docs/en` to `public/docs/` for the in-app viewer
+- **Usage:** `npm run copy-docs` (runs automatically on `predev` / `prebuild`)
+
+#### `sync-docs-to-notion.mjs`
+- **Purpose:** Syncs `docs/en` and `docs/es` to Notion under the **📚 Documentación** page (Sunday Properties teamspace)
+- **Usage:** `npm run sync:docs-notion`
+- **Requires:** `NOTION_TOKEN` and `NOTION_DOCS_ROOT_PAGE_ID` in `.env.local` (see `.env.example`)
+- **Manifest:** `docs/.notion-sync.json` maps repo paths → Notion page IDs (idempotent upsert)
+- **CI:** `.github/workflows/notion-docs-sync.yml` runs on pushes to `docs/**`
+
+#### `bootstrap-notion-sync-batches.mjs` / `merge-notion-batch-result.mjs`
+- **Purpose:** One-time helpers for initial MCP-based sync (generates batch files under `scripts/.notion-sync-batches/`)
 
 ### Database Seeding
 

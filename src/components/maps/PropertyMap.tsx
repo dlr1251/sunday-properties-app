@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useMemo, useRef, useEffect } from 'react';
 import { GoogleMap, InfoWindow } from '@react-google-maps/api';
 import { DEFAULT_CENTER, DEFAULT_ZOOM, isValidCoordinates } from '@/lib/googleMaps';
@@ -209,13 +210,13 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
     if (typeof price === 'string') {
       const numPrice = parseInt(price.replace(/\D/g, ''), 10);
       if (isNaN(numPrice)) return price;
-      return new Intl.NumberFormat('es-CO', {
+      return new Intl.NumberFormat(getIntlLocale(), {
         style: 'currency',
         currency: 'COP',
         minimumFractionDigits: 0,
       }).format(numPrice);
     }
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,

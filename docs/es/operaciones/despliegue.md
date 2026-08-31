@@ -30,7 +30,7 @@ Mínimas para producción:
 | `VITE_APP_ENV` | `production` |
 | `VITE_GOOGLE_MAPS_API_KEY` | Clave de Google Maps (si se usan mapas) |
 
-Otras posibles: `VITE_STRIPE_PUBLIC_KEY`, `VITE_YJS_WS_URL` (si hay servidor Yjs en producción), `VITE_PAYMENT_TEST_MODE`, etc. Ver `env.example`.
+Otras posibles: `VITE_STRIPE_PUBLIC_KEY`, `VITE_YJS_WS_URL` (si hay servidor Yjs en producción), `VITE_PAYMENT_TEST_MODE`, etc. Ver `.env.example`.
 
 No exponer la **service role key** de Supabase en el frontend. Usarla solo en Edge Functions o scripts de backend.
 

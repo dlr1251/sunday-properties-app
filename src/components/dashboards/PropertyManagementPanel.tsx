@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,14 +39,16 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { useAdminProperties } from '../../hooks/admin/useAdminProperties';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, formatDate } from '../../utils/format';
 import { toast } from 'sonner';
 
 interface PropertyManagementPanelProps {
   onViewProperty?: (propertyId: string) => void;
 }
 
-export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPanelProps) {
+export function PropertyManagementPanel({
+  onViewProperty }: PropertyManagementPanelProps) {
+    const { t } = useTranslation();
   const {
     properties,
     loading,
@@ -81,9 +84,9 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
     setActionLoading(propertyId);
     const result = await approveProperty(propertyId);
     if (result.success) {
-      toast.success('Propiedad aprobada exitosamente');
+      toast.success(t('admin.propertyApproved'));
     } else {
-      toast.error(result.error || 'Error al aprobar propiedad');
+      toast.error(result.error || t('admin.approvePropertyError'));
     }
     setActionLoading(null);
   };
@@ -94,12 +97,12 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
     setActionLoading(currentPropertyId);
     const result = await rejectProperty(currentPropertyId, rejectionReason);
     if (result.success) {
-      toast.success('Propiedad rechazada');
+      toast.success(t('admin.propertyRejected'));
       setShowRejectDialog(false);
       setRejectionReason('');
       setCurrentPropertyId(null);
     } else {
-      toast.error(result.error || 'Error al rechazar propiedad');
+      toast.error(result.error || t('admin.rejectPropertyError'));
     }
     setActionLoading(null);
   };
@@ -108,9 +111,9 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
     setActionLoading(propertyId);
     const result = await unpublishProperty(propertyId);
     if (result.success) {
-      toast.success('Propiedad despublicada');
+      toast.success(t('admin.propertyUnpublished'));
     } else {
-      toast.error(result.error || 'Error al despublicar propiedad');
+      toast.error(result.error || t('admin.unpublishError'));
     }
     setActionLoading(null);
   };
@@ -121,46 +124,46 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
     setActionLoading(currentPropertyId);
     const result = await deleteProperty(currentPropertyId);
     if (result.success) {
-      toast.success('Propiedad eliminada');
+      toast.success(t('admin.propertyRemoved'));
       setShowDeleteDialog(false);
       setCurrentPropertyId(null);
     } else {
-      toast.error(result.error || 'Error al eliminar propiedad');
+      toast.error(result.error || t('admin.deletePropertyToastError'));
     }
     setActionLoading(null);
   };
 
   const handleBulkApprove = async () => {
     if (selectedProperties.length === 0) {
-      toast.error('Selecciona al menos una propiedad');
+      toast.error(t('admin.selectAtLeastOne'));
       return;
     }
 
     const result = await bulkApprove(selectedProperties);
     if (result.success) {
-      toast.success(`${selectedProperties.length} propiedades aprobadas`);
+      toast.success(t('admin.bulkApproved', { count: selectedProperties.length }));
       setSelectedProperties([]);
     } else {
-      toast.error(result.error || 'Error en aprobación masiva');
+      toast.error(result.error || t('admin.bulkApproveError'));
     }
   };
 
   const exportProperties = () => {
     const csvData = properties.map(prop => ({
       ID: prop.id,
-      Título: prop.title,
-      Dirección: prop.address,
-      Ciudad: prop.city,
-      Precio: prop.price,
-      Estado: prop.status,
-      'Tipo Propiedad': prop.property_type,
-      Área: prop.area,
-      Habitaciones: prop.bedrooms,
-      Baños: prop.bathrooms,
-      'Propietario': prop.owner_name,
-      'Email Propietario': prop.owner_email,
-      'Fecha Creación': new Date(prop.created_at).toLocaleDateString('es-CO'),
-      'Imágenes': prop.images_count
+      [t('admin.recordTitle')]: prop.title,
+      [t('admin.address')]: prop.address,
+      [t('admin.city')]: prop.city,
+      [t('lawyer.price').replace(/:$/, '')]: prop.price,
+      [t('admin.reviewStatus')]: prop.status,
+      [t('admin.propertyType')]: prop.property_type,
+      [t('admin.areaM2')]: prop.area,
+      [t('properties.bedrooms')]: prop.bedrooms,
+      [t('properties.bathrooms')]: prop.bathrooms,
+      [t('admin.owner')]: prop.owner_name,
+      Email: prop.owner_email,
+      [t('admin.createdAt')]: formatDate(prop.created_at),
+      [t('admin.images')]: prop.images_count
     }));
 
     const headers = Object.keys(csvData[0]);
@@ -177,7 +180,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
     a.click();
     window.URL.revokeObjectURL(url);
 
-    toast.success('Archivo exportado exitosamente');
+    toast.success(t('admin.fileExported'));
   };
 
   const getStatusBadgeColor = (status: string) => {
@@ -193,27 +196,11 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
   };
 
   const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      draft: 'Borrador',
-      pending: 'Pendiente',
-      published: 'Publicado',
-      inactive: 'Inactivo',
-      sold: 'Vendido',
-      rejected: 'Rechazado'
-    };
-    return labels[status] || status;
+    return t(`admin.status.${status}`, { defaultValue: status });
   };
 
   const getPropertyTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      apartment: 'Apartamento',
-      house: 'Casa',
-      townhouse: 'Casa de pueblo',
-      office: 'Oficina',
-      commercial: 'Comercial',
-      land: 'Terreno'
-    };
-    return labels[type] || type;
+    return t(`properties.types.${type}`, { defaultValue: type });
   };
 
   return (
@@ -221,7 +208,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Gestión de Propiedades</h2>
+          <h2 className="text-2xl font-bold">{t('admin.propertiesManagement')}</h2>
           <p className="text-muted-foreground">
             Administrar aprobación, publicación y eliminación de propiedades
           </p>
@@ -252,7 +239,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
                 </Button>
                 <Button onClick={handleBulkApprove} className="bg-green-600 hover:bg-green-700">
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Aprobar Seleccionadas
+                  {t('admin.approveSelected')}
                 </Button>
               </div>
             </div>
@@ -265,7 +252,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
-              <Label htmlFor="search">Buscar</Label>
+              <Label htmlFor="search">{t('common.search')}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -278,7 +265,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
               </div>
             </div>
             <div>
-              <Label>Estado</Label>
+              <Label>{t('admin.reviewStatus')}</Label>
               <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -286,16 +273,16 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
                 <SelectContent>
                   <SelectItem value="all">Todos los estados</SelectItem>
                   <SelectItem value="draft">Borrador</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
+                  <SelectItem value="pending">{t('admin.status.pending')}</SelectItem>
                   <SelectItem value="published">Publicado</SelectItem>
                   <SelectItem value="inactive">Inactivo</SelectItem>
                   <SelectItem value="sold">Vendido</SelectItem>
-                  <SelectItem value="rejected">Rechazado</SelectItem>
+                  <SelectItem value="rejected">{t('admin.rejected')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Tipo de Propiedad</Label>
+              <Label>{t('admin.propertyType')}</Label>
               <Select value={filters.property_type} onValueChange={(value) => setFilters(prev => ({ ...prev, property_type: value }))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -334,7 +321,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
                 }}
                 className="w-full"
               >
-                Limpiar Filtros
+                {t('common.clearFilters')}
               </Button>
             </div>
           </div>
@@ -344,7 +331,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
       {/* Properties Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Propiedades ({totalCount})</CardTitle>
+          <CardTitle>{t('admin.properties')} ({totalCount})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -378,11 +365,11 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
                         }}
                       />
                     </TableHead>
-                    <TableHead>Propiedad</TableHead>
+                    <TableHead>{t('visits.property')}</TableHead>
                     <TableHead>Propietario</TableHead>
                     <TableHead>Precio</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Detalles</TableHead>
+                    <TableHead>{t('admin.reviewStatus')}</TableHead>
+                    <TableHead>{t('lawyer.details')}</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -435,7 +422,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {new Date(property.created_at).toLocaleDateString('es-CO')}
+                        {formatDate(property.created_at)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
@@ -537,7 +524,7 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rechazar Propiedad</DialogTitle>
+            <DialogTitle>{t('admin.rejectProperty')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -558,14 +545,14 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleReject}
               disabled={!rejectionReason.trim() || actionLoading === currentPropertyId}
             >
-              {actionLoading === currentPropertyId ? 'Rechazando...' : 'Rechazar Propiedad'}
+              {actionLoading === currentPropertyId ? t('admin.rejecting') : t('admin.rejectProperty')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -590,14 +577,14 @@ export function PropertyManagementPanel({ onViewProperty }: PropertyManagementPa
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={actionLoading === currentPropertyId}
             >
-              {actionLoading === currentPropertyId ? 'Eliminando...' : 'Eliminar Propiedad'}
+              {actionLoading === currentPropertyId ? t('profile.deleting') : t('common.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>

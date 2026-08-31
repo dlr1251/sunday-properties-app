@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { Alert, AlertDescription } from '../ui/alert';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { getAvatarUrl } from '../../utils/avatar';
 import { VisitWithType } from './UserVisitsView';
 import { RescheduleDialog } from './components/RescheduleDialog';
 import { visitsRepository } from '../../lib/db/repositories/visits.repo';
@@ -16,18 +19,17 @@ import {
   Clock, 
   MapPin, 
   User, 
-  CreditCard, 
   XCircle, 
   RefreshCw, 
   Home,
   AlertCircle,
-  CheckCircle,
   FileText,
   Phone,
   Mail
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
+import { formatCurrency } from '../../utils/format';
 
 interface VisitDetailModalProps {
   visit: VisitWithType | null;
@@ -45,6 +47,8 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
   onClose,
   onVisitUpdated
 }) => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [rescheduleCount, setRescheduleCount] = useState(0);
@@ -69,29 +73,31 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
   const remainingFreeReschedules = Math.max(0, MAX_FREE_RESCHEDULES - rescheduleCount);
 
   const scheduledDate = visit.scheduled_date 
-    ? format(new Date(visit.scheduled_date), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })
-    : 'Fecha no disponible';
+    ? format(new Date(visit.scheduled_date), 'EEEE, PPP', { locale: dateLocale })
+    : t('visits.dateUnavailable');
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      pending: { label: 'Pendiente', variant: 'secondary' },
-      confirmed: { label: 'Confirmada', variant: 'default' },
-      completed: { label: 'Completada', variant: 'default' },
-      cancelled: { label: 'Cancelada', variant: 'destructive' },
-      rescheduled: { label: 'Reprogramada', variant: 'outline' },
+      pending: { label: t('visits.pending'), variant: 'secondary' },
+      confirmed: { label: t('visits.confirmed'), variant: 'default' },
+      completed: { label: t('visits.completed'), variant: 'default' },
+      cancelled: { label: t('visits.cancelled'), variant: 'destructive' },
+      rescheduled: { label: t('visits.rescheduled'), variant: 'outline' },
     };
     
     const config = statusConfig[status] || { label: status, variant: 'secondary' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const isTechnicalNotes = (notes: string): boolean => {
+    const n = notes.toLowerCase();
+    return n.includes('payment id') || n.includes('[payment]') || n.includes('[test payment]');
+  };
+
   const handleCancel = async () => {
     if (!visit) return;
 
-    const confirmed = window.confirm(
-      '¿Estás seguro de que deseas cancelar esta visita?\n\n' +
-      '⚠️ IMPORTANTE: No habrá reembolso por cancelaciones.'
-    );
+    const confirmed = window.confirm(t('visits.cancelWindowConfirm'));
 
     if (!confirmed) return;
 
@@ -100,19 +106,19 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
       const result = await visitsRepository.updateVisitStatus(
         visit.id,
         'cancelled',
-        'Visita cancelada por el usuario',
-        'Cancelación solicitada por el usuario'
+        t('visits.cancelNotes'),
+        t('visits.cancelReason')
       );
 
       if (isOk(result)) {
-        toast.success('Visita cancelada exitosamente');
+        toast.success(t('visits.toast.cancelled'));
         onVisitUpdated();
         onClose();
       } else {
         toast.error(toUserMessage(result.error));
       }
     } catch (error: any) {
-      toast.error('Error al cancelar la visita');
+      toast.error(t('visits.toast.cancelError'));
       console.error('Error cancelling visit:', error);
     } finally {
       setCancelling(false);
@@ -126,9 +132,10 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
       // If requires payment, show payment modal first
       if (requiresPayment) {
         const confirmed = window.confirm(
-          `Has alcanzado el límite de ${MAX_FREE_RESCHEDULES} reprogramaciones gratuitas.\n\n` +
-          `Para reprogramar esta visita, se requiere un pago adicional de $${RESCHEDULE_PAYMENT_AMOUNT.toLocaleString('es-CO')} COP.\n\n` +
-          `¿Deseas continuar con el pago?`
+          t('visits.reschedulePaymentConfirm', {
+            max: MAX_FREE_RESCHEDULES,
+            amount: formatCurrency(RESCHEDULE_PAYMENT_AMOUNT),
+          })
         );
 
         if (!confirmed) {
@@ -138,13 +145,13 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
 
         // TODO: Integrate payment flow here
         // For now, we'll proceed with reschedule after confirmation
-        toast.info('El flujo de pago para reprogramaciones adicionales se implementará próximamente');
+        toast.info(t('visits.toast.paymentComingSoon'));
       }
 
       const result = await visitsRepository.rescheduleVisit(input);
 
       if (isOk(result)) {
-        toast.success('Visita reprogramada exitosamente');
+        toast.success(t('visits.toast.rescheduled'));
         setShowRescheduleDialog(false);
         onVisitUpdated();
         onClose();
@@ -152,7 +159,7 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
         toast.error(toUserMessage(result.error));
       }
     } catch (error: any) {
-      toast.error('Error al reprogramar la visita');
+      toast.error(t('visits.toast.rescheduleError'));
       console.error('Error rescheduling visit:', error);
     }
   };
@@ -160,14 +167,14 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Detalles de la Visita
+              {t('visits.detailsTitle')}
             </DialogTitle>
             <DialogDescription>
-              Información completa sobre esta visita
+              {t('visits.detailsDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -178,24 +185,59 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
               {isReceivedVisit ? (
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                   <Home className="h-3 w-3 mr-1" />
-                  Visita Recibida
+                  {t('visits.receivedVisit')}
                 </Badge>
               ) : (
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   <User className="h-3 w-3 mr-1" />
-                  Visita Programada
+                  {t('visits.scheduledVisit')}
                 </Badge>
               )}
             </div>
+
+            {/* Visitor - first (for received visits) */}
+            {isReceivedVisit && visitor && (
+              <div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  {t('visits.visitor')}
+                </h3>
+                <div className="bg-gray-50 p-4 rounded-lg flex items-start gap-4">
+                  <Avatar className="h-14 w-14 shrink-0">
+                    <AvatarImage src={getAvatarUrl(visitor)} alt={(visitor as any).full_name || (visitor as any).name || visitor.email} />
+                    <AvatarFallback className="text-base">
+                      {((visitor as any).full_name || (visitor as any).name || visitor.email || '?').slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1 min-w-0">
+                    <p className="font-medium text-gray-900">
+                      {(visitor as any).full_name || (visitor as any).name || visitor.email || t('visits.visitor')}
+                    </p>
+                    {visitor.email && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Mail className="h-4 w-4 shrink-0" />
+                        {visitor.email}
+                      </p>
+                    )}
+                    {visitor.phone && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Phone className="h-4 w-4 shrink-0" />
+                        {visitor.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Property Information */}
             <div>
               <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                 <Home className="h-5 w-5" />
-                Propiedad
+                {t('visits.property')}
               </h3>
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <p className="font-medium text-gray-900">{property.title || 'Propiedad'}</p>
+                <p className="font-medium text-gray-900">{property.title || t('visits.property')}</p>
                 {property.address && (
                   <p className="text-sm text-gray-600 flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
@@ -205,81 +247,24 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Visitor/Owner Information */}
-            {isReceivedVisit && visitor && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Visitante
-                </h3>
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                  <p className="font-medium text-gray-900">
-                    {(visitor as any).full_name || (visitor as any).name || visitor.email || 'Visitante'}
-                  </p>
-                  {visitor.email && (
-                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                      <Mail className="h-4 w-4" />
-                      {visitor.email}
-                    </p>
-                  )}
-                  {visitor.phone && (
-                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                      <Phone className="h-4 w-4" />
-                      {visitor.phone}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
             <Separator />
 
             {/* Visit Details */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Detalles de la Visita</h3>
+              <h3 className="text-lg font-semibold mb-3">{t('visits.detailsTitle')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
                   <Calendar className="h-5 w-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600">Fecha</p>
+                    <p className="text-sm text-gray-600">{t('visits.date')}</p>
                     <p className="font-medium">{scheduledDate}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600">Hora</p>
-                    <p className="font-medium">{visit.scheduled_time || 'No especificada'}</p>
-                  </div>
-                </div>
-                {visit.visit_price && (
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Precio</p>
-                      <p className="font-medium">
-                        ${visit.visit_price.toLocaleString('es-CO')} COP
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Estado de Pago</p>
-                    <div className="flex items-center gap-2">
-                      {visit.paid ? (
-                        <>
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          <span className="font-medium text-green-600">Pagado</span>
-                        </>
-                      ) : (
-                        <>
-                          <AlertCircle className="h-4 w-4 text-yellow-600" />
-                          <span className="font-medium text-yellow-600">Pendiente</span>
-                        </>
-                      )}
-                    </div>
+                    <p className="text-sm text-gray-600">{t('visits.time')}</p>
+                    <p className="font-medium">{visit.scheduled_time || t('visits.timeUnspecified')}</p>
                   </div>
                 </div>
               </div>
@@ -290,26 +275,26 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
               <Alert>
                 <RefreshCw className="h-4 w-4" />
                 <AlertDescription>
-                  Esta visita ha sido reprogramada {rescheduleCount} vez{rescheduleCount > 1 ? 'es' : ''}.
+                  {t('visits.rescheduledTimes', { count: rescheduleCount })}
                   {remainingFreeReschedules > 0 ? (
                     <span className="block mt-1">
-                      Te quedan {remainingFreeReschedules} reprogramación{remainingFreeReschedules > 1 ? 'es' : ''} gratuita{remainingFreeReschedules > 1 ? 's' : ''}.
+                      {t('visits.freeReschedulesLeft', { count: remainingFreeReschedules })}
                     </span>
                   ) : (
                     <span className="block mt-1 font-semibold text-orange-600">
-                      Las próximas reprogramaciones requerirán un pago adicional.
+                      {t('visits.nextReschedulesRequirePayment')}
                     </span>
                   )}
                 </AlertDescription>
               </Alert>
             )}
 
-            {/* Notes */}
-            {visit.notes && (
+            {/* Notes - ocultar notas técnicas de pagos/sistema */}
+            {visit.notes && !isTechnicalNotes(visit.notes) && (
               <div>
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Notas
+                  {t('visits.notes')}
                 </h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{visit.notes}</p>
@@ -322,7 +307,7 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Importante:</strong> Si cancelas esta visita, no habrá reembolso del pago realizado.
+                  <strong>{t('visits.important')}:</strong> {t('visits.cancelNoRefundWarning')}
                 </AlertDescription>
               </Alert>
             )}
@@ -330,7 +315,7 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
 
           <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={onClose}>
-              Cerrar
+              {t('common.close')}
             </Button>
             {canReschedule && (
               <Button
@@ -339,10 +324,10 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
                 className="flex items-center gap-2"
               >
                 <RefreshCw className="h-4 w-4" />
-                Reprogramar
+                {t('visits.reschedule')}
                 {requiresPayment && (
                   <Badge variant="outline" className="ml-1">
-                    +${RESCHEDULE_PAYMENT_AMOUNT.toLocaleString('es-CO')}
+                    +{formatCurrency(RESCHEDULE_PAYMENT_AMOUNT)}
                   </Badge>
                 )}
               </Button>
@@ -355,7 +340,7 @@ export const VisitDetailModal: React.FC<VisitDetailModalProps> = ({
                 className="flex items-center gap-2"
               >
                 <XCircle className="h-4 w-4" />
-                {cancelling ? 'Cancelando...' : 'Cancelar Visita'}
+                {cancelling ? t('visits.cancelling') : t('visits.cancelVisit')}
               </Button>
             )}
           </DialogFooter>

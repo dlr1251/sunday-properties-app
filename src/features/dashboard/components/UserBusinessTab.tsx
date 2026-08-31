@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Briefcase,
@@ -19,7 +18,6 @@ import {
   Eye,
   Download,
   Filter,
-  Search,
   ArrowUpDown,
   Calendar,
   MapPin,
@@ -32,12 +30,15 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../../i18n/useDateFnsLocale';
+import { formatCurrency } from '../../../utils/format';
 import { offersRepository, Offer } from '../../../lib/db/repositories/offers.repo';
 import { isOk, isErr } from '../../../lib/utils/result';
 import { toUserMessage } from '../../../lib/utils/errors';
 import { CounterOfferDialog } from '../../../components/negotiation/CounterOfferDialog';
 import { CounterOfferInput } from '../../../lib/validation/offers.schema';
+import { getAvatarUrl } from '../../../utils/avatar';
 
 interface SellerOffer extends Offer {
   property?: {
@@ -71,6 +72,8 @@ interface SellerOffer extends Offer {
 }
 
 export const UserBusinessTab: React.FC = () => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const { user, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('buyer-offers');
   const [buyerOffers, setBuyerOffers] = useState<Offer[]>([]);
@@ -101,7 +104,7 @@ export const UserBusinessTab: React.FC = () => {
           toast.error(toUserMessage(result.error));
         }
       } catch (error: any) {
-        toast.error('Error al cargar tus ofertas');
+        toast.error(t('dashboard.loadOffersError'));
         console.error('Error fetching buyer offers:', error);
       } finally {
         setLoadingBuyerOffers(false);
@@ -164,7 +167,7 @@ export const UserBusinessTab: React.FC = () => {
 
         setSellerOffers((offers || []) as SellerOffer[]);
       } catch (error: any) {
-        toast.error('Error al cargar las ofertas recibidas');
+        toast.error(t('dashboard.loadReceivedOffersError'));
         console.error('Error fetching seller offers:', error);
       } finally {
         setLoadingSellerOffers(false);
@@ -174,16 +177,8 @@ export const UserBusinessTab: React.FC = () => {
     fetchSellerOffers();
   }, [user?.id]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "d 'de' MMMM 'de' yyyy", { locale: es });
+    return format(new Date(dateString), 'PPP', { locale: dateLocale });
   };
 
   // Calculate financial metrics for an offer
@@ -258,12 +253,12 @@ export const UserBusinessTab: React.FC = () => {
   };
 
   const getStatusConfig = (status: string) => {
-    const configs: Record<string, { label: string; color: string; icon: any }> = {
-      pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      accepted: { label: 'Aceptada', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      rejected: { label: 'Rechazada', color: 'bg-red-100 text-red-800', icon: XCircle },
-      countered: { label: 'Contraoferta', color: 'bg-blue-100 text-blue-800', icon: TrendingUp },
-      expired: { label: 'Expirada', color: 'bg-gray-100 text-gray-800', icon: AlertTriangle },
+    const configs: Record<string, { labelKey: string; color: string; icon: any }> = {
+      pending: { labelKey: 'negotiations.status.pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+      accepted: { labelKey: 'negotiations.status.accepted', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+      rejected: { labelKey: 'negotiations.status.rejected', color: 'bg-red-100 text-red-800', icon: XCircle },
+      countered: { labelKey: 'negotiations.status.countered', color: 'bg-blue-100 text-blue-800', icon: TrendingUp },
+      expired: { labelKey: 'negotiations.status.expired', color: 'bg-gray-100 text-gray-800', icon: AlertTriangle },
     };
     return configs[status] || configs.pending;
   };
@@ -291,7 +286,7 @@ export const UserBusinessTab: React.FC = () => {
     try {
       const result = await offersRepository.acceptOffer(offerId);
       if (isOk(result)) {
-        toast.success('Oferta aceptada exitosamente');
+        toast.success(t('dashboard.offerAccepted'));
         // Refresh offers
         if (activeTab === 'seller-offers') {
           const { data: properties } = await supabase
@@ -331,16 +326,16 @@ export const UserBusinessTab: React.FC = () => {
         toast.error(toUserMessage(result.error));
       }
     } catch (error: any) {
-      toast.error('Error al aceptar la oferta');
+      toast.error(t('dashboard.acceptOfferError'));
       console.error('Error accepting offer:', error);
     }
   };
 
   const handleRejectOffer = async (offerId: string) => {
     try {
-      const result = await offersRepository.rejectOffer(offerId, 'Rechazada por el vendedor');
+      const result = await offersRepository.rejectOffer(offerId, t('negotiations.status.rejected'));
       if (isOk(result)) {
-        toast.success('Oferta rechazada');
+        toast.success(t('dashboard.offerRejected'));
         // Refresh offers
         if (activeTab === 'seller-offers') {
           const { data: properties } = await supabase
@@ -380,7 +375,7 @@ export const UserBusinessTab: React.FC = () => {
         toast.error(toUserMessage(result.error));
       }
     } catch (error: any) {
-      toast.error('Error al rechazar la oferta');
+      toast.error(t('dashboard.rejectOfferError'));
       console.error('Error rejecting offer:', error);
     }
   };
@@ -423,7 +418,7 @@ export const UserBusinessTab: React.FC = () => {
     if (!counterOfferDialog.offer) return;
 
     const offer = counterOfferDialog.offer;
-    const loadingToast = toast.loading('Creando contraoferta...');
+    const loadingToast = toast.loading(t('dashboard.creatingCounter'));
 
     try {
       // Convert CounterOfferDialog data to CounterOfferInput format
@@ -442,7 +437,7 @@ export const UserBusinessTab: React.FC = () => {
       const result = await offersRepository.createCounterOffer(counterOfferInput);
       
       if (isOk(result)) {
-        toast.success('Contraoferta creada exitosamente', { id: loadingToast });
+        toast.success(t('dashboard.counterCreated'), { id: loadingToast });
         
         // Refresh seller offers
         if (user?.id) {
@@ -485,7 +480,7 @@ export const UserBusinessTab: React.FC = () => {
         toast.error(toUserMessage(result.error), { id: loadingToast });
       }
     } catch (error: any) {
-      toast.error('Error al crear la contraoferta', { id: loadingToast });
+      toast.error(t('dashboard.createCounterError'), { id: loadingToast });
       console.error('Error creating counter offer:', error);
     }
   };
@@ -503,11 +498,11 @@ export const UserBusinessTab: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <StatusIcon className="w-5 h-5" />
                 <Badge className={statusConfig.color}>
-                  {statusConfig.label}
+                  {t(statusConfig.labelKey)}
                 </Badge>
               </div>
               <h3 className="text-lg font-semibold mb-1 text-gray-900">
-                {offer.property?.title || 'Propiedad sin título'}
+                {offer.property?.title || t('negotiations.untitledProperty')}
               </h3>
               {offer.property?.address && (
                 <p className="text-sm text-gray-700 flex items-center gap-1 mb-2 font-medium">
@@ -526,7 +521,7 @@ export const UserBusinessTab: React.FC = () => {
               {metrics.discountPercentage > 0 && (
                 <div className={`text-xs font-semibold mt-1 ${metrics.discountPercentage > 10 ? 'text-red-600' : 'text-orange-600'}`}>
                   <TrendingDown className="w-3 h-3 inline mr-1" />
-                  {metrics.discountPercentage.toFixed(1)}% descuento
+                  {t('dashboard.discountPct', { pct: metrics.discountPercentage.toFixed(1) })}
                 </div>
               )}
             </div>
@@ -537,27 +532,21 @@ export const UserBusinessTab: React.FC = () => {
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  {offer.property.owner.avatar_url ? (
-                    <img 
-                      src={offer.property.owner.avatar_url} 
-                      alt={offer.property.owner.full_name || offer.property.owner.email}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                      <User className="w-6 h-6 text-green-600" />
-                    </div>
-                  )}
+                  <img 
+                    src={getAvatarUrl(offer.property.owner)} 
+                    alt={offer.property.owner.full_name || offer.property.owner.email}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="text-base font-semibold text-gray-900">
-                      {offer.property.owner.full_name || 'Propietario'}
+                      {offer.property.owner.full_name || t('negotiations.roles.owner')}
                     </h4>
                     {offer.property.owner.verification_status === 'verified' && (
                       <Badge className="bg-green-600 text-white text-xs font-semibold">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Verificado
+                        {t('profile.verified')}
                       </Badge>
                     )}
                   </div>
@@ -594,27 +583,21 @@ export const UserBusinessTab: React.FC = () => {
             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  {offer.buyer.avatar_url ? (
-                    <img 
-                      src={offer.buyer.avatar_url} 
-                      alt={offer.buyer.full_name || offer.buyer.email}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      <User className="w-6 h-6 text-blue-600" />
-                    </div>
-                  )}
+                  <img 
+                    src={getAvatarUrl(offer.buyer)} 
+                    alt={offer.buyer.full_name || offer.buyer.email}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="text-base font-semibold text-gray-900">
-                      {offer.buyer.full_name || offer.buyer.name || 'Comprador'}
+                      {offer.buyer.full_name || offer.buyer.name || t('negotiations.roles.buyer')}
                     </h4>
                     {offer.buyer.verification_status === 'verified' && (
                       <Badge className="bg-green-600 text-white text-xs font-semibold">
                         <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Verificado
+                        {t('profile.verified')}
                       </Badge>
                     )}
                   </div>
@@ -648,25 +631,22 @@ export const UserBusinessTab: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
             <div>
-              <span className="text-gray-800 font-semibold">Método de pago:</span>
+              <span className="text-gray-800 font-semibold">{t('negotiations.paymentMethod')}:</span>
               <span className="ml-2 font-semibold text-gray-900">
-                {offer.payment_method === 'cash' ? 'Efectivo' :
-                 offer.payment_method === 'financing' ? 'Financiación' :
-                 offer.payment_method === 'crypto' ? 'Criptomonedas' :
-                 offer.payment_method === 'mixed' ? 'Mixto' : offer.payment_method}
+                {t(`negotiations.paymentMethods.${offer.payment_method}`, { defaultValue: offer.payment_method })}
               </span>
             </div>
             <div>
-              <span className="text-gray-800 font-semibold">Fecha de cierre:</span>
+              <span className="text-gray-800 font-semibold">{t('negotiations.details.closingDate')}:</span>
               <span className="ml-2 font-semibold text-gray-900">{formatDate(offer.closing_date)}</span>
             </div>
             <div>
-              <span className="text-gray-800 font-semibold">Creada:</span>
+              <span className="text-gray-800 font-semibold">{t('dashboard.createdOn')}:</span>
               <span className="ml-2 font-semibold text-gray-900">{formatDate(offer.created_at)}</span>
             </div>
             {offer.expires_at && (
               <div>
-                <span className="text-gray-800 font-semibold">Expira:</span>
+                <span className="text-gray-800 font-semibold">{t('dashboard.expiresOn')}:</span>
                 <span className="ml-2 font-semibold text-gray-900">{formatDate(offer.expires_at)}</span>
               </div>
             )}
@@ -676,11 +656,11 @@ export const UserBusinessTab: React.FC = () => {
           <div className="mb-4 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="w-5 h-5 text-blue-700" />
-              <h4 className="text-base font-semibold text-gray-900">Análisis Financiero</h4>
+              <h4 className="text-base font-semibold text-gray-900">{t('dashboard.financialAnalysis')}</h4>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <div className="text-xs font-semibold text-gray-700 mb-1">Descuento</div>
+                <div className="text-xs font-semibold text-gray-700 mb-1">{t('dashboard.discount')}</div>
                 <div className={`text-lg font-bold ${metrics.discountPercentage > 10 ? 'text-red-700' : metrics.discountPercentage > 5 ? 'text-orange-700' : 'text-green-700'}`}>
                   {metrics.discountPercentage.toFixed(1)}%
                 </div>
@@ -689,16 +669,16 @@ export const UserBusinessTab: React.FC = () => {
                 </div>
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-700 mb-1">Días hasta cierre</div>
+                <div className="text-xs font-semibold text-gray-700 mb-1">{t('dashboard.daysUntilClosing')}</div>
                 <div className={`text-lg font-bold ${metrics.daysUntilClosing <= 30 ? 'text-green-700' : metrics.daysUntilClosing <= 60 ? 'text-blue-700' : 'text-gray-700'}`}>
                   {metrics.daysUntilClosing}
                 </div>
                 <div className="text-xs text-gray-600 font-medium">
-                  {metrics.daysUntilClosing <= 30 ? 'Rápido' : metrics.daysUntilClosing <= 60 ? 'Normal' : 'Extendido'}
+                  {metrics.daysUntilClosing <= 30 ? t('dashboard.closingSpeedFast') : metrics.daysUntilClosing <= 60 ? t('dashboard.closingSpeedNormal') : t('dashboard.closingSpeedExtended')}
                 </div>
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-700 mb-1">Score Competitividad</div>
+                <div className="text-xs font-semibold text-gray-700 mb-1">{t('dashboard.competitivenessScore')}</div>
                 <div className={`text-lg font-bold ${
                   metrics.competitivenessScore >= 80 ? 'text-green-700' : 
                   metrics.competitivenessScore >= 60 ? 'text-blue-700' : 
@@ -707,13 +687,13 @@ export const UserBusinessTab: React.FC = () => {
                   {metrics.competitivenessScore}/100
                 </div>
                 <div className="text-xs text-gray-600 font-medium">
-                  {metrics.competitivenessScore >= 80 ? 'Excelente' : 
-                   metrics.competitivenessScore >= 60 ? 'Buena' : 
-                   'Regular'}
+                  {metrics.competitivenessScore >= 80 ? t('dashboard.excellent') : 
+                   metrics.competitivenessScore >= 60 ? t('dashboard.good') : 
+                   t('dashboard.fair')}
                 </div>
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-700 mb-1">Riesgo</div>
+                <div className="text-xs font-semibold text-gray-700 mb-1">{t('dashboard.risk')}</div>
                 <div className={`text-lg font-bold ${
                   metrics.riskScore <= 20 ? 'text-green-700' : 
                   metrics.riskScore <= 40 ? 'text-yellow-700' : 
@@ -722,13 +702,13 @@ export const UserBusinessTab: React.FC = () => {
                   {metrics.riskScore}/100
                 </div>
                 <div className="text-xs text-gray-600 font-medium">
-                  Confiabilidad: {metrics.paymentReliability}%
+                  {t('dashboard.reliability', { pct: metrics.paymentReliability })}
                 </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-blue-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-gray-700">% vs Precio de Propiedad:</span>
+                <span className="font-semibold text-gray-700">{t('dashboard.vsPropertyPrice')}</span>
                 <span className={`font-bold ${metrics.priceVsPropertyPercentage >= 95 ? 'text-green-700' : metrics.priceVsPropertyPercentage >= 90 ? 'text-blue-700' : 'text-orange-700'}`}>
                   {metrics.priceVsPropertyPercentage.toFixed(1)}%
                 </span>
@@ -738,7 +718,7 @@ export const UserBusinessTab: React.FC = () => {
 
           {offer.conditions && offer.conditions.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm font-semibold mb-1 text-gray-800">Condiciones:</p>
+              <p className="text-sm font-semibold mb-1 text-gray-800">{t('negotiations.offer.conditions')}:</p>
               <ul className="text-sm text-gray-700 list-disc list-inside font-medium">
                 {offer.conditions.map((condition, idx) => (
                   <li key={idx}>{condition}</li>
@@ -749,7 +729,7 @@ export const UserBusinessTab: React.FC = () => {
 
           {offer.counter_offer && (
             <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 mb-1">Contraoferta:</p>
+              <p className="text-sm font-medium text-blue-900 mb-1">{t('negotiations.counterOffer')}:</p>
               <p className="text-sm text-blue-800">
                 {formatCurrency(offer.counter_offer.price || offer.counter_offer.counter_price)}
               </p>
@@ -767,7 +747,7 @@ export const UserBusinessTab: React.FC = () => {
                 className="bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle className="w-4 h-4 mr-1" />
-                Aceptar
+                {t('negotiations.actions.accept')}
               </Button>
               <Button
                 size="sm"
@@ -776,7 +756,7 @@ export const UserBusinessTab: React.FC = () => {
                 className="bg-blue-600 text-white hover:bg-blue-700"
               >
                 <TrendingUp className="w-4 h-4 mr-1" />
-                Contraoferta
+                {t('negotiations.actions.counter')}
               </Button>
               <Button
                 size="sm"
@@ -785,7 +765,7 @@ export const UserBusinessTab: React.FC = () => {
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <XCircle className="w-4 h-4 mr-1" />
-                Rechazar
+                {t('negotiations.actions.reject')}
               </Button>
             </div>
           )}
@@ -801,45 +781,12 @@ export const UserBusinessTab: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="w-6 h-6" />
-            Mis Negocios
+            {t('dashboard.businessTitle')}
           </CardTitle>
           <CardDescription>
-            Gestiona tus ofertas, contraofertas y documentos relacionados con tus negocios inmobiliarios
+            {t('dashboard.businessDescription')}
           </CardDescription>
         </CardHeader>
-      </Card>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 w-4 h-4" />
-                <Input
-                  placeholder="Buscar por propiedad, dirección o comprador..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="w-full md:w-48">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full h-9 px-3 rounded-md border border-gray-300 bg-white text-sm font-semibold text-gray-900"
-              >
-                <option value="all">Todos los estados</option>
-                <option value="pending">Pendiente</option>
-                <option value="accepted">Aceptada</option>
-                <option value="rejected">Rechazada</option>
-                <option value="countered">Contraoferta</option>
-                <option value="expired">Expirada</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
       </Card>
 
       {/* Main Tabs */}
@@ -847,15 +794,15 @@ export const UserBusinessTab: React.FC = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="buyer-offers" className="flex items-center gap-2 font-semibold">
             <DollarSign className="w-4 h-4" />
-            Mis Ofertas ({buyerOffers.length})
+            {t('dashboard.myOffersCount', { count: buyerOffers.length })}
           </TabsTrigger>
           <TabsTrigger value="seller-offers" className="flex items-center gap-2 font-semibold">
             <TrendingUp className="w-4 h-4" />
-            Ofertas Recibidas ({sellerOffers.length})
+            {t('dashboard.receivedOffersCount', { count: sellerOffers.length })}
           </TabsTrigger>
           <TabsTrigger value="documents" className="flex items-center gap-2 font-semibold">
             <FileText className="w-4 h-4" />
-            Documentos
+            {t('dashboard.documents')}
           </TabsTrigger>
         </TabsList>
 
@@ -866,7 +813,7 @@ export const UserBusinessTab: React.FC = () => {
               <CardContent className="p-6">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-700 font-semibold">Cargando tus ofertas...</p>
+                  <p className="text-gray-700 font-semibold">{t('dashboard.loadingYourOffers')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -875,7 +822,7 @@ export const UserBusinessTab: React.FC = () => {
               <CardContent className="p-6">
                 <div className="text-center py-8">
                   <DollarSign className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-                  <p className="text-gray-900 font-semibold">No has realizado ninguna oferta aún</p>
+                  <p className="text-gray-900 font-semibold">{t('dashboard.noOffersMade')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -893,7 +840,7 @@ export const UserBusinessTab: React.FC = () => {
               <CardContent className="p-6">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Cargando ofertas recibidas...</p>
+                  <p className="text-gray-600">{t('dashboard.loadingReceivedOffers')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -902,9 +849,9 @@ export const UserBusinessTab: React.FC = () => {
               <CardContent className="p-6">
                 <div className="text-center py-8">
                   <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-                  <p className="text-gray-900">No has recibido ninguna oferta aún</p>
+                  <p className="text-gray-900">{t('dashboard.noOffersReceived')}</p>
                   <p className="text-sm text-gray-700 mt-2">
-                    Las ofertas aparecerán aquí cuando alguien haga una oferta en tus propiedades
+                    {t('dashboard.noOffersReceivedHint')}
                   </p>
                 </div>
               </CardContent>
@@ -922,18 +869,18 @@ export const UserBusinessTab: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5" />
-                Documentos de Negocios
+                {t('dashboard.businessDocuments')}
               </CardTitle>
               <CardDescription>
-                Documentos relacionados con tus ofertas y contratos
+                {t('dashboard.businessDocumentsDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-                <p className="text-gray-900">Funcionalidad de documentos próximamente</p>
+                <p className="text-gray-900">{t('dashboard.documentsComingSoon')}</p>
                 <p className="text-sm text-gray-700 mt-2">
-                  Aquí podrás ver y gestionar todos los documentos relacionados con tus negocios
+                  {t('dashboard.documentsComingSoonHint')}
                 </p>
               </div>
             </CardContent>

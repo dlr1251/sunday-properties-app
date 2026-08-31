@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,7 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { useAllProperties } from '../../hooks/useSupabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { formatCurrency } from '../../utils/format';
 import {
   SlidersHorizontal,
   Grid3X3,
@@ -27,6 +29,7 @@ import {
 
 interface Filters {
   search: string;
+  listingTypes: ('sale' | 'rental')[];
   priceRange: [number, number];
   areaRange: [number, number];
   bedrooms: number[];
@@ -55,14 +58,38 @@ const COMMON_FEATURES = [
   'Salón social',
 ];
 
-export function PropertiesView() {
+const FEATURE_I18N_KEY: Record<string, string> = {
+  'Piscina': 'properties.features.pool',
+  'Gimnasio': 'properties.features.gym',
+  'Portería': 'properties.features.doorman',
+  'Terraza': 'properties.features.terrace',
+  'Jardín': 'properties.features.garden',
+  'Ascensor': 'properties.features.elevator',
+  'Parqueadero': 'properties.features.parking',
+  'Cuarto de servicio': 'properties.features.serviceRoom',
+  'Estudio': 'properties.features.study',
+  'Jacuzzi': 'properties.features.jacuzzi',
+  'WiFi': 'properties.features.wifi',
+  'Seguridad 24h': 'properties.features.security24h',
+  'Cancha de tenis': 'properties.features.tennisCourt',
+  'Salón social': 'properties.features.socialRoom',
+};
+
+export interface PropertiesViewProps {
+  /** When set (e.g. inside dashboard), property detail opens in-place instead of navigating to /properties/:id */
+  onPropertyClick?: (propertyId: string) => void;
+}
+
+export function PropertiesView({ onPropertyClick: onPropertyClickProp }: PropertiesViewProps = {}) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { properties: allProperties, loading: allPropertiesLoading } = useAllProperties(user?.id);
+  const { properties: allProperties, loading: allPropertiesLoading } = useAllProperties(user?.id); // add , 'rental' to filter rentals only
   const { addToFavorites, removeFromFavorites, isFavorited } = useFavorites();
 
   const [filters, setFilters] = useState<Filters>({
     search: '',
+    listingTypes: [],
     priceRange: [0, 2000000000],
     areaRange: [0, 1000],
     bedrooms: [],
@@ -113,8 +140,13 @@ export function PropertiesView() {
       city: property.city,
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
-      price: property.price.toString(),
-      price_value: property.price,
+      listing_type: (property.listing_type as 'sale' | 'rental') || 'sale',
+      price: (property.listing_type === 'rental' ? (property.rent_monthly ?? 0) : (property.price ?? 0)).toString(),
+      price_value: property.listing_type === 'rental' ? Number(property.rent_monthly ?? 0) : Number(property.price ?? 0),
+      price_label:
+        property.listing_type === 'rental'
+          ? formatCurrency(Number(property.rent_monthly ?? 0)) + t('properties.perMonth')
+          : formatCurrency(Number(property.price ?? 0)),
       image: Array.isArray(property.images) && property.images.length > 0 ? property.images[0] : '',
       verified: property.verified,
       premium: property.premium,
@@ -126,11 +158,19 @@ export function PropertiesView() {
       coordinates: property.coordinates,
       images: property.images || [],
     }));
-  }, [allProperties]);
+  }, [allProperties, t]);
 
-  // Filter and sort properties
+  // Filter and sort properties (exclude current user's properties — those are in "Mis propiedades")
   const filteredAndSortedProperties = useMemo(() => {
     let filtered = transformedProperties.filter(property => {
+      // Only show other users' properties in the explorer
+      if (property.isOwner) return false;
+
+      // Listing type
+      if (filters.listingTypes.length > 0 && !filters.listingTypes.includes(property.listing_type)) {
+        return false;
+      }
+
       // Search filter
       const searchText = filters.search?.toLowerCase();
       if (searchText) {
@@ -228,7 +268,11 @@ export function PropertiesView() {
   );
 
   const handlePropertyClick = (propertyId: string) => {
-    navigate(`/properties/${propertyId}`);
+    if (onPropertyClickProp) {
+      onPropertyClickProp(propertyId);
+    } else {
+      navigate(`/properties/${propertyId}`);
+    }
   };
 
   const handleFavoriteToggle = async (propertyId: string) => {
@@ -242,6 +286,7 @@ export function PropertiesView() {
   const clearFilters = () => {
     setFilters({
       search: '',
+      listingTypes: [],
       priceRange: [0, 2000000000],
       areaRange: [0, 1000],
       bedrooms: [],
@@ -258,6 +303,7 @@ export function PropertiesView() {
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.search) count++;
+    count += filters.listingTypes.length;
     if (filters.priceRange[0] !== 0 || filters.priceRange[1] !== 2000000000) count++;
     if (filters.areaRange[0] !== 0 || filters.areaRange[1] !== 1000) count++;
     count += filters.bedrooms.length;
@@ -274,12 +320,12 @@ export function PropertiesView() {
     <div className="space-y-6">
       {/* Search */}
       <div className="space-y-2">
-        <Label htmlFor="search">Buscar</Label>
+        <Label htmlFor="search">{t('common.search')}</Label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="search"
-            placeholder="Buscar por título o ubicación..."
+            placeholder={t('properties.searchPlaceholder')}
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
             className="pl-10"
@@ -287,9 +333,37 @@ export function PropertiesView() {
         </div>
       </div>
 
+      {/* Listing Type */}
+      <div className="space-y-2">
+        <Label>{t('properties.type')}</Label>
+        <div className="space-y-2">
+          {[
+            { value: 'sale' as const, label: t('properties.listingTypes.sale') },
+            { value: 'rental' as const, label: t('properties.listingTypes.rental') },
+          ].map((opt) => (
+            <div key={opt.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`listing-${opt.value}`}
+                checked={filters.listingTypes.includes(opt.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setFilters((prev) => ({ ...prev, listingTypes: [...prev.listingTypes, opt.value] }));
+                  } else {
+                    setFilters((prev) => ({ ...prev, listingTypes: prev.listingTypes.filter((t) => t !== opt.value) }));
+                  }
+                }}
+              />
+              <Label htmlFor={`listing-${opt.value}`} className="text-sm">
+                {opt.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Price Range */}
       <div className="space-y-2">
-        <Label>Rango de Precio (COP)</Label>
+        <Label>{t('properties.priceRangeCop')}</Label>
         <div className="px-2">
           <Slider
             value={filters.priceRange}
@@ -308,7 +382,7 @@ export function PropertiesView() {
 
       {/* Area Range */}
       <div className="space-y-2">
-        <Label>Rango de Área (m²)</Label>
+        <Label>{t('properties.areaRangeM2')}</Label>
         <div className="px-2">
           <Slider
             value={filters.areaRange}
@@ -327,7 +401,7 @@ export function PropertiesView() {
 
       {/* Bedrooms */}
       <div className="space-y-2">
-        <Label>Habitaciones</Label>
+        <Label>{t('properties.bedrooms')}</Label>
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4, 5].map(num => (
             <div key={num} className="flex items-center space-x-2">
@@ -350,7 +424,7 @@ export function PropertiesView() {
 
       {/* Bathrooms */}
       <div className="space-y-2">
-        <Label>Baños</Label>
+        <Label>{t('properties.bathrooms')}</Label>
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4].map(num => (
             <div key={num} className="flex items-center space-x-2">
@@ -373,14 +447,14 @@ export function PropertiesView() {
 
       {/* Property Types */}
       <div className="space-y-2">
-        <Label>Tipo de Propiedad</Label>
+        <Label>{t('properties.propertyType')}</Label>
         <div className="space-y-2">
           {[
-            { value: 'apartment', label: 'Apartamento' },
-            { value: 'house', label: 'Casa' },
-            { value: 'townhouse', label: 'Casa Campestre' },
-            { value: 'office', label: 'Oficina' },
-            { value: 'commercial', label: 'Local Comercial' }
+            { value: 'apartment', label: t('properties.types.apartment') },
+            { value: 'house', label: t('properties.types.house') },
+            { value: 'townhouse', label: t('properties.types.countryHouse') },
+            { value: 'office', label: t('properties.types.office') },
+            { value: 'commercial', label: t('properties.types.commercial') }
           ].map(type => (
             <div key={type.value} className="flex items-center space-x-2">
               <Checkbox
@@ -403,7 +477,7 @@ export function PropertiesView() {
       {/* Cities */}
       {uniqueCities.length > 0 && (
         <div className="space-y-2">
-          <Label>Ciudad</Label>
+          <Label>{t('properties.city')}</Label>
           <div className="space-y-2 max-h-40 overflow-y-auto">
             {uniqueCities.map(city => (
               <div key={city} className="flex items-center space-x-2">
@@ -427,7 +501,7 @@ export function PropertiesView() {
 
       {/* Features */}
       <div className="space-y-2">
-        <Label>Amenidades</Label>
+        <Label>{t('properties.amenities')}</Label>
         <div className="space-y-2 max-h-60 overflow-y-auto">
           {COMMON_FEATURES.map(feature => (
             <div key={feature} className="flex items-center space-x-2">
@@ -442,7 +516,7 @@ export function PropertiesView() {
                   }
                 }}
               />
-              <Label htmlFor={`feature-${feature}`} className="text-sm">{feature}</Label>
+              <Label htmlFor={`feature-${feature}`} className="text-sm">{t(FEATURE_I18N_KEY[feature] ?? feature)}</Label>
             </div>
           ))}
         </div>
@@ -450,7 +524,7 @@ export function PropertiesView() {
 
       {/* Accepts Crypto */}
       <div className="space-y-2">
-        <Label>Métodos de Pago</Label>
+        <Label>{t('properties.paymentMethods')}</Label>
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -460,14 +534,14 @@ export function PropertiesView() {
                 setFilters(prev => ({ ...prev, acceptsCrypto: checked ? true : null }));
               }}
             />
-            <Label htmlFor="crypto" className="text-sm">Acepta Criptomonedas</Label>
+            <Label htmlFor="crypto" className="text-sm">{t('properties.acceptsCryptocurrency')}</Label>
           </div>
         </div>
       </div>
 
       {/* Clear Filters */}
       <Button variant="outline" onClick={clearFilters} className="w-full">
-        Limpiar Filtros
+        {t('common.clearFilters')}
       </Button>
     </div>
   );
@@ -477,7 +551,7 @@ export function PropertiesView() {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Cargando propiedades...</p>
+          <p className="text-sm text-muted-foreground">{t('properties.loading')}</p>
         </div>
       </div>
     );
@@ -489,10 +563,10 @@ export function PropertiesView() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-            Explorar Propiedades
+            {t('properties.exploreTitle')}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            {filteredAndSortedProperties.length} propiedad{filteredAndSortedProperties.length !== 1 ? 'es' : ''} encontrada{filteredAndSortedProperties.length !== 1 ? 's' : ''}
+            {t('properties.found', { count: filteredAndSortedProperties.length })}
           </p>
         </div>
 
@@ -505,7 +579,7 @@ export function PropertiesView() {
               size="sm"
               onClick={() => setViewMode('grid')}
               className="h-8 w-8 p-0"
-              aria-label="Vista de cuadrícula"
+              aria-label={t('properties.gridView')}
             >
               <Grid3X3 className="h-4 w-4" />
             </Button>
@@ -514,7 +588,7 @@ export function PropertiesView() {
               size="sm"
               onClick={() => setViewMode('list')}
               className="h-8 w-8 p-0"
-              aria-label="Vista de lista"
+              aria-label={t('properties.listView')}
             >
               <List className="h-4 w-4" />
             </Button>
@@ -523,7 +597,7 @@ export function PropertiesView() {
               size="sm"
               onClick={() => setViewMode('map')}
               className="h-8 w-8 p-0"
-              aria-label="Vista de mapa"
+              aria-label={t('properties.mapView')}
             >
               <Map className="h-4 w-4" />
             </Button>
@@ -534,7 +608,7 @@ export function PropertiesView() {
             <SheetTrigger asChild>
               <Button variant="outline" size="sm" className="h-9">
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
-                Filtros
+                {t('properties.filters')}
                 {activeFiltersCount > 0 && (
                   <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs">
                     {activeFiltersCount}
@@ -544,7 +618,7 @@ export function PropertiesView() {
             </SheetTrigger>
             <SheetContent side="right" className="w-80 overflow-y-auto scrollbar-thin">
               <SheetHeader>
-                <SheetTitle>Filtros</SheetTitle>
+                <SheetTitle>{t('properties.filters')}</SheetTitle>
               </SheetHeader>
               <div className="mt-6">
                 <FilterSidebar />
@@ -563,24 +637,24 @@ export function PropertiesView() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date-desc">Más recientes</SelectItem>
-              <SelectItem value="price-asc">Precio: menor a mayor</SelectItem>
-              <SelectItem value="price-desc">Precio: mayor a menor</SelectItem>
-              <SelectItem value="area-asc">Área: menor a mayor</SelectItem>
-              <SelectItem value="area-desc">Área: mayor a menor</SelectItem>
+              <SelectItem value="date-desc">{t('properties.sortOptions.newest')}</SelectItem>
+              <SelectItem value="price-asc">{t('properties.sortOptions.priceAsc')}</SelectItem>
+              <SelectItem value="price-desc">{t('properties.sortOptions.priceDesc')}</SelectItem>
+              <SelectItem value="area-asc">{t('properties.sortOptions.areaAsc')}</SelectItem>
+              <SelectItem value="area-desc">{t('properties.sortOptions.areaDesc')}</SelectItem>
             </SelectContent>
           </Select>
 
           {activeFiltersCount > 0 && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="h-4 w-4 mr-2" />
-              Limpiar filtros ({activeFiltersCount})
+              {t('properties.clearFiltersCount', { count: activeFiltersCount })}
             </Button>
           )}
         </div>
 
         <div className="text-sm text-muted-foreground">
-          Mostrando {paginatedProperties.length} de {filteredAndSortedProperties.length} propiedades
+          {t('properties.showingOf', { shown: paginatedProperties.length, total: filteredAndSortedProperties.length })}
         </div>
       </div>
 
@@ -618,6 +692,8 @@ export function PropertiesView() {
               bedrooms={property.bedrooms}
               bathrooms={property.bathrooms}
               price={property.price}
+              priceLabel={property.price_label}
+              listingType={property.listing_type}
               image={property.image}
               rating={4.5}
               isFavorite={isFavorited(property.id)}
@@ -641,7 +717,7 @@ export function PropertiesView() {
             disabled={currentPage === 1}
             className="h-9"
           >
-            Anterior
+            {t('common.previous')}
           </Button>
 
           <div className="flex items-center gap-1 mx-2">
@@ -680,7 +756,7 @@ export function PropertiesView() {
             disabled={currentPage === totalPages}
             className="h-9"
           >
-            Siguiente
+            {t('common.next')}
           </Button>
         </div>
       )}
@@ -693,14 +769,14 @@ export function PropertiesView() {
               <Search className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
-              No se encontraron propiedades
+              {t('properties.noProperties')}
             </h3>
             <p className="text-muted-foreground text-center max-w-sm mb-6">
-              No hay propiedades que coincidan con tus filtros. Intenta ajustar los criterios de búsqueda.
+              {t('properties.noMatchHint')}
             </p>
             <Button onClick={clearFilters} variant="outline">
               <X className="h-4 w-4 mr-2" />
-              Limpiar todos los filtros
+              {t('properties.clearAllFilters')}
             </Button>
           </CardContent>
         </Card>

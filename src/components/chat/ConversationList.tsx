@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Conversation } from '../../hooks/useChat';
 import { format } from 'date-fns';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -30,6 +32,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onSearch,
   loading = false
 }) => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const getConversationIcon = (type: string) => {
     switch (type) {
       case 'property_inquiry':
@@ -46,13 +50,13 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   const getConversationTypeLabel = (type: string) => {
     switch (type) {
       case 'property_inquiry':
-        return 'Consulta de Propiedad';
+        return t('chat.types.propertyInquiry');
       case 'negotiation':
-        return 'Negociación';
+        return t('chat.types.negotiation');
       case 'verification':
-        return 'Verificación';
+        return t('chat.types.verification');
       default:
-        return 'General';
+        return t('chat.types.general');
     }
   };
 
@@ -62,11 +66,11 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return format(date, 'HH:mm');
+      return format(date, 'HH:mm', { locale: dateLocale });
     } else if (diffInHours < 168) { // 7 days
-      return format(date, 'EEE');
+      return format(date, 'EEE', { locale: dateLocale });
     } else {
-      return format(date, 'MMM dd');
+      return format(date, 'MMM dd', { locale: dateLocale });
     }
   };
 
@@ -100,7 +104,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     <Card className="h-full flex flex-col">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Conversaciones</h2>
+          <h2 className="text-lg font-semibold">{t('chat.conversations')}</h2>
           <Button size="sm" variant="ghost">
             <MoreVertical className="h-4 w-4" />
           </Button>
@@ -111,7 +115,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Buscar conversaciones..."
+              placeholder={t('chat.searchConversations')}
               className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm"
               onChange={(e) => onSearch(e.target.value)}
             />
@@ -123,8 +127,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         {conversations.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No hay conversaciones</p>
-            <p className="text-sm">Inicia una conversación desde una propiedad o caso</p>
+            <p>{t('chat.noConversations')}</p>
+            <p className="text-sm">{t('chat.startFromProperty')}</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -179,7 +183,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground truncate">
-                          {conversation.last_message?.content || 'Sin mensajes'}
+                          {conversation.last_message?.content || t('chat.noMessagesShort')}
                         </p>
                         <div className="flex items-center gap-1">
                           {conversation.property && (
@@ -193,7 +197,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
                       {otherParticipants.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Con {otherParticipants.map(p => p.full_name).join(', ')}
+                          {t('chat.withParticipants', { names: otherParticipants.map(p => p.full_name).join(', ') })}
                         </p>
                       )}
                     </div>

@@ -1,53 +1,64 @@
 # Components — Design system
 
-Visual foundations and base UI components.
-
-## Overview
-
-The UI is built on **Tailwind CSS** and **shadcn/ui**. Components live in `src/components/ui/`. Tailwind tokens (colors, typography, spacing) and CSS variables are used where applicable.
+Sunday Properties visual system — **navy / sky / gold**. Canonical brand rules: [BRAND.md](../../../../BRAND.md).
 
 ## Stack
 
 | Tool | Use |
 |------|-----|
-| Tailwind CSS | Utilities, responsive layout, tokens |
-| shadcn/ui | Base components (Button, Card, Dialog, Input, etc.) |
+| Vite + React | App shell |
+| Tailwind CSS 4 | Utilities, responsive layout |
+| CSS variables | Semantic tokens in `src/styles/globals.css` |
+| shadcn-style UI | Base components in `src/components/ui/` |
 | Lucide React | Icons |
-| Framer Motion | Animations and transitions |
+| Framer Motion | Marketing animations |
+
+## Brand palette
+
+| Token | Role |
+|-------|------|
+| `brand-navy` | Structure, primary buttons, dark hero |
+| `brand-sky` | Links, verified badges, pending/info |
+| `brand-gold` | CTAs, premium highlights |
+| `success` | Transaction accepted / paid only |
+| `destructive` | Errors, rejections |
+
+Do **not** use Luque Law forest/parchment here. Do **not** use raw `gray-*` or `blue-100` in marketing surfaces — use semantic tokens.
+
+## Typography
+
+- **Display (`font-display`)**: Milker — marketing H1/H2 only
+- **UI (`font-sans`)**: Satoshi — nav, forms, dashboard, tables
 
 ## UI components (`src/components/ui/`)
 
-Reusable base components:
+- **Actions**: `button` — variants include `accent` (gold CTA)
+- **Feedback**: `badge` — `premium` (gold), `verified` (sky), `success` (transactions)
+- **Layout**: `card`, `dialog`, `tabs`, etc.
 
-- **Layout**: `card`, `separator`, `scroll-area`, `tabs`, `sheet`
-- **Forms**: `input`, `textarea`, `label`, `checkbox`, `select`, `switch`, `slider`, `calendar`, `FormFieldHelper`
-- **Actions**: `button`, `dropdown-menu`, `popover`
-- **Feedback**: `alert`, `badge`, `progress`, `skeleton`, `dialog`, `success-modal`
-- **Content**: `avatar`, `table`, `search-bar`
+## Logo
 
-Each can be customized via props and variants. Styles are extended with Tailwind classes.
+`<BrandLogo variant="default" | "onDark" | "gold" />` — see `src/components/brand/BrandLogo.tsx`.
 
-## Tokens and themes
+## Utilities
 
-- **Colors**: Tailwind palette (primary, neutral, states). `next-themes` for light/dark when configured.
-- **Typography**: Fonts in Tailwind or global CSS; standard sizes and weights.
-- **Spacing**: Tailwind scale (`p-4`, `gap-6`, etc.) for consistency.
+- `.bg-brand-hero` — navy → sky gradient for heroes
+- `.bg-brand-sun` — gold sun accent
+- `.glass` — frosted nav
 
-Tokens are defined in `tailwind.config.mjs` and `src/styles/` or `src/index.css`.
+## Patterns
 
-## Common patterns
+- **Public chrome**: `ModernNavbar`, `Footer`, `HeroSection`
+- **Auth**: `AuthModal` with navy header strip
+- **Dashboard**: `DashboardShell` — sidebar active = navy tint + gold hairline
+- **Negotiation**: pending = sky; accepted = success green; primary action = navy or gold
 
-- **Forms**: `Label` + `Input`/`Select` + `FormFieldHelper` for errors or hints.
-- **Lists and tables**: `Card` or `Table` with `Skeleton` while loading.
-- **Modals**: `Dialog` or `Sheet` for sequential flows (e.g. upload wizard).
-- **Navigation**: Layout and nav components in `src/components/navigation/` and `layout/`.
+## Theming
 
-## Accessibility
-
-shadcn/ui components follow accessible patterns (ARIA, focus, keyboard). Keep labels, contrast, and focus order when extending or composing.
+`class` dark mode via `ThemeProvider`. Light: color logo; dark: gold logo on `--background`.
 
 ## Related
 
 - [Forms](forms)
 - [Navigation](navigation)
-- [Architecture](../../guide/architecture)
+- [BRAND.md](../../../../BRAND.md)

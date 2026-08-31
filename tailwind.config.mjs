@@ -10,7 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Satoshi', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -53,6 +54,14 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+        brand: {
+          navy: 'hsl(var(--brand-navy))',
+          blue: 'hsl(var(--brand-blue))',
+          sky: 'hsl(var(--brand-sky))',
+          gold: 'hsl(var(--brand-gold))',
+          'gold-light': 'hsl(var(--brand-gold-light))',
+          'gold-dark': 'hsl(var(--brand-gold-dark))',
         },
       },
       borderRadius: {

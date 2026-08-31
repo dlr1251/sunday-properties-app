@@ -24,6 +24,8 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatDate } from '../../utils/format';
 
 interface CounterOfferFormProps {
   originalOffer: any;
@@ -44,6 +46,7 @@ export function CounterOfferForm({
   onSubmit,
   onCancel
 }: CounterOfferFormProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -70,14 +73,6 @@ export function CounterOfferForm({
     }
   }, [originalOffer, isOpen]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const getPriceChange = () => {
     if (!originalOffer?.offer_price || !counterOffer.price) return 0;
     return ((counterOffer.price - originalOffer.offer_price) / originalOffer.offer_price) * 100;
@@ -87,17 +82,17 @@ export function CounterOfferForm({
     if (!user || !originalOffer) return;
 
     if (!counterOffer.price || counterOffer.price <= 0) {
-      toast.error('Ingresa un precio válido');
+      toast.error(t('negotiations.counter.invalidPrice'));
       return;
     }
 
     if (!counterOffer.closingDate) {
-      toast.error('Selecciona una fecha de cierre');
+      toast.error(t('negotiations.counter.selectClosing'));
       return;
     }
 
     if (!counterOffer.message.trim()) {
-      toast.error('Agrega un mensaje explicando los cambios');
+      toast.error(t('negotiations.counter.addMessage'));
       return;
     }
 
@@ -140,8 +135,11 @@ export function CounterOfferForm({
         .insert({
           user_id: originalOffer.buyer_id,
           type: 'counter_offer',
-          title: 'Contraoferta recibida',
-          message: `${user.name || 'El vendedor'} ha enviado una contraoferta de ${formatCurrency(counterOffer.price)}`,
+          title: t('negotiations.counter.notificationTitle'),
+          message: t('negotiations.counter.notificationMessage', {
+            name: user.name || t('negotiations.counter.sellerFallback'),
+            price: formatCurrency(counterOffer.price)
+          }),
           data: { offer_id: data.id, original_offer_id: originalOffer.id }
         });
 
@@ -149,7 +147,7 @@ export function CounterOfferForm({
         console.error('Notification error:', notifError);
       }
 
-      toast.success('Contraoferta enviada exitosamente');
+      toast.success(t('negotiations.counter.sent'));
       onSubmit?.(data);
       onOpenChange(false);
 
@@ -165,14 +163,14 @@ export function CounterOfferForm({
 
     } catch (error: any) {
       console.error('Error submitting counter-offer:', error);
-      toast.error(error.message || 'Error al enviar la contraoferta');
+      toast.error(error.message || t('negotiations.counter.sendError'));
     } finally {
       setLoading(false);
     }
   };
 
   const priceChange = getPriceChange();
-  const priceChangeColor = priceChange > 0 ? 'text-green-600' : priceChange < 0 ? 'text-red-600' : 'text-gray-600';
+  const priceChangeColor = priceChange > 0 ? 'text-green-600' : priceChange < 0 ? 'text-red-600' : 'text-muted-foreground';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -180,39 +178,39 @@ export function CounterOfferForm({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
-            Enviar Contraoferta
+            {t('negotiations.counter.title')}
           </DialogTitle>
-          <p className="text-gray-600">
-            Responde a la oferta de {formatCurrency(originalOffer?.offer_price || 0)}
+          <p className="text-muted-foreground">
+            {t('negotiations.counter.respondTo', { price: formatCurrency(originalOffer?.offer_price || 0) })}
           </p>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Original Offer Summary */}
-          <Card className="bg-gray-50">
+          <Card className="bg-muted/30">
             <CardHeader>
-              <CardTitle className="text-lg">Oferta Original</CardTitle>
+              <CardTitle className="text-lg">{t('negotiations.counter.originalOffer')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-700 font-medium">Precio:</span>
-                  <p className="font-semibold text-gray-900">{formatCurrency(originalOffer?.offer_price || 0)}</p>
+                  <span className="text-muted-foreground font-medium">{t('properties.price')}:</span>
+                  <p className="font-semibold text-foreground">{formatCurrency(originalOffer?.offer_price || 0)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-700 font-medium">Método de pago:</span>
-                  <p className="font-semibold text-gray-900 capitalize">{originalOffer?.payment_method || 'N/A'}</p>
+                  <span className="text-muted-foreground font-medium">{t('negotiations.paymentMethod')}:</span>
+                  <p className="font-semibold text-foreground capitalize">{t(`negotiations.paymentMethods.${originalOffer?.payment_method || 'cash'}`, { defaultValue: originalOffer?.payment_method || 'N/A' })}</p>
                 </div>
                 <div>
-                  <span className="text-gray-700 font-medium">Fecha de cierre:</span>
-                  <p className="font-semibold text-gray-900">
-                    {originalOffer?.closing_date ? new Date(originalOffer.closing_date).toLocaleDateString('es-CO') : 'N/A'}
+                  <span className="text-muted-foreground font-medium">{t('negotiations.details.closingDate')}:</span>
+                  <p className="font-semibold text-foreground">
+                    {originalOffer?.closing_date ? formatDate(originalOffer.closing_date) : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <span className="text-gray-700 font-medium">Condiciones:</span>
-                  <p className="font-semibold text-xs text-gray-900">
-                    {originalOffer?.conditions || 'Sin condiciones especiales'}
+                  <span className="text-muted-foreground font-medium">{t('negotiations.offer.conditions')}:</span>
+                  <p className="font-semibold text-xs text-foreground">
+                    {originalOffer?.conditions || t('negotiations.counter.noSpecialConditions')}
                   </p>
                 </div>
               </div>
@@ -222,14 +220,14 @@ export function CounterOfferForm({
           {/* Counter Offer Form */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Tu Contraoferta</CardTitle>
+              <CardTitle className="text-lg">{t('negotiations.counter.yourCounter')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Price */}
               <div className="space-y-2">
-                <Label htmlFor="price">Precio *</Label>
+                <Label htmlFor="price">{t('negotiations.counter.price')}</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">$</span>
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
                   <Input
                     id="price"
                     type="number"
@@ -240,31 +238,34 @@ export function CounterOfferForm({
                 </div>
                 {priceChange !== 0 && (
                   <p className={`text-sm ${priceChangeColor}`}>
-                    {priceChange > 0 ? '+' : ''}{priceChange.toFixed(1)}% vs oferta original
+                    {t('negotiations.counter.vsOriginalPct', {
+                      signed: priceChange > 0 ? '+' : '',
+                      pct: priceChange.toFixed(1)
+                    })}
                   </p>
                 )}
               </div>
 
               {/* Payment Method */}
               <div className="space-y-2">
-                <Label>Método de pago</Label>
+                <Label>{t('negotiations.paymentMethod')}</Label>
                 <select
                   value={counterOffer.paymentMethod}
                   onChange={(e) => setCounterOffer(prev => ({ ...prev, paymentMethod: e.target.value }))}
                   className="w-full px-3 py-2 border border-input bg-background rounded-md"
                 >
-                  <option value="cash">Efectivo</option>
-                  <option value="bank_transfer">Transferencia bancaria</option>
-                  <option value="financing">Financiación</option>
-                  <option value="crypto">Criptomonedas</option>
-                  <option value="installments">Cuotas</option>
-                  <option value="mixed">Mixto</option>
+                  <option value="cash">{t('negotiations.paymentMethods.cash')}</option>
+                  <option value="bank_transfer">{t('negotiations.paymentMethods.bank_transfer')}</option>
+                  <option value="financing">{t('negotiations.paymentMethods.financing')}</option>
+                  <option value="crypto">{t('negotiations.paymentMethods.crypto')}</option>
+                  <option value="installments">{t('negotiations.paymentMethods.installments')}</option>
+                  <option value="mixed">{t('negotiations.paymentMethods.mixed')}</option>
                 </select>
               </div>
 
               {/* Closing Date */}
               <div className="space-y-2">
-                <Label htmlFor="closingDate">Fecha de cierre *</Label>
+                <Label htmlFor="closingDate">{t('negotiations.counter.closingDateRequired')}</Label>
                 <Input
                   id="closingDate"
                   type="date"
@@ -277,9 +278,9 @@ export function CounterOfferForm({
               {/* Down Payment (if financing) */}
               {counterOffer.paymentMethod === 'financing' && (
                 <div className="space-y-2">
-                  <Label htmlFor="downPayment">Pago inicial</Label>
+                  <Label htmlFor="downPayment">{t('negotiations.counter.downPayment')}</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600">$</span>
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
                     <Input
                       id="downPayment"
                       type="number"
@@ -293,12 +294,12 @@ export function CounterOfferForm({
 
               {/* Conditions */}
               <div className="space-y-2">
-                <Label htmlFor="conditions">Condiciones adicionales</Label>
+                <Label htmlFor="conditions">{t('negotiations.counter.extraConditions')}</Label>
                 <Textarea
                   id="conditions"
                   value={counterOffer.conditions}
                   onChange={(e) => setCounterOffer(prev => ({ ...prev, conditions: e.target.value }))}
-                  placeholder="Ej: Incluir gastos notariales, entrega inmediata..."
+                  placeholder={t('negotiations.counter.conditionsPlaceholder')}
                   rows={3}
                 />
               </div>
@@ -310,16 +311,16 @@ export function CounterOfferForm({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Mensaje para el comprador *
+                {t('negotiations.counter.messageToBuyer')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Label>Explica los cambios en tu contraoferta</Label>
+                <Label>{t('negotiations.counter.explainChanges')}</Label>
                 <Textarea
                   value={counterOffer.message}
                   onChange={(e) => setCounterOffer(prev => ({ ...prev, message: e.target.value }))}
-                  placeholder="Ej: Estoy dispuesto a bajar el precio si aceptas una fecha de cierre más próxima..."
+                  placeholder={t('negotiations.counter.messagePlaceholder')}
                   rows={4}
                 />
               </div>
@@ -331,7 +332,7 @@ export function CounterOfferForm({
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                El precio está por debajo del mínimo establecido ({formatCurrency(negotiationRules.minPrice)})
+                {t('negotiations.counter.belowMin', { price: formatCurrency(negotiationRules.minPrice) })}
               </AlertDescription>
             </Alert>
           )}
@@ -340,7 +341,7 @@ export function CounterOfferForm({
             <Alert>
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>
-                Fecha máxima permitida: {new Date(Date.now() + negotiationRules.maxClosingDays * 24 * 60 * 60 * 1000).toLocaleDateString('es-CO')}
+                {t('negotiations.counter.maxAllowedDate', { date: formatDate(new Date(Date.now() + negotiationRules.maxClosingDays * 24 * 60 * 60 * 1000)) })}
               </AlertDescription>
             </Alert>
           )}
@@ -348,14 +349,14 @@ export function CounterOfferForm({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading || !counterOffer.price || !counterOffer.closingDate || !counterOffer.message.trim()}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {loading ? 'Enviando...' : 'Enviar Contraoferta'}
+            {loading ? t('negotiations.counter.sending') : t('negotiations.counter.send')}
           </Button>
         </DialogFooter>
       </DialogContent>

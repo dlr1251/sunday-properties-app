@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,9 @@ interface RoleManagementPanelProps {
   onViewUserDetails?: (userId: string) => void;
 }
 
-export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelProps) {
+export function RoleManagementPanel({
+  onViewUserDetails }: RoleManagementPanelProps) {
+    const { t } = useTranslation();
   const {
     users,
     loading,
@@ -92,9 +95,9 @@ export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelPr
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Gestión de Roles</h2>
+          <h2 className="text-2xl font-bold">{t('admin.roleManagement')}</h2>
           <p className="text-muted-foreground">
-            Administrar roles y permisos de usuarios en la plataforma
+            {t('admin.roleManagementDescription')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -103,11 +106,11 @@ export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelPr
             getRoleStats();
           }} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
+            {t('common.refresh')}
           </Button>
           <Button variant="outline" onClick={exportUsers}>
             <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
+            {t('admin.exportCsv')}
           </Button>
         </div>
       </div>
@@ -119,14 +122,14 @@ export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelPr
       {stats && (
         <Card>
           <CardHeader>
-            <CardTitle>Distribución de Roles</CardTitle>
+            <CardTitle>{t('admin.roleDistribution')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <User className="h-5 w-5 text-gray-500" />
-                  <span className="font-medium">Usuarios</span>
+                  <span className="font-medium">{t('admin.roleUsers')}</span>
                 </div>
                 <p className="text-2xl font-bold">
                   {stats.total_users - stats.super_admins - stats.admins - stats.agents}
@@ -135,21 +138,21 @@ export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelPr
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Users className="h-5 w-5 text-blue-500" />
-                  <span className="font-medium">Agentes</span>
+                  <span className="font-medium">{t('admin.roleAgents')}</span>
                 </div>
                 <p className="text-2xl font-bold text-blue-600">{stats.agents}</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Shield className="h-5 w-5 text-orange-500" />
-                  <span className="font-medium">Admins</span>
+                  <span className="font-medium">{t('admin.roleAdmins')}</span>
                 </div>
                 <p className="text-2xl font-bold text-orange-600">{stats.admins}</p>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Crown className="h-5 w-5 text-purple-500" />
-                  <span className="font-medium">Super Admins</span>
+                  <span className="font-medium">{t('admin.superAdmins')}</span>
                 </div>
                 <p className="text-2xl font-bold text-purple-600">{stats.super_admins}</p>
               </div>
@@ -164,18 +167,18 @@ export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelPr
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
-                {selectedUsers.length} usuario{selectedUsers.length !== 1 ? 's' : ''} seleccionado{selectedUsers.length !== 1 ? 's' : ''}
+                {t('admin.selectedUsers', { count: selectedUsers.length })}
               </span>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setSelectedUsers([])}>
-                  Limpiar selección
+                  {t('admin.clearSelection')}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setShowBulkRoleDialog(true)}
                 >
                   <Edit className="h-4 w-4 mr-2" />
-                  Cambiar Rol Masivo
+                  {t('admin.changeRoleBulkAction')}
                 </Button>
               </div>
             </div>
@@ -193,7 +196,7 @@ export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelPr
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Usuarios ({totalCount})</CardTitle>
+          <CardTitle>{t('admin.users')} ({totalCount})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -208,7 +211,7 @@ export function RoleManagementPanel({ onViewUserDetails }: RoleManagementPanelPr
           ) : users.length === 0 ? (
             <div className="text-center py-8">
               <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No se encontraron usuarios</p>
+              <p className="text-muted-foreground">{t('admin.noUsersFound')}</p>
             </div>
           ) : (
             <UsersTable

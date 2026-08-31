@@ -8,6 +8,7 @@ export interface PaymentStage {
 }
 
 export interface PropertyData {
+  listingType: 'sale' | 'rental';
   title: string;
   description: string;
   address: string;
@@ -25,12 +26,33 @@ export interface PropertyData {
   freedomTradition: File | null;
   propertyType: string;
   strata: number;
+  /** Sale price (COP). For rentals, use rentMonthly instead. */
   price: number;
+  /** Rental price (COP/month). */
+  rentMonthly: number;
+  /** Typical lease term (months). */
+  leaseTermMonths: number;
+  /** Security deposit (COP). */
+  deposit: number;
+  /** Admin/agency fee (COP). */
+  adminFee: number;
+  /** Utilities included (labels/ids). */
+  utilitiesIncluded: string[];
+  /** Pets policy (freeform for now). */
+  petsPolicy: string;
   acceptsCrypto: boolean;
   financing: boolean;
   visitPrice: number;
   commission: number;
-  // Nuevas condiciones de negociación
+  /** Cronograma ofrecido: fechas clave de la venta */
+  offeredTimeline?: {
+    deedSigningDate?: string;
+    propertyDeliveryDate?: string;
+    paymentReceptionDate?: string;
+  };
+  /** Métodos de pago que el vendedor acepta */
+  acceptedPaymentMethods?: string[];
+  // Condiciones de negociación (legacy / futuro)
   paymentStages?: PaymentStage[];
   stageTimeframes?: {
     opcionToPromesa: number;
@@ -46,10 +68,16 @@ export interface PropertyData {
   };
   termsAccepted: boolean;
   privacyAccepted: boolean;
+
+  /** Stored URLs for images uploaded to storage */
+  uploadedImages?: string[];
+  /** Whether visit availability was configured in the wizard */
+  visitAvailabilityConfigured?: boolean;
 }
 
 export interface Step1BasicInfoProps {
   propertyData: PropertyData;
+  onListingTypeChange: (value: PropertyData['listingType']) => void;
   onTitleChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onAddressChange: (value: string) => void;
@@ -88,12 +116,12 @@ export interface Step5SellingConditionsProps {
   propertyData: PropertyData;
   formatPrice: (price: number) => string;
   onPriceChange: (value: string) => void;
-  onVisitPriceChange: (value: string) => void;
-  onCommissionChange: (value: string) => void;
-  onAcceptsCryptoChange: (checked: boolean) => void;
-  onFinancingChange: (checked: boolean) => void;
-  onPaymentStagesChange?: (stages: PaymentStage[]) => void;
-  onTimeframesChange?: (timeframes: { opcionToPromesa: number; promesaToEscrituras: number }) => void;
+  onOfferedTimelineChange: (field: 'deedSigningDate' | 'propertyDeliveryDate' | 'paymentReceptionDate', value: string) => void;
+  onAcceptedPaymentMethodsChange: (methods: string[]) => void;
+  onMinPriceChange: (value: string) => void;
+  onMaxClosingDaysChange: (value: string) => void;
+  onAutoRejectToggle: (checked: boolean) => void;
+  onManualReviewToggle: (checked: boolean) => void;
 }
 
 export interface Step6NegotiationRulesProps {

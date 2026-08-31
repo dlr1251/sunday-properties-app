@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ import {
   X
 } from 'lucide-react';
 import { useAdminVerifications } from '../../hooks/admin/useAdminVerifications';
+import { formatDate } from '../../utils/format';
 import { VerificationStatus } from '../../types/database';
 
 interface VerificationRequest {
@@ -45,6 +47,7 @@ interface VerificationRequest {
 }
 
 export const AdminIdentityVerificationPanel: React.FC = () => {
+  const { t } = useTranslation();
   const {
     requests,
     loading,
@@ -147,7 +150,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="h-4 w-4 text-yellow-600" />
-              Pendientes
+              {t('admin.pendingPlural')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -159,7 +162,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
-              Aprobadas
+              {t('admin.approvedPlural')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -173,7 +176,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <XCircle className="h-4 w-4 text-red-600" />
-              Rechazadas
+              {t('admin.rejectedPlural')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -187,12 +190,12 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
       {/* Filters */}
       <div className="flex gap-4">
         <div className="flex-1">
-          <Label htmlFor="search">Buscar</Label>
+          <Label htmlFor="search">{t('common.search')}</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="search"
-              placeholder="Buscar por nombre, email o teléfono..."
+              placeholder={t('admin.searchUsersPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -200,16 +203,16 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
           </div>
         </div>
         <div>
-          <Label htmlFor="status">Estado</Label>
+          <Label htmlFor="status">{t('admin.reviewStatus')}</Label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendientes</SelectItem>
-              <SelectItem value="approved">Aprobadas</SelectItem>
-              <SelectItem value="rejected">Rechazadas</SelectItem>
+              <SelectItem value="all">{t('common.all')}</SelectItem>
+              <SelectItem value="pending">{t('admin.pendingPlural')}</SelectItem>
+              <SelectItem value="approved">{t('admin.approvedPlural')}</SelectItem>
+              <SelectItem value="rejected">{t('admin.rejectedPlural')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -220,7 +223,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Solicitudes de Verificación de Identidad
+            {t('admin.identityVerificationTitle')}
           </CardTitle>
           <CardDescription>
             Revisa y aprueba las solicitudes de verificación de identidad de los usuarios
@@ -231,11 +234,11 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
             <table className="w-full">
               <thead className="border-b">
                 <tr>
-                  <th className="text-left p-4 font-medium">Usuario</th>
-                  <th className="text-left p-4 font-medium">Información</th>
-                  <th className="text-left p-4 font-medium">Estado</th>
+                  <th className="text-left p-4 font-medium">{t('admin.userColumn')}</th>
+                  <th className="text-left p-4 font-medium">{t('admin.information')}</th>
+                  <th className="text-left p-4 font-medium">{t('admin.reviewStatus')}</th>
                   <th className="text-left p-4 font-medium">Fecha</th>
-                  <th className="text-left p-4 font-medium">Documentos</th>
+                  <th className="text-left p-4 font-medium">{t('lawyer.documents')}</th>
                   <th className="text-left p-4 font-medium">Acciones</th>
                 </tr>
               </thead>
@@ -244,7 +247,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
                   <tr key={request.id} className="border-b hover:bg-muted/50">
                     <td className="p-4">
                       <div>
-                        <div className="font-medium">{request.user?.full_name || 'Usuario'}</div>
+                        <div className="font-medium">{request.user?.full_name || t('common.unnamed')}</div>
                         <div className="text-sm text-muted-foreground">{request.user?.email || ''}</div>
                         <div className="text-sm text-muted-foreground">{request.data?.phone || ''}</div>
                       </div>
@@ -265,7 +268,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
                       </Badge>
                     </td>
                     <td className="p-4 text-sm text-muted-foreground">
-                      {new Date(request.created_at).toLocaleDateString('es-CO')}
+                      {formatDate(request.created_at)}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-1 text-sm">
@@ -275,7 +278,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
                             request.selfie_path && 'Selfie',
                             request.id_doc_path && 'ID',
                             request.poa_doc_path && 'Poder'
-                          ].filter(Boolean).join(', ') || 'Sin documentos'}
+                          ].filter(Boolean).join(', ') || t('admin.noDocuments')}
                         </span>
                       </div>
                     </td>
@@ -329,7 +332,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === 'approve' ? 'Aprobar Verificación' : 'Rechazar Verificación'}
+              {reviewAction === 'approve' ? t('admin.approveVerification') : t('admin.rejectVerification')}
             </DialogTitle>
             <DialogDescription>
               {reviewAction === 'approve'
@@ -342,7 +345,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
           {selectedRequest && (
             <div className="space-y-4">
               <div className="bg-muted p-3 rounded-lg">
-                <div className="font-medium">{selectedRequest.user?.full_name || 'Usuario'}</div>
+                <div className="font-medium">{selectedRequest.user?.full_name || t('common.unnamed')}</div>
                 <div className="text-sm text-muted-foreground">{selectedRequest.user?.email || ''}</div>
               </div>
 
@@ -377,13 +380,13 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
                   variant="outline"
                   onClick={() => setReviewDialogOpen(false)}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   onClick={() => handleReview(selectedRequest.id, reviewAction)}
                   variant={reviewAction === 'approve' ? 'default' : 'destructive'}
                 >
-                  {reviewAction === 'approve' ? 'Aprobar' : 'Rechazar'}
+                  {reviewAction === 'approve' ? t('common.approve') : t('common.reject')}
                 </Button>
               </div>
             </div>
@@ -395,9 +398,9 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
       <Dialog open={!!selectedRequest && !reviewDialogOpen} onOpenChange={() => setSelectedRequest(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detalles de Verificación</DialogTitle>
+            <DialogTitle>{t('admin.verificationDetails')}</DialogTitle>
             <DialogDescription>
-              Información completa de la solicitud de verificación
+              {t('admin.identityVerificationDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -452,7 +455,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
               </div>
 
               <div>
-                <Label className="font-medium">Documentos Adjuntos</Label>
+                <Label className="font-medium">{t('admin.attachedDocuments')}</Label>
                 <div className="mt-2 space-y-2">
                   {selectedRequest.selfie_path && (
                     <div className="flex items-center gap-2 text-sm">
@@ -463,7 +466,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
                   {selectedRequest.id_doc_path && (
                     <div className="flex items-center gap-2 text-sm">
                       <FileText className="h-4 w-4" />
-                      <span>Documento de identidad: Disponible</span>
+                      <span>{t('admin.idDocumentAvailable')}</span>
                     </div>
                   )}
                   {selectedRequest.poa_doc_path && (
@@ -473,7 +476,7 @@ export const AdminIdentityVerificationPanel: React.FC = () => {
                     </div>
                   )}
                   {!selectedRequest.selfie_path && !selectedRequest.id_doc_path && !selectedRequest.poa_doc_path && (
-                    <p className="text-sm text-muted-foreground">No hay documentos adjuntos</p>
+                    <p className="text-sm text-muted-foreground">{t('admin.noAttachedDocuments')}</p>
                   )}
                 </div>
               </div>

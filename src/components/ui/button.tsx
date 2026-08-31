@@ -1,7 +1,7 @@
 import React from 'react';
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'link' | 'destructive';
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'link' | 'destructive' | 'accent';
   size?: 'sm' | 'default' | 'lg' | 'icon';
   asChild?: boolean;
 };
@@ -15,13 +15,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: 
         'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 active:scale-[0.98]',
       outline: 
-        'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground active:scale-[0.98]',
+        'border border-input bg-background shadow-sm hover:bg-primary/10 hover:text-primary active:scale-[0.98]',
       ghost: 
-        'hover:bg-accent hover:text-accent-foreground',
+        'hover:bg-primary/10 hover:text-primary',
       link: 
         'text-primary underline-offset-4 hover:underline',
       destructive: 
         'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:scale-[0.98]',
+      accent:
+        'bg-brand-gold text-brand-navy shadow-sm hover:bg-brand-gold-dark active:scale-[0.98] font-semibold',
     }[variant];
 
     // Refined size classes with better proportions

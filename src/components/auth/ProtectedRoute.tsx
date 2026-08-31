@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginForm } from './LoginForm';
 import { Card } from '@/components/ui/card';
@@ -27,6 +28,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   fallback
 }) => {
   const { user, profile, loading, signOut } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleLoginSuccess = () => {
@@ -43,10 +45,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             <AlertCircle className="h-8 w-8 text-red-600" />
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">
-            AuthProvider Not Available
+            {t('auth.authProviderUnavailable')}
           </h2>
           <p className="text-muted-foreground">
-            Please refresh the page to reload the authentication context.
+            {t('auth.authProviderRefresh')}
           </p>
         </div>
       </div>
@@ -58,7 +60,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -70,10 +72,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Acceso Requerido
+              {t('auth.accessRequired')}
             </h1>
             <p className="text-muted-foreground">
-              Inicia sesión para acceder a esta sección
+              {t('auth.loginToAccess')}
             </p>
           </div>
           <LoginForm onSuccess={handleLoginSuccess} />
@@ -92,15 +94,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               <Mail className="h-8 w-8 text-yellow-600" />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              Email no confirmado
+              {t('auth.emailNotConfirmed')}
             </h2>
             <p className="text-muted-foreground mb-4">
-              Debes confirmar tu email para acceder a esta sección
+              {t('auth.confirmEmailToAccess')}
             </p>
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Revisa tu bandeja de entrada y confirma tu email para continuar.
+                {t('auth.checkInboxConfirm')}
               </AlertDescription>
             </Alert>
           </div>
@@ -119,15 +121,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               <CheckCircle className="h-8 w-8 text-orange-600" />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              Verificación requerida
+              {t('auth.verificationRequired')}
             </h2>
             <p className="text-muted-foreground mb-4">
-              Debes completar la verificación de identidad para acceder a esta sección
+              {t('auth.completeVerificationToAccess')}
             </p>
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Completa el proceso de verificación en tu perfil para continuar.
+                {t('auth.completeVerificationInProfile')}
               </AlertDescription>
             </Alert>
           </div>
@@ -168,20 +170,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                 <Shield className="h-8 w-8 text-red-600" />
               </div>
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                Acceso Denegado
+                {t('auth.accessDenied')}
               </h2>
               <p className="text-muted-foreground mb-4">
-                No tienes permisos para acceder a esta sección
+                {t('auth.noPermissionSection')}
               </p>
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   {allowedRoles ? (
-                    <>Se requiere uno de estos roles: <strong>{allowedRoles.join(', ')}</strong><br />
-                    Tu rol actual: <strong>{profile.role}</strong></>
+                    <>{t('auth.requiredRoles', { roles: allowedRoles.join(', ') })}<br />
+                    {t('auth.currentRole', { role: profile.role })}</>
                   ) : (
-                    <>Se requiere rol: <strong>{requiredRole}</strong><br />
-                    Tu rol actual: <strong>{profile.role}</strong></>
+                    <>{t('auth.requiredRoleLabel', { role: requiredRole })}<br />
+                    {t('auth.currentRole', { role: profile.role })}</>
                   )}
                 </AlertDescription>
               </Alert>
@@ -213,7 +215,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                 <Lock className="h-8 w-8 text-red-600" />
               </div>
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                Permiso requerido
+                {t('auth.permissionRequired')}
               </h2>
               <p className="text-muted-foreground mb-4">
                 {getRestrictionMessage(requiredPermission, profile)}
@@ -221,7 +223,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  No tienes los permisos necesarios para acceder a esta sección.
+                  {t('auth.noRequiredPermissions')}
                 </AlertDescription>
               </Alert>
             </div>

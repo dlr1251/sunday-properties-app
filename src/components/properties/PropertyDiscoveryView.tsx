@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -138,6 +139,7 @@ const mockProperties: Property[] = [
 ];
 
 export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryViewProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { addToFavorites, removeFromFavorites, isFavorited } = useFavorites();
   
@@ -160,7 +162,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
   });
 
   const { user } = useAuth();
-  const { properties: allProperties, loading: allPropertiesLoading } = useAllProperties(user?.id);
+  const { properties: allProperties, loading: allPropertiesLoading } = useAllProperties(user?.id); // pass 'rental' as 2nd arg for rental-only view
   const { scheduleVisit } = useVisitScheduling();
   const { createPropertyInquiry } = useChat();
 
@@ -293,22 +295,22 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
   const handleContactOwner = async (propertyId: string, title: string) => {
     if (!user) {
-      toast.error('Debes iniciar sesión para contactar al propietario');
+      toast.error(t('properties.loginToContact'));
       return;
     }
 
     try {
       const conversationId = await createPropertyInquiry(
         propertyId,
-        `Consulta sobre ${title}`,
-        `Hola, estoy interesado en la propiedad "${title}". ¿Podrías darme más información?`
+        t('properties.inquirySubject', { title }),
+        t('properties.inquiryMessage', { title })
       );
       
-      toast.success('Conversación iniciada. Puedes ver tus mensajes en el menú.');
+      toast.success(t('properties.conversationStarted'));
       // Optionally navigate to messages
       // navigate(`/messages/${conversationId}`);
     } catch (error) {
-      toast.error('Error al contactar al propietario');
+      toast.error(t('properties.contactError'));
       console.error('Error creating property inquiry:', error);
     }
   };
@@ -316,11 +318,11 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
   const handleVisitScheduled = async (visitData: any) => {
     const result = await scheduleVisit(visitData);
     if (result.success) {
-      toast.success('Visita agendada exitosamente. El propietario será notificado.');
+      toast.success(t('properties.visitScheduled'));
       setVisitModalOpen(false);
       setSelectedPropertyForVisit(null);
     } else {
-      toast.error('Error al agendar la visita: ' + result.error.message);
+      toast.error(t('properties.visitScheduleError', { error: result.error.message }));
     }
   };
 
@@ -370,12 +372,12 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
     <div className="space-y-6">
       {/* Search */}
       <div className="space-y-2">
-        <Label htmlFor="search">Buscar</Label>
+        <Label htmlFor="search">{t('common.search')}</Label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="search"
-            placeholder="Buscar por título o ubicación..."
+            placeholder={t('properties.searchPlaceholder')}
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
             className="pl-10"
@@ -385,7 +387,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
       {/* Price Range */}
       <div className="space-y-2">
-        <Label>Rango de Precio (COP)</Label>
+        <Label>{t('properties.priceRangeCop')}</Label>
         <div className="px-2">
           <Slider
             value={filters.priceRange}
@@ -404,7 +406,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
       {/* Area Range */}
       <div className="space-y-2">
-        <Label>Rango de Área (m²)</Label>
+        <Label>{t('properties.areaRangeM2')}</Label>
         <div className="px-2">
           <Slider
             value={filters.areaRange}
@@ -423,7 +425,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
       {/* Bedrooms */}
       <div className="space-y-2">
-        <Label>Habitaciones</Label>
+        <Label>{t('properties.bedrooms')}</Label>
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4, 5].map(num => (
             <div key={num} className="flex items-center space-x-2">
@@ -446,7 +448,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
       {/* Bathrooms */}
       <div className="space-y-2">
-        <Label>Baños</Label>
+        <Label>{t('properties.bathrooms')}</Label>
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4].map(num => (
             <div key={num} className="flex items-center space-x-2">
@@ -469,14 +471,14 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
       {/* Property Types */}
       <div className="space-y-2">
-        <Label>Tipo de Propiedad</Label>
+        <Label>{t('properties.propertyType')}</Label>
         <div className="space-y-2">
           {[
-            { value: 'apartment', label: 'Apartamento' },
-            { value: 'house', label: 'Casa' },
-            { value: 'townhouse', label: 'Casa Campestre' },
-            { value: 'office', label: 'Oficina' },
-            { value: 'commercial', label: 'Local Comercial' }
+            { value: 'apartment', label: t('properties.types.apartment') },
+            { value: 'house', label: t('properties.types.house') },
+            { value: 'townhouse', label: t('properties.types.countryHouse') },
+            { value: 'office', label: t('properties.types.office') },
+            { value: 'commercial', label: t('properties.types.commercial') }
           ].map(type => (
             <div key={type.value} className="flex items-center space-x-2">
               <Checkbox
@@ -498,7 +500,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
       {/* Cities */}
       <div className="space-y-2">
-        <Label>Ciudad</Label>
+        <Label>{t('properties.city')}</Label>
         <div className="space-y-2">
           {['Medellín', 'Envigado', 'Sabaneta', 'Itagüí', 'Bello'].map(city => (
             <div key={city} className="flex items-center space-x-2">
@@ -521,7 +523,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
 
       {/* Clear Filters */}
       <Button variant="outline" onClick={clearFilters} className="w-full">
-        Limpiar Filtros
+        {t('common.clearFilters')}
       </Button>
     </div>
   );
@@ -549,9 +551,9 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Descubrir Propiedades</h2>
+          <h2 className="text-2xl font-bold">{t('properties.discoverTitle')}</h2>
           <p className="text-muted-foreground">
-            {filteredAndSortedProperties.length} propiedades encontradas
+            {t('properties.found', { count: filteredAndSortedProperties.length })}
           </p>
         </div>
 
@@ -567,7 +569,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
             }}
           >
             <BarChart3 className="h-4 w-4 mr-2" />
-            Comparar
+            {t('properties.compare')}
           </Button>
 
           {/* View Mode */}
@@ -595,7 +597,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
             <SheetTrigger asChild>
               <Button variant="outline" size="sm">
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
-                Filtros
+                {t('properties.filters')}
                 {activeFiltersCount > 0 && (
                   <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
                     {activeFiltersCount}
@@ -605,7 +607,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
             </SheetTrigger>
             <SheetContent side="right" className="w-80 overflow-y-auto">
               <SheetHeader>
-                <SheetTitle>Filtros</SheetTitle>
+                <SheetTitle>{t('properties.filters')}</SheetTitle>
               </SheetHeader>
               <div className="mt-6">
                 <FilterSidebar />
@@ -623,7 +625,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
                 <span className="font-medium">
-                  {selectedForComparison.size} propiedad{selectedForComparison.size !== 1 ? 'es' : ''} seleccionada{selectedForComparison.size !== 1 ? 's' : ''} para comparar
+                  {t('properties.selectedForCompare', { count: selectedForComparison.size })}
                 </span>
               </div>
               <div className="flex gap-2">
@@ -633,14 +635,14 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
                   onClick={() => setSelectedForComparison(new Set())}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Limpiar
+                  {t('common.clear')}
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => setShowComparison(true)}
                   disabled={selectedForComparison.size < 2}
                 >
-                  Comparar Ahora
+                  {t('properties.compareNow')}
                 </Button>
               </div>
             </div>
@@ -657,25 +659,25 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date-desc">Más recientes</SelectItem>
-              <SelectItem value="price-asc">Precio: menor a mayor</SelectItem>
-              <SelectItem value="price-desc">Precio: mayor a menor</SelectItem>
-              <SelectItem value="area-asc">Área: menor a mayor</SelectItem>
-              <SelectItem value="area-desc">Área: mayor a menor</SelectItem>
-              <SelectItem value="views-desc">Más vistas</SelectItem>
+              <SelectItem value="date-desc">{t('properties.sortOptions.newest')}</SelectItem>
+              <SelectItem value="price-asc">{t('properties.sortOptions.priceAsc')}</SelectItem>
+              <SelectItem value="price-desc">{t('properties.sortOptions.priceDesc')}</SelectItem>
+              <SelectItem value="area-asc">{t('properties.sortOptions.areaAsc')}</SelectItem>
+              <SelectItem value="area-desc">{t('properties.sortOptions.areaDesc')}</SelectItem>
+              <SelectItem value="views-desc">{t('properties.sortOptions.mostViewed')}</SelectItem>
             </SelectContent>
           </Select>
 
           {activeFiltersCount > 0 && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="h-4 w-4 mr-2" />
-              Limpiar filtros ({activeFiltersCount})
+              {t('properties.clearFiltersCount', { count: activeFiltersCount })}
             </Button>
           )}
         </div>
 
         <div className="text-sm text-muted-foreground">
-          Mostrando {paginatedProperties.length} de {filteredAndSortedProperties.length} propiedades
+          {t('properties.showingOf', { shown: paginatedProperties.length, total: filteredAndSortedProperties.length })}
         </div>
       </div>
 
@@ -726,7 +728,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
           >
-            Anterior
+            {t('common.previous')}
           </Button>
 
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
@@ -745,7 +747,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
           >
-            Siguiente
+            {t('common.next')}
           </Button>
         </div>
       )}
@@ -756,12 +758,12 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="text-center">
               <Search className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No se encontraron propiedades</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('properties.noProperties')}</h3>
               <p className="text-muted-foreground mb-4">
-                Prueba ajustando los filtros para encontrar más opciones
+                {t('properties.tryAdjustingFilters')}
               </p>
               <Button onClick={clearFilters}>
-                Limpiar Filtros
+                {t('common.clearFilters')}
               </Button>
             </div>
           </CardContent>

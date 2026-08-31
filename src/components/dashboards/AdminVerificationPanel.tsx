@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
+import { formatDate, formatDateTime } from '../../utils/format';
 
 interface VerificationRequest {
   id: string;
@@ -54,6 +56,7 @@ interface AdminVerificationPanelProps {
 export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
   isDarkMode = true
 }) => {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
@@ -88,7 +91,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
 
       if (error) {
         console.error('Error fetching verification requests:', error);
-        toast.error('Error al cargar solicitudes de verificación');
+        toast.error(t('admin.loadVerificationError'));
         return;
       }
 
@@ -100,7 +103,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
       setRequests(formattedRequests);
     } catch (err) {
       console.error('Error:', err);
-      toast.error('Error inesperado al cargar solicitudes');
+      toast.error(t('admin.unexpectedLoadRequests'));
     } finally {
       setLoading(false);
     }
@@ -118,13 +121,13 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="warning" className="dark:bg-yellow-900 dark:text-yellow-100">Pendiente</Badge>;
+        return <Badge variant="warning" className="dark:bg-yellow-900 dark:text-yellow-100">{t('admin.status.pending')}</Badge>;
       case 'approved':
-        return <Badge variant="success" className="dark:bg-green-900 dark:text-green-100">Aprobado</Badge>;
+        return <Badge variant="success" className="dark:bg-green-900 dark:text-green-100">{t('admin.status.approved')}</Badge>;
       case 'rejected':
-        return <Badge variant="destructive" className="dark:bg-red-900 dark:text-red-100">Rechazado</Badge>;
+        return <Badge variant="destructive" className="dark:bg-red-900 dark:text-red-100">{t('admin.rejected')}</Badge>;
       default:
-        return <Badge variant="secondary">Desconocido</Badge>;
+        return <Badge variant="secondary">{t('common.unknown')}</Badge>;
     }
   };
 
@@ -141,7 +144,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
 
       if (error) {
         console.error('Error approving request:', error);
-        toast.error('Error al aprobar la solicitud');
+        toast.error(t('admin.approveRequestError'));
         return;
       }
 
@@ -154,20 +157,20 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           .eq('id', request.user_id);
       }
 
-      toast.success('Solicitud aprobada exitosamente');
+      toast.success(t('admin.requestApproved'));
       setShowDetailsDialog(false);
       setSelectedRequest(null);
       setReviewNotes('');
       fetchVerificationRequests();
     } catch (err) {
       console.error('Error:', err);
-      toast.error('Error inesperado al aprobar');
+      toast.error(t('admin.unexpectedApprove'));
     }
   };
 
   const handleReject = async (requestId: string) => {
     if (!reviewNotes.trim()) {
-      toast.error('Debe proporcionar una razón para el rechazo');
+      toast.error(t('admin.rejectReasonRequired'));
       return;
     }
 
@@ -183,7 +186,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
 
       if (error) {
         console.error('Error rejecting request:', error);
-        toast.error('Error al rechazar la solicitud');
+        toast.error(t('admin.rejectRequestError'));
         return;
       }
 
@@ -196,14 +199,14 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           .eq('id', request.user_id);
       }
 
-      toast.success('Solicitud rechazada');
+      toast.success(t('admin.requestRejected'));
       setShowDetailsDialog(false);
       setSelectedRequest(null);
       setReviewNotes('');
       fetchVerificationRequests();
     } catch (err) {
       console.error('Error:', err);
-      toast.error('Error inesperado al rechazar');
+      toast.error(t('admin.unexpectedRejectRequest'));
     }
   };
 
@@ -221,7 +224,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           </div>
-          <p className={`text-center mt-4 ${textPrimary}`}>Cargando solicitudes...</p>
+          <p className={`text-center mt-4 ${textPrimary}`}>{t('admin.loadingRequests')}</p>
         </CardContent>
       </Card>
     );
@@ -232,8 +235,8 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
       {/* Header */}
       <Card className={cardClasses}>
         <CardHeader>
-          <CardTitle className={textPrimary}>Panel de Verificación de Administrador</CardTitle>
-          <p className={textSecondary}>Gestiona las solicitudes de verificación de usuarios</p>
+          <CardTitle className={textPrimary}>{t('admin.adminVerificationTitle')}</CardTitle>
+          <p className={textSecondary}>{t('admin.adminVerificationDescription')}</p>
         </CardHeader>
       </Card>
 
@@ -243,7 +246,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${textSecondary}`}>Total</p>
+                <p className={`text-sm ${textSecondary}`}>{t('admin.total')}</p>
                 <p className={`text-2xl font-bold ${textPrimary}`}>{stats.total}</p>
               </div>
               <FileText className={`h-8 w-8 ${textSecondary}`} />
@@ -255,7 +258,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${textSecondary}`}>Pendientes</p>
+                <p className={`text-sm ${textSecondary}`}>{t('admin.pendingPlural')}</p>
                 <p className={`text-2xl font-bold ${textPrimary}`}>{stats.pending}</p>
               </div>
               <Clock className="h-8 w-8 text-yellow-500" />
@@ -267,7 +270,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${textSecondary}`}>Aprobadas</p>
+                <p className={`text-sm ${textSecondary}`}>{t('admin.approvedPlural')}</p>
                 <p className={`text-2xl font-bold ${textPrimary}`}>{stats.approved}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
@@ -279,7 +282,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${textSecondary}`}>Rechazadas</p>
+                <p className={`text-sm ${textSecondary}`}>{t('admin.rejectedPlural')}</p>
                 <p className={`text-2xl font-bold ${textPrimary}`}>{stats.rejected}</p>
               </div>
               <XCircle className="h-8 w-8 text-red-500" />
@@ -296,7 +299,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${textSecondary}`} />
               <input
                 type="text"
-                placeholder="Buscar por nombre o email..."
+                placeholder={t('admin.searchNameOrEmail')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-md border ${inputClasses}`}
@@ -310,10 +313,10 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                 onChange={(e) => setFilterStatus(e.target.value as any)}
                 className={`px-3 py-2 rounded-md border ${inputClasses}`}
               >
-                <option value="all">Todas</option>
-                <option value="pending">Pendientes</option>
-                <option value="approved">Aprobadas</option>
-                <option value="rejected">Rechazadas</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="pending">{t('admin.pendingPlural')}</option>
+                <option value="approved">{t('admin.approvedPlural')}</option>
+                <option value="rejected">{t('admin.rejectedPlural')}</option>
               </select>
 
               <Button
@@ -322,7 +325,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                 className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Actualizar
+                {t('common.refresh')}
               </Button>
             </div>
           </div>
@@ -343,7 +346,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                     <div className="flex items-center gap-3">
                       <div>
                         <h3 className={`font-semibold ${textPrimary}`}>
-                          {request.user_profile?.full_name || 'Usuario sin nombre'}
+                          {request.user_profile?.full_name || t('common.unnamed')}
                         </h3>
                         <p className={`text-sm ${textSecondary}`}>{request.user_profile?.email}</p>
                       </div>
@@ -354,18 +357,18 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                       <div className="flex items-center gap-4">
                         <span className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {new Date(request.created_at).toLocaleDateString('es-CO')}
+                          {formatDate(request.created_at)}
                         </span>
                         {request.is_owner && (
                           <span className="flex items-center">
                             <User className="w-4 h-4 mr-1" />
-                            Propietario
+                            {t('admin.owner')}
                           </span>
                         )}
                         {request.has_poa && (
                           <span className="flex items-center">
                             <FileText className="w-4 h-4 mr-1" />
-                            Poder
+                            {t('admin.powerOfAttorney')}
                           </span>
                         )}
                       </div>
@@ -383,7 +386,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                       className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
                     >
                       <Eye className="w-4 h-4 mr-1" />
-                      Revisar
+                      {t('admin.review')}
                     </Button>
                   </div>
                 </div>
@@ -393,7 +396,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
             {filteredRequests.length === 0 && (
               <div className="text-center py-8">
                 <FileText className={`w-12 h-12 mx-auto mb-4 ${textSecondary}`} />
-                <p className={textPrimary}>No hay solicitudes que coincidan con los filtros</p>
+                <p className={textPrimary}>{t('admin.noMatchingRequests')}</p>
               </div>
             )}
           </div>
@@ -406,25 +409,25 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
           <DialogContent className={isDarkMode ? 'bg-gray-800 border-gray-700' : ''}>
             <DialogHeader>
               <DialogTitle className={textPrimary}>
-                Revisar Solicitud de Verificación
+                {t('admin.reviewRequest')}
               </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-6">
               {/* User Info */}
               <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold mb-2 ${textPrimary}`}>Información del Usuario</h3>
+                <h3 className={`font-semibold mb-2 ${textPrimary}`}>{t('admin.userInfo')}</h3>
                 <div className="space-y-1 text-sm">
-                  <p><span className={textSecondary}>Nombre:</span> {selectedRequest.user_profile?.full_name || 'N/A'}</p>
+                  <p><span className={textSecondary}>{t('admin.name')}:</span> {selectedRequest.user_profile?.full_name || 'N/A'}</p>
                   <p><span className={textSecondary}>Email:</span> {selectedRequest.user_profile?.email || 'N/A'}</p>
-                  <p><span className={textSecondary}>Teléfono:</span> {selectedRequest.user_profile?.phone || 'N/A'}</p>
-                  <p><span className={textSecondary}>Fecha de solicitud:</span> {new Date(selectedRequest.created_at).toLocaleString('es-CO')}</p>
+                  <p><span className={textSecondary}>{t('admin.phone')}:</span> {selectedRequest.user_profile?.phone || 'N/A'}</p>
+                  <p><span className={textSecondary}>{t('admin.requestDate')}:</span> {formatDateTime(selectedRequest.created_at)}</p>
                 </div>
               </div>
 
               {/* Documents */}
               <div>
-                <h3 className={`font-semibold mb-3 ${textPrimary}`}>Documentos</h3>
+                <h3 className={`font-semibold mb-3 ${textPrimary}`}>{t('lawyer.documents')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {selectedRequest.selfie_path && (
                     <div className={`p-3 rounded-lg border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
@@ -443,7 +446,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                     <div className={`p-3 rounded-lg border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
                       <div className="flex items-center">
                         <FileText className={`w-5 h-5 mr-2 ${textSecondary}`} />
-                        <span className={`text-sm ${textPrimary}`}>Documento ID</span>
+                        <span className={`text-sm ${textPrimary}`}>{t('admin.idDocument')}</span>
                       </div>
                       <Button size="sm" variant="outline" className="mt-2 w-full">
                         <Download className="w-4 h-4 mr-1" />
@@ -475,7 +478,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                   <div className="space-y-4">
                     <div>
                       <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-                        Notas de revisión (obligatorio para rechazos)
+                        {t('admin.reviewNotesForReject')}
                       </label>
                       <Textarea
                         value={reviewNotes}
@@ -492,7 +495,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                         className="flex-1 bg-green-600 hover:bg-green-700"
                       >
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Aprobar
+                        {t('common.approve')}
                       </Button>
 
                       <Button
@@ -501,7 +504,7 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
                         className="flex-1"
                       >
                         <XCircle className="w-4 h-4 mr-2" />
-                        Rechazar
+                        {t('common.reject')}
                       </Button>
                     </div>
                   </div>
@@ -510,18 +513,18 @@ export const AdminVerificationPanel: React.FC<AdminVerificationPanelProps> = ({
 
               {selectedRequest.status !== 'pending' && (
                 <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                  <h3 className={`font-semibold mb-2 ${textPrimary}`}>Estado de la Revisión</h3>
+                  <h3 className={`font-semibold mb-2 ${textPrimary}`}>{t('admin.reviewStatus')}</h3>
                   <div className="flex items-center gap-2 mb-2">
                     {getStatusBadge(selectedRequest.status)}
                     {selectedRequest.reviewed_at && (
                       <span className={`text-sm ${textSecondary}`}>
-                        Revisado el {new Date(selectedRequest.reviewed_at).toLocaleString('es-CO')}
+                        {t('admin.submitted', { date: formatDateTime(selectedRequest.reviewed_at) })}
                       </span>
                     )}
                   </div>
                   {selectedRequest.notes && (
                     <div>
-                      <p className={`text-sm font-medium mb-1 ${textPrimary}`}>Notas:</p>
+                      <p className={`text-sm font-medium mb-1 ${textPrimary}`}>{t('admin.notes')}:</p>
                       <p className={`text-sm ${textSecondary}`}>{selectedRequest.notes}</p>
                     </div>
                   )}

@@ -22,8 +22,11 @@ import { useCases } from '../../hooks/useCases';
 import { Case, CaseDocument } from '../../lib/db/repositories/cases.repo';
 import { ChatWindow } from '../chat/ChatWindow';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatDateTime } from '../../utils/format';
 
 export const CaseManager: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { cases, loading, error, getCaseDocuments } = useCases();
@@ -74,36 +77,17 @@ export const CaseManager: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Gestión de Casos</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('lawyer.caseManagement')}</h1>
           <p className="text-muted-foreground mt-2">
-            Administra tus casos asignados y documentos legales
+            {t('lawyer.caseManagementSubtitle')}
           </p>
         </div>
         <Badge variant="outline" className="text-sm">
-          {cases.length} casos activos
+          {t('lawyer.activeCasesCount', { count: cases.length })}
         </Badge>
       </div>
 
@@ -114,19 +98,19 @@ export const CaseManager: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Briefcase className="h-5 w-5" />
-                <span>Casos Asignados</span>
+                <span>{t('lawyer.assignedCases')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {loading ? (
                 <div className="text-center p-4">
                   <Clock className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Cargando casos...</p>
+                  <p className="text-sm text-muted-foreground">{t('lawyer.loadingCases')}</p>
                 </div>
               ) : cases.length === 0 ? (
                 <div className="text-center p-4">
                   <AlertCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">No tienes casos asignados</p>
+                  <p className="text-sm text-muted-foreground">{t('lawyer.noAssignedCases')}</p>
                 </div>
               ) : (
                 cases.map((caseItem) => (
@@ -156,11 +140,11 @@ export const CaseManager: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-1">
                       <DollarSign className="h-3 w-3" />
-                      <span>{caseItem.property?.price ? formatPrice(caseItem.property.price) : 'Precio no disponible'}</span>
+                      <span>{caseItem.property?.price ? formatCurrency(caseItem.property.price) : t('lawyer.priceUnavailable')}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-3 w-3" />
-                      <span>{formatDate(caseItem.created_at)}</span>
+                      <span>{formatDateTime(caseItem.created_at)}</span>
                     </div>
                   </div>
                   <div className="mt-2 flex items-center space-x-2">
@@ -201,57 +185,57 @@ export const CaseManager: React.FC = () => {
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="overview">Resumen</TabsTrigger>
-                    <TabsTrigger value="documents">Documentos</TabsTrigger>
-                    <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                    <TabsTrigger value="parties">Partes</TabsTrigger>
-                    <TabsTrigger value="chat">Chat</TabsTrigger>
+                    <TabsTrigger value="overview">{t('lawyer.overview')}</TabsTrigger>
+                    <TabsTrigger value="documents">{t('lawyer.documents')}</TabsTrigger>
+                    <TabsTrigger value="timeline">{t('lawyer.timeline')}</TabsTrigger>
+                    <TabsTrigger value="parties">{t('lawyer.parties')}</TabsTrigger>
+                    <TabsTrigger value="chat">{t('lawyer.chat')}</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <h4 className="font-semibold text-sm text-muted-foreground">Información del Caso</h4>
+                        <h4 className="font-semibold text-sm text-muted-foreground">{t('lawyer.caseInfo')}</h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span>ID del Caso:</span>
+                            <span>{t('lawyer.caseId')}</span>
                             <span className="font-mono">{selectedCase.id}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Precio:</span>
-                            <span className="font-semibold">{selectedCase.property?.price ? formatPrice(selectedCase.property.price) : 'N/A'}</span>
+                            <span>{t('lawyer.price')}</span>
+                            <span className="font-semibold">{selectedCase.property?.price ? formatCurrency(selectedCase.property.price) : t('common.notAvailable')}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Creado:</span>
-                            <span>{formatDate(selectedCase.created_at)}</span>
+                            <span>{t('lawyer.created')}</span>
+                            <span>{formatDateTime(selectedCase.created_at)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Última actualización:</span>
-                            <span>{formatDate(selectedCase.updated_at)}</span>
+                            <span>{t('lawyer.lastUpdated')}</span>
+                            <span>{formatDateTime(selectedCase.updated_at)}</span>
                           </div>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <h4 className="font-semibold text-sm text-muted-foreground">Estadísticas</h4>
+                        <h4 className="font-semibold text-sm text-muted-foreground">{t('lawyer.stats')}</h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span>Total documentos:</span>
+                            <span>{t('lawyer.totalDocuments')}</span>
                             <span>{caseDocuments.length}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Firmados:</span>
+                            <span>{t('lawyer.signed')}</span>
                             <span className="text-green-600">
                               {caseDocuments.filter(doc => doc.status === 'signed').length}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Pendientes:</span>
+                            <span>{t('lawyer.pending')}</span>
                             <span className="text-yellow-600">
                               {caseDocuments.filter(doc => doc.status === 'pending_signature').length}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Borradores:</span>
+                            <span>{t('lawyer.drafts')}</span>
                             <span className="text-blue-600">
                               {caseDocuments.filter(doc => doc.status === 'draft').length}
                             </span>
@@ -266,12 +250,12 @@ export const CaseManager: React.FC = () => {
                       {loadingDocuments ? (
                         <div className="text-center p-4">
                           <Clock className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">Cargando documentos...</p>
+                          <p className="text-sm text-muted-foreground">{t('lawyer.loadingDocuments')}</p>
                         </div>
                       ) : caseDocuments.length === 0 ? (
                         <div className="text-center p-4">
                           <AlertCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">No hay documentos para este caso</p>
+                          <p className="text-sm text-muted-foreground">{t('lawyer.noDocuments')}</p>
                         </div>
                       ) : (
                         caseDocuments.map((document) => (
@@ -286,7 +270,7 @@ export const CaseManager: React.FC = () => {
                                   {document.status}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground">
-                                  {formatDate(document.created_at)}
+                                  {formatDateTime(document.created_at)}
                                 </span>
                               </div>
                             </div>
@@ -328,7 +312,7 @@ export const CaseManager: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <h4 className="font-semibold text-sm">{document.title}</h4>
                               <span className="text-xs text-muted-foreground">
-                                {formatDate(document.created_at)}
+                                {formatDateTime(document.created_at)}
                               </span>
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">{document.description}</p>
@@ -338,7 +322,7 @@ export const CaseManager: React.FC = () => {
                               </Badge>
                               {document.signed_at && (
                                 <span className="text-xs text-muted-foreground">
-                                  Firmado el {formatDate(document.signed_at)}
+                                  {t('lawyer.signedOn', { date: formatDateTime(document.signed_at) })}
                                 </span>
                               )}
                             </div>
@@ -352,7 +336,7 @@ export const CaseManager: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-sm">Comprador</CardTitle>
+                          <CardTitle className="text-sm">{t('lawyer.buyer')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-2">
@@ -361,13 +345,13 @@ export const CaseManager: React.FC = () => {
                             {selectedCase.buyer?.phone && (
                               <div className="text-sm text-muted-foreground">Tel: {selectedCase.buyer.phone}</div>
                             )}
-                            <Badge variant="outline" className="text-xs">Comprador</Badge>
+                            <Badge variant="outline" className="text-xs">{t('lawyer.buyer')}</Badge>
                           </div>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-sm">Vendedor</CardTitle>
+                          <CardTitle className="text-sm">{t('lawyer.seller')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-2">
@@ -376,7 +360,7 @@ export const CaseManager: React.FC = () => {
                             {selectedCase.seller?.phone && (
                               <div className="text-sm text-muted-foreground">Tel: {selectedCase.seller.phone}</div>
                             )}
-                            <Badge variant="outline" className="text-xs">Vendedor</Badge>
+                            <Badge variant="outline" className="text-xs">{t('lawyer.seller')}</Badge>
                           </div>
                         </CardContent>
                       </Card>

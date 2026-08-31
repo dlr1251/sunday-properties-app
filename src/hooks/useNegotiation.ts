@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../i18n';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Offer, OfferHistory, NegotiationRules, IntentLetter, OfferComparison } from '../types/database';
@@ -397,9 +398,9 @@ CARTA DE INTENCIÓN DE COMPRAVENTA
 Por medio de la presente, ${offer.buyer?.name} (Comprador) y ${offer.seller?.name} (Vendedor) manifiestan su intención de celebrar un contrato de compraventa sobre el inmueble ubicado en ${offer.property?.address}.
 
 CONDICIONES PRINCIPALES:
-- Precio acordado: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(offer.offer_price)}
+- Precio acordado: ${new Intl.NumberFormat(getIntlLocale(), { style: 'currency', currency: 'COP' }).format(offer.offer_price)}
 - Método de pago: ${offer.payment_method}
-- Fecha de cierre: ${new Date(offer.closing_date).toLocaleDateString('es-CO')}
+- Fecha de cierre: ${new Date(offer.closing_date).toLocaleDateString(getIntlLocale())}
 - Condiciones especiales: ${offer.conditions?.join(', ') || 'Ninguna'}
 
 Esta carta de intención tiene una vigencia de 30 días a partir de la fecha de firma.

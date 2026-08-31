@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -140,7 +141,7 @@ export const NegotiationRulesConfig: React.FC<NegotiationRulesConfigProps> = ({
     const messages = [];
     
     if (rules.minPrice) {
-      messages.push(`Ofertas menores a $${rules.minPrice.toLocaleString('es-CO')} serán rechazadas automáticamente`);
+      messages.push(`Ofertas menores a $${rules.minPrice.toLocaleString(getIntlLocale())} serán rechazadas automáticamente`);
     }
     
     if (rules.maxClosingDays) {
@@ -159,7 +160,7 @@ export const NegotiationRulesConfig: React.FC<NegotiationRulesConfigProps> = ({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,

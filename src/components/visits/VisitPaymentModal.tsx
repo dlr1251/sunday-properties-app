@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CreditCard, Lock, CheckCircle, AlertCircle, Loader2, TestTube } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatCurrency, formatDate } from '../../utils/format';
 import { getStripe, VISIT_PAYMENT_AMOUNT, VISIT_PAYMENT_CURRENCY, createVisitPaymentIntent, PAYMENT_TEST_MODE, simulateTestPayment } from '../../services/stripe';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
@@ -28,6 +30,7 @@ const PaymentForm: React.FC<{
   onSuccess: (paymentData: any) => void;
   onCancel: () => void;
 }> = ({ visitData, onSuccess, onCancel }) => {
+  const { t } = useTranslation();
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -61,20 +64,20 @@ const PaymentForm: React.FC<{
       });
 
       if (confirmError) {
-        setCardError(confirmError.message || 'Error procesando el pago');
+        setCardError(confirmError.message || t('visits.payment.processError'));
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        toast.success('Pago procesado exitosamente');
+        toast.success(t('visits.payment.success'));
         onSuccess({
           success: true,
           paymentIntentId: paymentIntent.id,
           amount: paymentIntent.amount,
         });
       } else {
-        setCardError('No se pudo confirmar el pago');
+        setCardError(t('visits.payment.confirmFailed'));
       }
     } catch (error) {
       console.error('Payment error:', error);
-      setCardError('Error procesando el pago');
+      setCardError(t('visits.payment.processError'));
     } finally {
       setLoading(false);
     }
@@ -101,13 +104,9 @@ const PaymentForm: React.FC<{
       <div className="space-y-4">
         <div className="p-4 bg-muted rounded-lg">
           <div className="flex items-center justify-between">
-            <span className="font-medium">Valor de la visita:</span>
+            <span className="font-medium">{t('visits.payment.visitValue')}</span>
             <span className="text-2xl font-bold">
-              {new Intl.NumberFormat('es-CO', {
-                style: 'currency',
-                currency: 'COP',
-                minimumFractionDigits: 0,
-              }).format(VISIT_PAYMENT_AMOUNT)}
+              {formatCurrency(VISIT_PAYMENT_AMOUNT)}
             </span>
           </div>
         </div>
@@ -115,7 +114,7 @@ const PaymentForm: React.FC<{
         <div className="space-y-2">
           <Label htmlFor="card-element" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
-            Información de la tarjeta
+            {t('visits.payment.cardInfo')}
           </Label>
           <div className="p-3 border rounded-md bg-background">
             <CardElement
@@ -136,7 +135,7 @@ const PaymentForm: React.FC<{
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Lock className="h-4 w-4" />
-          <span>Pago seguro procesado por Stripe</span>
+          <span>{t('visits.payment.secureStripe')}</span>
         </div>
       </div>
 
@@ -148,7 +147,7 @@ const PaymentForm: React.FC<{
           disabled={loading}
           className="w-full sm:w-auto"
         >
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Button
           type="submit"
@@ -158,12 +157,12 @@ const PaymentForm: React.FC<{
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Procesando...
+              {t('visits.payment.processing')}
             </>
           ) : (
             <>
               <Lock className="h-4 w-4 mr-2" />
-              Pagar y Confirmar Visita
+              {t('visits.payment.payAndConfirm')}
             </>
           )}
         </Button>
@@ -179,6 +178,7 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
   visitData,
   onPaymentSuccess,
 }) => {
+  const { t } = useTranslation();
   const stripePromise = getStripe();
 
   const handlePaymentSuccess = (paymentData: any) => {
@@ -196,18 +196,18 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
 
     const handleTestPayment = async () => {
       if (!visitData.id) {
-        toast.error('No se pudo identificar la visita');
+        toast.error(t('visits.payment.visitNotFound'));
         return;
       }
 
       setLoading(true);
       try {
         const paymentData = await simulateTestPayment(visitData.id, VISIT_PAYMENT_AMOUNT);
-        toast.success('🧪 Pago de prueba procesado exitosamente');
+        toast.success(t('visits.payment.testSuccess'));
         handlePaymentSuccess(paymentData);
       } catch (error: any) {
         console.error('Test payment error:', error);
-        toast.error(error.message || 'Error procesando el pago de prueba');
+        toast.error(error.message || t('visits.payment.testError'));
       } finally {
         setLoading(false);
       }
@@ -218,13 +218,9 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
         <div className="space-y-4">
           <div className="p-4 bg-muted rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="font-medium">Valor de la visita:</span>
+              <span className="font-medium">{t('visits.payment.visitValue')}</span>
               <span className="text-2xl font-bold">
-                {new Intl.NumberFormat('es-CO', {
-                  style: 'currency',
-                  currency: 'COP',
-                  minimumFractionDigits: 0,
-                }).format(VISIT_PAYMENT_AMOUNT)}
+                {formatCurrency(VISIT_PAYMENT_AMOUNT)}
               </span>
             </div>
           </div>
@@ -234,10 +230,9 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
               <div className="flex items-start gap-3">
                 <TestTube className="h-5 w-5 text-orange-600 mt-0.5" />
                 <div className="space-y-2">
-                  <p className="font-semibold text-orange-900">Modo de Prueba Activado</p>
+                  <p className="font-semibold text-orange-900">{t('visits.payment.testModeTitle')}</p>
                   <p className="text-sm text-orange-700">
-                    Los pagos se simularán sin procesar transacciones reales. 
-                    La visita se confirmará automáticamente sin necesidad de tarjeta de crédito.
+                    {t('visits.payment.testModeBody')}
                   </p>
                 </div>
               </div>
@@ -253,7 +248,7 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
             disabled={loading}
             className="w-full sm:w-auto"
           >
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             type="button"
@@ -264,12 +259,12 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Procesando...
+                {t('visits.payment.processing')}
               </>
             ) : (
               <>
                 <TestTube className="h-4 w-4 mr-2" />
-                Confirmar Visita (Modo Prueba)
+                {t('visits.payment.confirmTest')}
               </>
             )}
           </Button>
@@ -286,30 +281,30 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              Configuración de Pago Requerida
+              {t('visits.payment.configRequired')}
             </DialogTitle>
             <DialogDescription>
-              Stripe no está configurado correctamente
+              {t('visits.payment.stripeNotConfigured')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Card className="border-destructive">
               <CardContent className="pt-6">
                 <div className="space-y-2 text-sm">
-                  <p className="font-medium">Para habilitar los pagos, necesitas:</p>
+                  <p className="font-medium">{t('visits.payment.toEnablePayments')}</p>
                   <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                    <li>Crear una cuenta en <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">Stripe</a></li>
-                    <li>Obtener tu clave pública de Stripe</li>
-                    <li>Agregar <code className="bg-muted px-1 rounded">VITE_STRIPE_PUBLIC_KEY</code> a tu archivo <code className="bg-muted px-1 rounded">.env</code></li>
-                    <li>Configurar <code className="bg-muted px-1 rounded">STRIPE_SECRET_KEY</code> en Supabase Edge Functions secrets</li>
-                    <li className="text-primary font-medium">O habilitar modo prueba agregando <code className="bg-muted px-1 rounded">VITE_PAYMENT_TEST_MODE=true</code> a tu archivo <code className="bg-muted px-1 rounded">.env</code></li>
+                    <li>{t('visits.payment.stripeStep1')} (<a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">Stripe</a>)</li>
+                    <li>{t('visits.payment.stripeStep2')}</li>
+                    <li>{t('visits.payment.stripeStep3')}</li>
+                    <li>{t('visits.payment.stripeStep4')}</li>
+                    <li className="text-primary font-medium">{t('visits.payment.stripeStep5')}</li>
                   </ol>
                 </div>
               </CardContent>
             </Card>
             <DialogFooter>
               <Button variant="outline" onClick={handleCancel}>
-                Cerrar
+                {t('common.close')}
               </Button>
             </DialogFooter>
           </div>
@@ -326,19 +321,19 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
             {PAYMENT_TEST_MODE ? (
               <>
                 <TestTube className="h-5 w-5 text-orange-600" />
-                Confirmar Visita (Modo Prueba)
+                {t('visits.payment.confirmTest')}
               </>
             ) : (
               <>
                 <CreditCard className="h-5 w-5" />
-                Confirmar Visita
+                {t('visits.payment.confirmTitle')}
               </>
             )}
           </DialogTitle>
           <DialogDescription>
             {PAYMENT_TEST_MODE 
-              ? 'Simula el pago para confirmar tu visita (no se procesará ningún cargo real)'
-              : 'Completa el pago para confirmar tu visita a la propiedad'
+              ? t('visits.payment.testDescription')
+              : t('visits.payment.liveDescription')
             }
           </DialogDescription>
         </DialogHeader>
@@ -346,21 +341,21 @@ export const VisitPaymentModal: React.FC<VisitPaymentModalProps> = ({
         <div className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Detalles de la Visita</CardTitle>
+              <CardTitle className="text-lg">{t('visits.payment.detailsTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Propiedad:</span>
+                <span className="text-sm text-muted-foreground">{t('visits.property')}:</span>
                 <span className="text-sm font-medium">{visitData.propertyTitle}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Fecha:</span>
+                <span className="text-sm text-muted-foreground">{t('visits.date')}:</span>
                 <span className="text-sm font-medium">
-                  {new Date(visitData.scheduledDate).toLocaleDateString('es-CO')}
+                  {formatDate(visitData.scheduledDate)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Hora:</span>
+                <span className="text-sm text-muted-foreground">{t('visits.time')}:</span>
                 <span className="text-sm font-medium">{visitData.scheduledTime}</span>
               </div>
             </CardContent>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../../ui/card';
 import { Star, Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from '../../ui/button';
@@ -30,6 +31,7 @@ interface Review {
 }
 
 export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, userId }) => {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -69,7 +71,7 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
       // Transform reviews data
       const transformedReviews = reviewsData?.map((review: any) => ({
         ...review,
-        user_profile: review.user_id ? { full_name: 'Usuario' } : null,
+        user_profile: review.user_id ? { full_name: t('properties.detail.userFallback') } : null,
       })) || [];
 
       setReviews(transformedReviews);
@@ -84,7 +86,7 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
       setStats(statsData);
     } catch (error: any) {
       console.error('Error fetching reviews:', error);
-      toast.error('Error al cargar reseñas');
+      toast.error(t('properties.detail.loadReviewsError'));
     } finally {
       setLoading(false);
     }
@@ -112,7 +114,7 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
     setShowReviewForm(false);
     fetchReviewsAndStats();
     checkIfReviewed();
-    toast.success('Tu reseña ha sido publicada');
+    toast.success(t('properties.detail.reviewPublished'));
   };
 
   const filteredAndSortedReviews = [...reviews]
@@ -145,7 +147,7 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
           ))}
         </div>
         <span className="text-2xl font-bold">{average.toFixed(1)}</span>
-        <span className="text-gray-500">({total} reseñas)</span>
+        <span className="text-gray-500">{t('properties.detail.reviewsCount', { count: total })}</span>
       </div>
     );
   };
@@ -167,7 +169,7 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
         {/* Header with Stats */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Reseñas y Calificaciones</h2>
+            <h2 className="text-2xl font-bold mb-2">{t('properties.detail.reviewsTitle')}</h2>
             {stats && (
               <div className="flex items-center gap-4">
                 {renderStarRating(stats.avg_overall_satisfaction, stats.total_reviews)}
@@ -177,7 +179,7 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
 
           {user && !hasReviewed && (
             <Button onClick={() => setShowReviewForm(true)}>
-              Escribir Reseña
+              {t('properties.detail.writeReview')}
             </Button>
           )}
         </div>
@@ -220,12 +222,12 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
                 setFilterRating(e.target.value === 'all' ? null : Number(e.target.value))
               }
             >
-              <option value="all">Todas las calificaciones</option>
-              <option value="5">5 estrellas</option>
-              <option value="4">4 estrellas</option>
-              <option value="3">3 estrellas</option>
-              <option value="2">2 estrellas</option>
-              <option value="1">1 estrella</option>
+              <option value="all">{t('properties.detail.allRatings')}</option>
+              <option value="5">{t('properties.detail.stars', { count: 5 })}</option>
+              <option value="4">{t('properties.detail.stars', { count: 4 })}</option>
+              <option value="3">{t('properties.detail.stars', { count: 3 })}</option>
+              <option value="2">{t('properties.detail.stars', { count: 2 })}</option>
+              <option value="1">{t('properties.detail.stars', { count: 1 })}</option>
             </select>
           </div>
           <div className="flex-1">
@@ -234,8 +236,8 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'recent' | 'helpful')}
             >
-              <option value="recent">Más recientes</option>
-              <option value="helpful">Más útiles</option>
+              <option value="recent">{t('properties.detail.sortRecent')}</option>
+              <option value="helpful">{t('properties.detail.sortHelpful')}</option>
             </select>
           </div>
         </div>
@@ -258,8 +260,8 @@ export const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId, us
             ))
           ) : (
             <div className="text-center py-12 text-gray-500">
-              <p>No hay reseñas para mostrar</p>
-              {filterRating && <p className="text-sm mt-2">Intenta con un filtro diferente</p>}
+              <p>{t('properties.detail.noReviews')}</p>
+              {filterRating && <p className="text-sm mt-2">{t('properties.detail.tryDifferentFilter')}</p>}
             </div>
           )}
         </div>

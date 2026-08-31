@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { ChevronLeft, ChevronRight, MapPin, Bed, Bath, Square } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '../../../utils/format';
 
 interface SimilarPropertiesProps {
   currentPropertyId: string;
@@ -35,6 +37,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
   priceRange,
   onPropertyClick,
 }) => {
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -112,14 +115,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
     );
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const getPropertyImage = (property: Property) => {
     // Use the images array directly since there's no separate property_images table
@@ -152,7 +148,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
     <Card className="p-6">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Propiedades Similares</h2>
+          <h2 className="text-xl font-bold">{t('properties.detail.similarTitle')}</h2>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -190,7 +186,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
                     />
                     {property.verified && (
                       <Badge className="absolute top-2 left-2 bg-white/90 text-green-800 border-0">
-                        ✓ Verificado
+                        ✓ {t('properties.verified')}
                       </Badge>
                     )}
                   </div>

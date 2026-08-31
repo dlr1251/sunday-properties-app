@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSuperAdminDashboard } from '../../hooks/admin/useAdminDashboard';
@@ -70,12 +71,12 @@ export const SuperAdminProfilePage: React.FC = () => {
       case 'error':
         return <AlertCircle className="h-4 w-4 text-red-600" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -83,15 +84,15 @@ export const SuperAdminProfilePage: React.FC = () => {
   };
 
   const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('es-CO').format(num);
+    return new Intl.NumberFormat(getIntlLocale()).format(num);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
+          <p className="mt-4 text-muted-foreground">Loading admin dashboard...</p>
         </div>
       </div>
     );
@@ -99,11 +100,11 @@ export const SuperAdminProfilePage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-card flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <p className="text-gray-900 text-lg mb-4">Error loading dashboard</p>
-          <Button onClick={refetch} variant="outline" className="border-gray-300 text-gray-700">
+          <p className="text-foreground text-lg mb-4">Error loading dashboard</p>
+          <Button onClick={refetch} variant="outline" className="border-border text-muted-foreground">
             <RefreshCw className="h-4 w-4 mr-2 hmr-rotate" />
             Retry
           </Button>
@@ -113,17 +114,17 @@ export const SuperAdminProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-muted/30 text-foreground">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-6 shadow-sm">
+      <div className="bg-card border-b border-border p-6 shadow-sm">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <Crown className="h-8 w-8 text-yellow-600" />
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Super Admin Control Center</h1>
-                  <p className="text-gray-600 text-sm">Complete system management and oversight</p>
+                  <h1 className="text-2xl font-bold text-foreground">Super Admin Control Center</h1>
+                  <p className="text-muted-foreground text-sm">Complete system management and oversight</p>
                 </div>
               </div>
             </div>
@@ -141,12 +142,12 @@ export const SuperAdminProfilePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* System Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-card border-border shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatNumber(stats?.totalUsers || 0)}</p>
+                  <p className="text-sm text-muted-foreground">Total Users</p>
+                  <p className="text-2xl font-bold text-foreground">{formatNumber(stats?.totalUsers || 0)}</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
@@ -156,12 +157,12 @@ export const SuperAdminProfilePage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-card border-border shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Active Properties</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatNumber(stats?.activeProperties || 0)}</p>
+                  <p className="text-sm text-muted-foreground">Active Properties</p>
+                  <p className="text-2xl font-bold text-foreground">{formatNumber(stats?.activeProperties || 0)}</p>
                 </div>
                 <Home className="h-8 w-8 text-green-600" />
               </div>
@@ -171,12 +172,12 @@ export const SuperAdminProfilePage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-card border-border shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Active Negotiations</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatNumber(stats?.activeNegotiations || 0)}</p>
+                  <p className="text-sm text-muted-foreground">Active Negotiations</p>
+                  <p className="text-2xl font-bold text-foreground">{formatNumber(stats?.activeNegotiations || 0)}</p>
                 </div>
                 <FileText className="h-8 w-8 text-orange-600" />
               </div>
@@ -186,12 +187,12 @@ export const SuperAdminProfilePage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-card border-border shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats?.totalRevenue || 0)}</p>
+                  <p className="text-sm text-muted-foreground">Total Revenue</p>
+                  <p className="text-2xl font-bold text-foreground">{formatCurrency(stats?.totalRevenue || 0)}</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-yellow-600" />
               </div>
@@ -204,7 +205,7 @@ export const SuperAdminProfilePage: React.FC = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-12 bg-white border border-gray-200">
+              <TabsList className="grid w-full grid-cols-12 bg-card border border-border">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Overview</TabsTrigger>
                 <TabsTrigger value="users" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Users</TabsTrigger>
                 <TabsTrigger value="admins" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Admins</TabsTrigger>
@@ -223,13 +224,13 @@ export const SuperAdminProfilePage: React.FC = () => {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Activity */}
-              <Card className="bg-white border-gray-200 shadow-sm">
+              <Card className="bg-card border-border shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 flex items-center">
+                  <CardTitle className="text-foreground flex items-center">
                     <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
                     Recent Activity
                   </CardTitle>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-muted-foreground">
                     Latest system events and user actions
                   </CardDescription>
                 </CardHeader>
@@ -239,25 +240,25 @@ export const SuperAdminProfilePage: React.FC = () => {
                       <div key={index} className="flex items-start space-x-3">
                         {getStatusIcon(activity.status)}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900">{activity.message}</p>
-                          <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                          <p className="text-sm text-foreground">{activity.message}</p>
+                          <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
                         </div>
                       </div>
                     )) || (
-                      <p className="text-gray-500 text-sm">No recent activity</p>
+                      <p className="text-muted-foreground text-sm">No recent activity</p>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Quick Actions */}
-              <Card className="bg-white border-gray-200 shadow-sm">
+              <Card className="bg-card border-border shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 flex items-center">
+                  <CardTitle className="text-foreground flex items-center">
                     <Settings className="h-5 w-5 mr-2 text-green-600" />
                     Quick Actions
                   </CardTitle>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-muted-foreground">
                     Common administrative tasks
                   </CardDescription>
                 </CardHeader>
@@ -266,15 +267,15 @@ export const SuperAdminProfilePage: React.FC = () => {
                     <UserPlus className="h-4 w-4 mr-2" />
                     Create New User
                   </Button>
-                  <Button variant="outline" className="w-full justify-start border-gray-300 text-gray-700 hover:bg-gray-50">
+                  <Button variant="outline" className="w-full justify-start border-border text-muted-foreground hover:bg-muted/30">
                     <Shield className="h-4 w-4 mr-2" />
                     Review Verifications
                   </Button>
-                  <Button variant="outline" className="w-full justify-start border-gray-300 text-gray-700 hover:bg-gray-50">
+                  <Button variant="outline" className="w-full justify-start border-border text-muted-foreground hover:bg-muted/30">
                     <FileText className="h-4 w-4 mr-2" />
                     Generate Reports
                   </Button>
-                  <Button variant="outline" className="w-full justify-start border-gray-300 text-gray-700 hover:bg-gray-50">
+                  <Button variant="outline" className="w-full justify-start border-border text-muted-foreground hover:bg-muted/30">
                     <Settings className="h-4 w-4 mr-2" />
                     System Configuration
                   </Button>
@@ -283,13 +284,13 @@ export const SuperAdminProfilePage: React.FC = () => {
             </div>
 
             {/* System Health */}
-            <Card className="bg-white border-gray-200 shadow-sm">
+            <Card className="bg-card border-border shadow-sm">
               <CardHeader>
-                <CardTitle className="text-gray-900 flex items-center">
+                <CardTitle className="text-foreground flex items-center">
                   <BarChart3 className="h-5 w-5 mr-2 text-purple-600" />
                   System Health Overview
                 </CardTitle>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-muted-foreground">
                   Platform performance and key metrics
                 </CardDescription>
               </CardHeader>
@@ -297,15 +298,15 @@ export const SuperAdminProfilePage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600 mb-2">99.9%</div>
-                    <div className="text-sm text-gray-600">Uptime</div>
+                    <div className="text-sm text-muted-foreground">Uptime</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600 mb-2">1.2s</div>
-                    <div className="text-sm text-gray-600">Avg Response Time</div>
+                    <div className="text-sm text-muted-foreground">Avg Response Time</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-yellow-600 mb-2">45</div>
-                    <div className="text-sm text-gray-600">Active Sessions</div>
+                    <div className="text-sm text-muted-foreground">Active Sessions</div>
                   </div>
                 </div>
               </CardContent>

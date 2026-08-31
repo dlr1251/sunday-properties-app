@@ -23,8 +23,11 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatNumber } from '../../../utils/format';
 
 export function SuperAdminOverview() {
+  const { t } = useTranslation();
   const { stats, recentActivity, loading, error, refetch } = useSuperAdminDashboard();
   const navigate = useNavigate();
   const [quickStats, setQuickStats] = useState({
@@ -49,24 +52,12 @@ export function SuperAdminOverview() {
     fetchQuickStats();
   }, [stats]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('es-CO').format(num);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando dashboard...</p>
+          <p className="mt-4 text-gray-600">{t('dashboard.loading')}</p>
         </div>
       </div>
     );
@@ -77,9 +68,9 @@ export function SuperAdminOverview() {
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <p className="text-gray-900 text-lg mb-4">Error al cargar el dashboard</p>
+          <p className="text-gray-900 text-lg mb-4">{t('admin.loadDashboardError')}</p>
           <Button onClick={refetch} variant="outline">
-            Reintentar
+            {t('common.tryAgain')}
           </Button>
         </div>
       </div>
@@ -92,60 +83,60 @@ export function SuperAdminOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.totalUsers')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(stats?.totalUsers || 0)}</div>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(stats?.verifiedUsers || 0)} verificados
+              {t('admin.verifiedUsersCount', { count: formatNumber(stats?.verifiedUsers || 0) })}
             </p>
             <div className="mt-2 flex gap-2 text-xs">
-              <Badge variant="outline">{stats?.lawyerUsers || 0} abogados</Badge>
-              <Badge variant="outline">{stats?.adminUsers || 0} admins</Badge>
+              <Badge variant="outline">{t('admin.lawyersCount', { count: stats?.lawyerUsers || 0 })}</Badge>
+              <Badge variant="outline">{t('admin.adminsCount', { count: stats?.adminUsers || 0 })}</Badge>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Propiedades</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.properties')}</CardTitle>
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(stats?.activeProperties || 0)}</div>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(stats?.pendingProperties || 0)} pendientes
+              {t('admin.pendingCount', { count: formatNumber(stats?.pendingProperties || 0) })}
             </p>
             <div className="mt-2 flex gap-2 text-xs">
-              <Badge variant="outline">{formatNumber(stats?.soldProperties || 0)} vendidas</Badge>
+              <Badge variant="outline">{t('admin.soldCount', { count: formatNumber(stats?.soldProperties || 0) })}</Badge>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Negociaciones</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('negotiations.title')}</CardTitle>
             <Handshake className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(stats?.activeNegotiations || 0)}</div>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(stats?.completedNegotiations || 0)} completadas
+              {t('admin.completedCount', { count: formatNumber(stats?.completedNegotiations || 0) })}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.totalRevenue')}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats?.totalRevenue || 0)}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <TrendingUp className="h-3 w-3 text-green-600" />
-              +12.5% este mes
+              {t('admin.revenueThisMonth')}
             </p>
           </CardContent>
         </Card>
@@ -154,8 +145,8 @@ export function SuperAdminOverview() {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Acciones Rápidas</CardTitle>
-          <CardDescription>Accesos directos a las funciones más utilizadas</CardDescription>
+          <CardTitle>{t('admin.quickActions')}</CardTitle>
+          <CardDescription>{t('admin.quickActionsDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -165,7 +156,7 @@ export function SuperAdminOverview() {
               onClick={() => navigate('/dashboard?tab=users')}
             >
               <Users className="h-5 w-5 mb-2" />
-              <span>Crear Usuario</span>
+              <span>{t('admin.createUser')}</span>
             </Button>
             <Button 
               variant="outline" 
@@ -173,7 +164,7 @@ export function SuperAdminOverview() {
               onClick={() => navigate('/dashboard?tab=properties')}
             >
               <Home className="h-5 w-5 mb-2" />
-              <span>Gestionar Propiedades</span>
+              <span>{t('admin.managePropertiesTitle')}</span>
             </Button>
             <Button 
               variant="outline" 
@@ -181,7 +172,7 @@ export function SuperAdminOverview() {
               onClick={() => navigate('/dashboard?tab=negotiations')}
             >
               <Handshake className="h-5 w-5 mb-2" />
-              <span>Ver Negociaciones</span>
+              <span>{t('admin.viewNegotiations')}</span>
             </Button>
             <Button 
               variant="outline" 
@@ -189,7 +180,7 @@ export function SuperAdminOverview() {
               onClick={() => navigate('/dashboard?tab=verifications')}
             >
               <Shield className="h-5 w-5 mb-2" />
-              <span>Verificaciones</span>
+              <span>{t('admin.verifications')}</span>
             </Button>
           </div>
         </CardContent>
@@ -201,16 +192,16 @@ export function SuperAdminOverview() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-orange-600" />
-              Requiere Atención
+              {t('admin.requiresAttention')}
             </CardTitle>
-            <CardDescription>Elementos pendientes de revisión</CardDescription>
+            <CardDescription>{t('admin.pendingReviewItems')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {quickStats.pendingVerifications > 0 && (
               <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm font-medium">Verificaciones pendientes</span>
+                  <span className="text-sm font-medium">{t('admin.pendingVerifications')}</span>
                 </div>
                 <Badge variant="destructive">{quickStats.pendingVerifications}</Badge>
               </div>
@@ -219,7 +210,7 @@ export function SuperAdminOverview() {
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Home className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">Propiedades pendientes</span>
+                  <span className="text-sm font-medium">{t('admin.pendingProperties')}</span>
                 </div>
                 <Badge variant="default">{quickStats.pendingProperties}</Badge>
               </div>
@@ -228,14 +219,14 @@ export function SuperAdminOverview() {
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Handshake className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">Negociaciones activas</span>
+                  <span className="text-sm font-medium">{t('admin.activeNegotiations')}</span>
                 </div>
                 <Badge variant="outline">{quickStats.activeNegotiations}</Badge>
               </div>
             )}
             {quickStats.pendingVerifications === 0 && quickStats.pendingProperties === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No hay elementos pendientes
+                {t('admin.noPendingItems')}
               </p>
             )}
           </CardContent>
@@ -245,9 +236,9 @@ export function SuperAdminOverview() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-blue-600" />
-              Actividad Reciente
+              {t('admin.recentActivity')}
             </CardTitle>
-            <CardDescription>Últimas acciones en el sistema</CardDescription>
+            <CardDescription>{t('admin.recentActivityDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -263,13 +254,13 @@ export function SuperAdminOverview() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-900">{activity.message || 'Actividad del sistema'}</p>
-                    <p className="text-xs text-gray-500">{activity.timestamp || 'Ahora'}</p>
+                    <p className="text-gray-900">{activity.message || t('admin.systemActivity')}</p>
+                    <p className="text-xs text-gray-500">{activity.timestamp || t('admin.now')}</p>
                   </div>
                 </div>
               )) || (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No hay actividad reciente
+                  {t('profile.noRecentActivity')}
                 </p>
               )}
             </div>
@@ -282,25 +273,25 @@ export function SuperAdminOverview() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-purple-600" />
-            Estado del Sistema
-          </CardTitle>
-          <CardDescription>Métricas de rendimiento de la plataforma</CardDescription>
+              {t('admin.systemHealth')}
+            </CardTitle>
+            <CardDescription>{t('admin.systemHealthDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600 mb-2">99.9%</div>
-              <div className="text-sm text-gray-600">Tiempo de actividad</div>
+              <div className="text-sm text-gray-600">{t('admin.uptime')}</div>
             </div>
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600 mb-2">1.2s</div>
-              <div className="text-sm text-gray-600">Tiempo de respuesta promedio</div>
+              <div className="text-sm text-gray-600">{t('admin.avgResponseTime')}</div>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600 mb-2">
                 {formatNumber(stats?.totalUsers || 0)}
               </div>
-              <div className="text-sm text-gray-600">Usuarios activos</div>
+              <div className="text-sm text-gray-600">{t('admin.activeUsers')}</div>
             </div>
           </div>
         </CardContent>

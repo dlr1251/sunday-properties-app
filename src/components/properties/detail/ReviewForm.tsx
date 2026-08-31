@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog } from '../../ui/dialog';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
@@ -20,6 +21,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
   propertyId,
   onSubmit,
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [ratings, setRatings] = useState({
@@ -74,12 +76,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error('Debes iniciar sesión para publicar una reseña');
+      toast.error(t('properties.detail.reviewForm.mustLogin'));
       return;
     }
 
     if (ratings.overall === 0 || ratings.property === 0 || ratings.service === 0) {
-      toast.error('Por favor completa todas las calificaciones requeridas');
+      toast.error(t('properties.detail.reviewForm.completeRatings'));
       return;
     }
 
@@ -96,7 +98,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
       if (visitError) throw visitError;
 
       if (!visit) {
-        toast.error('Debes haber visitado la propiedad para dejar una reseña');
+        toast.error(t('properties.detail.reviewForm.mustVisit'));
         return;
       }
 
@@ -117,7 +119,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
       onSubmit();
     } catch (error: any) {
       console.error('Error submitting review:', error);
-      toast.error('Error al publicar la reseña');
+      toast.error(t('properties.detail.reviewForm.submitError'));
     } finally {
       setLoading(false);
     }
@@ -129,9 +131,9 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           <div className="p-6 space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Comparte tu Experiencia</h2>
+              <h2 className="text-2xl font-bold mb-2">{t('properties.detail.reviewForm.title')}</h2>
               <p className="text-gray-600 text-sm">
-                Tu opinión ayuda a otros usuarios a tomar decisiones informadas.
+                {t('properties.detail.reviewForm.subtitle')}
               </p>
             </div>
 
@@ -140,7 +142,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
               <StarRatingInput
                 value={ratings.overall}
                 onChange={(value) => setRatings((prev) => ({ ...prev, overall: value }))}
-                label="Calificación General"
+                label={t('properties.detail.reviewForm.overall')}
                 required
               />
 
@@ -148,7 +150,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
               <StarRatingInput
                 value={ratings.property}
                 onChange={(value) => setRatings((prev) => ({ ...prev, property: value }))}
-                label="Calidad de la Propiedad"
+                label={t('properties.detail.reviewForm.propertyQuality')}
                 required
               />
 
@@ -156,7 +158,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
               <StarRatingInput
                 value={ratings.service}
                 onChange={(value) => setRatings((prev) => ({ ...prev, service: value }))}
-                label="Atención del Vendedor"
+                label={t('properties.detail.reviewForm.sellerService')}
                 required
               />
 
@@ -164,22 +166,22 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
               <StarRatingInput
                 value={ratings.purchase}
                 onChange={(value) => setRatings((prev) => ({ ...prev, purchase: value }))}
-                label="Interés de Compra (opcional)"
+                label={t('properties.detail.reviewForm.purchaseInterest')}
               />
 
               {/* Comments */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Comentarios (opcional)
+                  {t('properties.detail.reviewForm.comments')}
                 </label>
                 <textarea
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
                   className="w-full min-h-32 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Comparte tu experiencia con esta propiedad..."
+                  placeholder={t('properties.detail.reviewForm.commentsPlaceholder')}
                   maxLength={500}
                 />
-                <p className="text-xs text-gray-500">{comments.length}/500 caracteres</p>
+                <p className="text-xs text-gray-500">{t('properties.detail.reviewForm.charCount', { count: comments.length })}</p>
               </div>
 
               {/* Anonymous Option */}
@@ -192,7 +194,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <label htmlFor="anonymous" className="text-sm text-gray-700">
-                  Publicar de forma anónima
+                  {t('properties.detail.reviewForm.anonymous')}
                 </label>
               </div>
             </div>
@@ -200,15 +202,13 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
             {/* Actions */}
             <div className="flex gap-3 pt-4 border-t">
               <Button variant="outline" onClick={onClose} className="flex-1" disabled={loading}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleSubmit} className="flex-1" disabled={loading}>
-                {loading ? (
-                  'Enviando...'
-                ) : (
+                {loading ? t('common.sending') : (
                   <>
                     <Send className="h-4 w-4 mr-2" />
-                    Publicar Reseña
+                    {t('properties.detail.reviewForm.publish')}
                   </>
                 )}
               </Button>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../../utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -94,6 +96,7 @@ export function OfferAnalysisSection({
   negotiationRules,
   className = ''
 }: OfferAnalysisSectionProps) {
+  const { t } = useTranslation();
 
   const [metrics, setMetrics] = useState<OfferMetrics | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -295,14 +298,6 @@ export function OfferAnalysisSection({
     return recommendations;
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const formatPercentage = (value: number) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
   };
@@ -343,7 +338,7 @@ export function OfferAnalysisSection({
         <CardTitle className="text-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-blue-600" />
-            Análisis de Oferta
+            {t('negotiations.sections.offerAnalysis')}
           </div>
           <div className="flex items-center gap-2">
             <Badge className={getRiskBadgeColor(metrics.riskAssessment.overall)}>

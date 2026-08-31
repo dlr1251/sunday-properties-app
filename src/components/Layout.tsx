@@ -1,5 +1,6 @@
 import React from 'react';
 import { ModernNavbar } from './navigation/ModernNavbar';
+import { Footer } from './navigation/Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,11 +8,12 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <ModernNavbar />
-      <main className="pt-16 animate-fade-in">
+      <main className="pt-16 animate-fade-in flex-1">
         {children}
       </main>
+      <Footer />
     </div>
   );
 };

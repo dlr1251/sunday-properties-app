@@ -1,5 +1,6 @@
 import React from 'react';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import { EntityDialog } from './EntityDialog';
 
 export type FormModalProps<TSchema extends z.ZodTypeAny> = {
@@ -19,7 +20,8 @@ export type FormModalProps<TSchema extends z.ZodTypeAny> = {
 };
 
 export function FormModal<TSchema extends z.ZodTypeAny>(props: FormModalProps<TSchema>) {
-  const { open, onOpenChange, title, schema, defaultValues, onSubmit, children, submitLabel = 'Save', cancelLabel = 'Cancel' } = props;
+  const { t } = useTranslation();
+  const { open, onOpenChange, title, schema, defaultValues, onSubmit, children, submitLabel = t('common.save'), cancelLabel = t('common.cancel') } = props;
   const [values, setValues] = React.useState<z.infer<TSchema>>(defaultValues);
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -51,7 +53,7 @@ export function FormModal<TSchema extends z.ZodTypeAny>(props: FormModalProps<TS
             {cancelLabel}
           </button>
           <button type="button" onClick={handleSubmit} className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-muted disabled:opacity-50" disabled={submitting}>
-            {submitting ? 'Saving…' : submitLabel}
+            {submitting ? t('common.saving') : submitLabel}
           </button>
         </div>
       }

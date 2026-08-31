@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../i18n';
 // Negotiation Closing Utilities
 // Handles offer acceptance, property status updates, and notifications
 
@@ -233,7 +234,7 @@ export async function getNegotiationStatus(propertyId: string) {
 
 // Helper function
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
+  return new Intl.NumberFormat(getIntlLocale(), {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,

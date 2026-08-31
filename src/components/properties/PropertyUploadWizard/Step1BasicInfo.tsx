@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,12 +11,14 @@ import { isValidCoordinates } from '@/lib/googleMaps';
 
 export const Step1BasicInfo: React.FC<Step1BasicInfoProps> = ({
   propertyData,
+  onListingTypeChange,
   onTitleChange,
   onDescriptionChange,
   onAddressChange,
   onNeighborhoodChange,
   onCoordinatesChange,
 }) => {
+  const { t } = useTranslation();
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   console.log('🎯 Step1BasicInfo rendering with data:', propertyData);
 
@@ -37,20 +40,49 @@ export const Step1BasicInfo: React.FC<Step1BasicInfoProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="title">Título de la Propiedad *</Label>
+        <Label className="text-sm font-medium">{t('properties.wizard.basic.listingType')}</Label>
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          {[
+            { value: 'sale' as const, label: t('properties.listingTypes.sale') },
+            { value: 'rental' as const, label: t('properties.listingTypes.rental') },
+          ].map((opt) => (
+            <label
+              key={opt.value}
+              className={`flex items-center space-x-2 p-2 rounded-md border cursor-pointer transition-colors ${
+                propertyData.listingType === opt.value
+                  ? 'border-primary bg-primary/5 text-primary'
+                  : 'border-muted hover:border-primary/50'
+              }`}
+            >
+              <input
+                type="radio"
+                name="listingType"
+                value={opt.value}
+                checked={propertyData.listingType === opt.value}
+                onChange={() => onListingTypeChange(opt.value)}
+                className="text-primary"
+              />
+              <span className="text-sm">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="title">{t('properties.wizard.basic.titleLabel')}</Label>
         <Input
           id="title"
-          placeholder="Ej: Apartamento moderno en El Poblado"
+          placeholder={t('properties.wizard.basic.titlePlaceholder')}
           value={propertyData.title}
           onChange={handleTitleChange}
         />
       </div>
 
       <div>
-        <Label htmlFor="description">Descripción *</Label>
+        <Label htmlFor="description">{t('properties.wizard.basic.descriptionLabel')}</Label>
         <Textarea
           id="description"
-          placeholder="Describe las características principales de la propiedad..."
+          placeholder={t('properties.wizard.basic.descriptionPlaceholder')}
           rows={4}
           value={propertyData.description}
           onChange={handleDescriptionChange}
@@ -59,16 +91,16 @@ export const Step1BasicInfo: React.FC<Step1BasicInfoProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="address">Dirección Completa *</Label>
+          <Label htmlFor="address">{t('properties.wizard.basic.addressLabel')}</Label>
           <Input
             id="address"
-            placeholder="Carrera 43A #15-25"
+            placeholder={t('properties.wizard.basic.addressPlaceholder')}
             value={propertyData.address}
             onChange={handleAddressChange}
           />
         </div>
         <div>
-          <Label className="text-sm font-medium">Barrio *</Label>
+          <Label className="text-sm font-medium">{t('properties.wizard.basic.neighborhoodLabel')}</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">
             {[
               { value: "el-poblado", label: "El Poblado" },
@@ -101,30 +133,30 @@ export const Step1BasicInfo: React.FC<Step1BasicInfoProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label>Ubicación en el Mapa</Label>
+        <Label>{t('properties.wizard.basic.mapLocation')}</Label>
         <div className="h-64 bg-muted rounded-lg flex items-center justify-center border-2 border-dashed">
           {isValidCoordinates(propertyData.coordinates) ? (
             <div className="text-center p-4">
               <MapPin className="h-8 w-8 text-primary mx-auto mb-2" />
-              <p className="text-sm font-medium mb-1">Ubicación seleccionada</p>
+              <p className="text-sm font-medium mb-1">{t('properties.wizard.basic.locationSelected')}</p>
               <p className="text-xs text-muted-foreground mb-4">
                 Lat: {propertyData.coordinates.lat.toFixed(6)}, Lng: {propertyData.coordinates.lng.toFixed(6)}
               </p>
               <Button variant="outline" onClick={() => setShowLocationPicker(true)}>
                 <MapPin className="h-4 w-4 mr-2" />
-                Cambiar Ubicación
+                {t('properties.wizard.basic.changeLocation')}
               </Button>
             </div>
           ) : (
             <div className="text-center">
               <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Ubicación en el Mapa</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('properties.wizard.basic.mapLocation')}</h3>
               <p className="text-muted-foreground mb-4">
-                Haz clic en el mapa para seleccionar la ubicación exacta
+                {t('properties.wizard.basic.mapHint')}
               </p>
               <Button variant="outline" onClick={() => setShowLocationPicker(true)}>
                 <MapPin className="h-4 w-4 mr-2" />
-                Seleccionar Ubicación
+                {t('properties.wizard.basic.selectLocation')}
               </Button>
             </div>
           )}

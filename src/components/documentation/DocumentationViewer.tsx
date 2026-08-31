@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -23,69 +24,57 @@ import {
   ArrowLeft
 } from 'lucide-react';
 
-// Estructura de navegación de documentación
+// Estructura de navegación: User Docs (usuario) y Tech Docs (desarrolladores)
+// pathEn: ruta en docs/en/ cuando difiere de path
 const docStructure = {
-  'index': { path: 'index.md', title: 'Inicio', icon: Home },
-  'getting-started': { path: 'getting-started.md', title: 'Inicio Rápido', icon: FileText },
-  'properties': {
-    title: 'Propiedades',
-    icon: Home,
+  'index': { path: 'index.md', titleKey: 'docs.nav.index', icon: Home },
+  'userDocs': {
+    titleKey: 'docs.userDocs',
+    icon: BookOpen,
     children: {
-      'upload-property': { path: 'properties/upload-property.md', title: 'Subir Propiedad', icon: FileText },
-      'manage-properties': { path: 'properties/manage-properties.md', title: 'Gestionar Propiedades', icon: Eye },
+      'user-index': { path: 'user/index.md', pathEn: 'user/index.md', titleKey: 'docs.userIndex', icon: FileText },
+      'user-types': { path: 'user/tipos-usuario.md', pathEn: 'user/user-types.md', titleKey: 'docs.userTypes', icon: FileText },
+      'register': { path: 'user/registro.md', pathEn: 'user/register.md', titleKey: 'docs.register', icon: FileText },
+      'verify': { path: 'user/verificacion.md', pathEn: 'user/verification.md', titleKey: 'docs.verify', icon: FileText },
+      'visits': { path: 'user/visitas.md', pathEn: 'user/visits.md', titleKey: 'docs.visits', icon: Eye },
+      'reschedule-visits': { path: 'user/reagendar-visitas.md', pathEn: 'user/reschedule-visits.md', titleKey: 'docs.rescheduleVisits', icon: Eye },
+      'make-offer': { path: 'user/hacer-oferta.md', pathEn: 'user/make-offer.md', titleKey: 'docs.makeOffer', icon: Handshake },
+      'counteroffer': { path: 'user/contraoferta.md', pathEn: 'user/counteroffer.md', titleKey: 'docs.counteroffer', icon: Handshake },
+      'accept-offer': { path: 'user/aceptar-oferta.md', pathEn: 'user/accept-offer.md', titleKey: 'docs.acceptOffer', icon: Handshake },
+      'sign-docs': { path: 'user/firmar-documentos.md', pathEn: 'user/sign-docs.md', titleKey: 'docs.signDocs', icon: FileText },
+      'upload-property': { path: 'user/publicar-propiedad.md', pathEn: 'user/publish-property.md', titleKey: 'docs.nav.uploadProperty', icon: FileText },
+      'edit-property': { path: 'user/editar-propiedad.md', pathEn: 'user/edit-property.md', titleKey: 'docs.editProperty', icon: FileText },
+      'contact-lawyer': { path: 'user/contactar-abogado.md', pathEn: 'user/contact-lawyer.md', titleKey: 'docs.contactLawyer', icon: Scale },
+      'terms': { path: 'user/terminos-y-condiciones.md', pathEn: 'user/terms-and-conditions.md', titleKey: 'docs.terms', icon: FileText },
+      'privacy': { path: 'user/privacidad.md', pathEn: 'user/privacy.md', titleKey: 'docs.privacy', icon: FileText },
     }
   },
-  'visits': {
-    title: 'Visitas',
-    icon: Eye,
+  'techDocs': {
+    titleKey: 'docs.techDocs',
+    icon: FileText,
     children: {
-      'schedule-visits': { path: 'visits/schedule-visits.md', title: 'Agendar Visitas', icon: FileText },
-      'manage-visits': { path: 'visits/manage-visits.md', title: 'Gestionar Visitas', icon: Eye },
+      'tech-index': { path: 'tech/index.md', pathEn: 'tech/index.md', titleKey: 'docs.techIndex', icon: FileText },
+      'installation': { path: 'tech/instalacion.md', pathEn: 'tech/installation.md', titleKey: 'docs.installation', icon: FileText },
+      'db-schema': { path: 'tech/esquema.md', pathEn: 'tech/schema.md', titleKey: 'docs.dbSchema', icon: FileText },
+      'concepts': { path: 'tech/conceptos.md', pathEn: 'tech/concepts.md', titleKey: 'docs.concepts', icon: FileText },
+      'architecture': { path: 'tech/arquitectura.md', pathEn: 'tech/architecture.md', titleKey: 'docs.architecture', icon: FileText },
+      'api-auth': { path: 'tech/api-autenticacion.md', pathEn: 'tech/authentication.md', titleKey: 'docs.apiAuth', icon: FileText },
+      'api-properties': { path: 'tech/api-propiedades.md', pathEn: 'tech/properties.md', titleKey: 'docs.apiProperties', icon: FileText },
+      'api-offers': { path: 'tech/api-ofertas.md', pathEn: 'tech/offers.md', titleKey: 'docs.apiOffers', icon: FileText },
+      'api-visits': { path: 'tech/api-visitas.md', pathEn: 'tech/visits.md', titleKey: 'docs.apiVisits', icon: FileText },
+      'deployment': { path: 'tech/despliegue.md', pathEn: 'tech/deployment.md', titleKey: 'docs.deployment', icon: FileText },
+      'migrations': { path: 'tech/migraciones.md', pathEn: 'tech/migrations.md', titleKey: 'docs.migrations', icon: FileText },
+      'monitoring': { path: 'tech/monitoreo.md', pathEn: 'tech/monitoring.md', titleKey: 'docs.monitoring', icon: FileText },
     }
   },
-  'negotiations': {
-    title: 'Negociaciones',
-    icon: Handshake,
-    children: {
-      'create-offers': { path: 'negotiations/create-offers.md', title: 'Crear Ofertas', icon: FileText },
-      'counter-offers': { path: 'negotiations/counter-offers.md', title: 'Contraofertas', icon: Handshake },
-    }
-  },
-  'legal': {
-    title: 'Legal',
-    icon: Scale,
-    children: {
-      'cases': { path: 'legal/cases.md', title: 'Casos Legales', icon: FileText },
-      'documents': { path: 'legal/documents.md', title: 'Documentos Legales', icon: FileText },
-    }
-  },
-  'communication': {
-    title: 'Comunicación',
-    icon: MessageSquare,
-    children: {
-      'chat': { path: 'communication/chat.md', title: 'Sistema de Chat', icon: MessageSquare },
-    }
-  },
-  'dashboards': {
-    title: 'Dashboards',
-    icon: LayoutDashboard,
-    children: {
-      'user-dashboard': { path: 'dashboards/user-dashboard.md', title: 'Dashboard Usuario', icon: LayoutDashboard },
-      'seller-dashboard': { path: 'dashboards/seller-dashboard.md', title: 'Dashboard Vendedor', icon: LayoutDashboard },
-      'agent-dashboard': { path: 'dashboards/agent-dashboard.md', title: 'Dashboard Agente', icon: LayoutDashboard },
-      'lawyer-dashboard': { path: 'dashboards/lawyer-dashboard.md', title: 'Dashboard Abogado', icon: LayoutDashboard },
-      'admin-dashboard': { path: 'dashboards/admin-dashboard.md', title: 'Dashboard Admin', icon: LayoutDashboard },
-    }
-  },
-  'faq': { path: 'faq.md', title: 'Preguntas Frecuentes', icon: FileText },
-  'troubleshooting': { path: 'troubleshooting.md', title: 'Solución de Problemas', icon: FileText },
 };
 
 // Función helper fuera del componente para evitar problemas de inicialización
-const findDocConfig = (id: string): { path: string; title: string; icon: any } | null => {
+type DocConfigItem = { path: string; pathEn?: string; titleKey: string; icon: any };
+const findDocConfig = (id: string): DocConfigItem | null => {
   // Buscar en estructura plana
   if (docStructure[id as keyof typeof docStructure] && 'path' in docStructure[id as keyof typeof docStructure]) {
-    return docStructure[id as keyof typeof docStructure] as { path: string; title: string; icon: any };
+    return docStructure[id as keyof typeof docStructure] as DocConfigItem;
   }
   
   // Buscar en hijos
@@ -93,12 +82,19 @@ const findDocConfig = (id: string): { path: string; title: string; icon: any } |
     const item = docStructure[key as keyof typeof docStructure];
     if ('children' in item && item.children) {
       if (item.children[id as keyof typeof item.children]) {
-        return item.children[id as keyof typeof item.children];
+        return item.children[id as keyof typeof item.children] as DocConfigItem;
       }
     }
   }
   
   return null;
+};
+
+/** Resuelve la ruta del documento según el idioma (EN usa pathEn cuando existe). */
+const getDocPath = (config: DocConfigItem | null, lang: string): string | null => {
+  if (!config?.path) return null;
+  if (lang === 'en' && config.pathEn) return config.pathEn;
+  return config.path;
 };
 
 interface DocumentationViewerProps {
@@ -108,42 +104,53 @@ interface DocumentationViewerProps {
 export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaultDoc = 'index' }) => {
   const { docId } = useParams<{ docId?: string }>();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['properties', 'visits', 'negotiations', 'legal']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['userDocs', 'techDocs']));
 
   const currentDoc = docId || defaultDoc;
   const docConfig = findDocConfig(currentDoc);
+  const currentLang = i18n.resolvedLanguage || i18n.language || 'es';
+  const docPath = getDocPath(docConfig, currentLang);
 
   useEffect(() => {
-    if (docConfig?.path) {
-      loadDocument(docConfig.path);
+    if (docPath) {
+      loadDocument(docPath);
+    } else {
+      setLoading(false);
+      setContent('');
+      setError(null);
     }
-  }, [currentDoc, docConfig?.path]);
+  }, [currentDoc, docPath, currentLang]);
 
   const loadDocument = async (path: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Cargar desde archivos estáticos en public/docs/
-      const response = await fetch(`/docs/${path}`);
+      // Cargar desde archivos estáticos bilingües en public/docs/<lang>/
+      const langPath = `${currentLang}/${path}`;
+      const response = await fetch(`/docs/${langPath}`);
       
       if (!response.ok) {
-        throw new Error(`No se pudo cargar el documento: ${path}`);
+        throw new Error(t('docs.notFound'));
       }
       
       const text = await response.text();
+      const looksLikeHtml = /^\s*<(\!DOCTYPE|html|meta|script|link)\s/i.test(text) || /<\/html>\s*$/i.test(text);
+      if (looksLikeHtml) {
+        throw new Error('El servidor devolvió HTML en lugar del documento. Ejecuta `npm run copy-docs` y reinicia el servidor.');
+      }
       setContent(text);
     } catch (err) {
       console.error('Error loading document:', err);
-      // Fallback: mostrar mensaje de error útil
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(`No se pudo cargar el documento. Asegúrate de que el archivo existe en /docs/${path}`);
-      setContent(`# Documento no encontrado\n\nEl documento "${path}" no está disponible en este momento.\n\n**Error:** ${errorMessage}\n\nPor favor, navega a otro documento desde el menú lateral o contacta soporte si el problema persiste.`);
+      const errorMessage = err instanceof Error ? err.message : t('common.error');
+      setError(errorMessage);
+      setContent(`# ${t('docs.notFound')}\n\n${errorMessage}\n\n${t('common.tryAgain')}`);
     } finally {
       setLoading(false);
     }
@@ -168,6 +175,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaul
     const hasChildren = 'children' in item && item.children;
     const isExpanded = expandedSections.has(key);
     const Icon = item.icon || FileText;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
 
     if (hasChildren) {
       return (
@@ -180,7 +188,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaul
           >
             <div className="flex items-center gap-2">
               {Icon && <Icon className="w-4 h-4 text-gray-700" />}
-              <span className="text-sm font-medium text-gray-900">{item.title}</span>
+              <span className="text-sm font-medium text-gray-900">{title}</span>
             </div>
             <ChevronRight 
               className={`w-4 h-4 text-gray-600 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
@@ -188,18 +196,21 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaul
           </button>
           {isExpanded && item.children && (
             <div className="mt-1 ml-2">
-              {Object.entries(item.children).map(([childKey, childItem]: [string, any]) => (
-                <button
-                  key={childKey}
-                  onClick={() => navigateToDoc(childKey)}
-                  className={`w-full flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 transition-colors text-left ${
-                    currentDoc === childKey ? 'bg-primary/10 text-primary font-medium' : 'text-gray-800'
-                  }`}
-                >
-                  {childItem.icon && <childItem.icon className="w-4 h-4" />}
-                  <span className="text-sm">{childItem.title}</span>
-                </button>
-              ))}
+              {Object.entries(item.children).map(([childKey, childItem]: [string, any]) => {
+                const childTitle = childItem.titleKey ? t(childItem.titleKey) : childItem.title;
+                return (
+                  <button
+                    key={childKey}
+                    onClick={() => navigateToDoc(childKey)}
+                    className={`w-full flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 transition-colors text-left ${
+                      currentDoc === childKey ? 'bg-primary/10 text-primary font-medium' : 'text-gray-800'
+                    }`}
+                  >
+                    {childItem.icon && <childItem.icon className="w-4 h-4" />}
+                    <span className="text-sm">{childTitle}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -215,7 +226,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaul
         } ${level > 0 ? 'ml-4' : ''}`}
       >
         <Icon className="w-4 h-4" />
-        <span className="text-sm">{item.title}</span>
+        <span className="text-sm">{title}</span>
       </button>
     );
   };
@@ -234,7 +245,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaul
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold text-lg text-gray-900">Documentación</h2>
+                <h2 className="font-semibold text-lg text-gray-900">{t('docs.title')}</h2>
               </div>
               <Button
                 variant="ghost"
@@ -248,7 +259,7 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaul
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Buscar..."
+                placeholder={t('docs.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
@@ -281,13 +292,13 @@ export const DocumentationViewer: React.FC<DocumentationViewerProps> = ({ defaul
             {docConfig && (
               <div className="flex items-center gap-2">
                 {docConfig.icon && <docConfig.icon className="w-5 h-5 text-primary" />}
-                <h1 className="text-xl font-semibold text-gray-900">{docConfig.title}</h1>
+                <h1 className="text-xl font-semibold text-gray-900">{t(docConfig.titleKey)}</h1>
               </div>
             )}
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate('/docs')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver
+            {t('docs.backToIndex')}
           </Button>
         </div>
 

@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Handshake, Search, Eye, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatDate } from '../../utils/format';
 import { useNavigate } from 'react-router-dom';
 import { ResourceDetailDialog } from './ResourceDetailDialog';
 
 export function SuperAdminNegotiationsManagement() {
+  const { t } = useTranslation();
   const [negotiations, setNegotiations] = useState<any[]>([]);
   const [offers, setOffers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,28 +56,20 @@ export function SuperAdminNegotiationsManagement() {
         setOffers(data || []);
       }
     } catch (error: any) {
-      toast.error('Error al cargar datos: ' + error.message);
+      toast.error(t('admin.loadDataErrorMessage', { message: error.message }));
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      active: { label: 'Activa', variant: 'default' as const },
-      pending: { label: 'Pendiente', variant: 'secondary' as const },
-      accepted: { label: 'Aceptada', variant: 'default' as const },
-      rejected: { label: 'Rechazada', variant: 'destructive' as const },
-      countered: { label: 'Contraoferta', variant: 'outline' as const },
-      completed: { label: 'Completada', variant: 'default' as const }
+      active: { label: t('admin.status.active'), variant: 'default' as const },
+      pending: { label: t('admin.status.pending'), variant: 'secondary' as const },
+      accepted: { label: t('admin.status.accepted'), variant: 'default' as const },
+      rejected: { label: t('admin.status.rejected'), variant: 'destructive' as const },
+      countered: { label: t('admin.status.countered'), variant: 'outline' as const },
+      completed: { label: t('admin.status.completed'), variant: 'default' as const }
     };
     const config = variants[status] || { label: status, variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -97,9 +90,9 @@ export function SuperAdminNegotiationsManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Gestión de Negociaciones</h2>
+          <h2 className="text-2xl font-bold">{t('admin.manageNegotiationsTitle')}</h2>
           <p className="text-muted-foreground">
-            Ver y gestionar todas las negociaciones y ofertas del sistema
+            {t('admin.manageNegotiationsDescription')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -107,13 +100,13 @@ export function SuperAdminNegotiationsManagement() {
             variant={viewMode === 'negotiations' ? 'default' : 'outline'}
             onClick={() => setViewMode('negotiations')}
           >
-            Negociaciones
+            {t('negotiations.title')}
           </Button>
           <Button
             variant={viewMode === 'offers' ? 'default' : 'outline'}
             onClick={() => setViewMode('offers')}
           >
-            Ofertas
+            {t('negotiations.offer.title')}
           </Button>
         </div>
       </div>
@@ -123,7 +116,7 @@ export function SuperAdminNegotiationsManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar negociaciones u ofertas..."
+              placeholder={t('admin.searchNegotiationsPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -135,8 +128,8 @@ export function SuperAdminNegotiationsManagement() {
       {viewMode === 'negotiations' ? (
         <Card>
           <CardHeader>
-            <CardTitle>Negociaciones ({filteredNegotiations.length})</CardTitle>
-            <CardDescription>Todas las negociaciones activas y completadas</CardDescription>
+            <CardTitle>{t('admin.negotiationsCountLabel', { count: filteredNegotiations.length })}</CardTitle>
+            <CardDescription>{t('admin.negotiationsAllDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -146,7 +139,7 @@ export function SuperAdminNegotiationsManagement() {
             ) : filteredNegotiations.length === 0 ? (
               <div className="text-center py-12">
                 <Handshake className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No se encontraron negociaciones</p>
+                <p className="text-muted-foreground">{t('admin.noNegotiationsFound')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -156,13 +149,13 @@ export function SuperAdminNegotiationsManagement() {
                       <div className="flex-1">
                         <div className="font-medium">{neg.property?.title}</div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          Comprador: {neg.buyer?.full_name} | Vendedor: {neg.seller?.full_name}
+                          {t('admin.buyerSellerLine', { buyer: neg.buyer?.full_name, seller: neg.seller?.full_name })}
                         </div>
                         <div className="flex items-center gap-4 mt-2">
                           <Badge>{formatCurrency(neg.current_price || 0)}</Badge>
                           {getStatusBadge(neg.status)}
                           <span className="text-sm text-muted-foreground">
-                            {neg.offer_count || 0} ofertas
+                            {t('admin.offersCountShort', { count: neg.offer_count || 0 })}
                           </span>
                         </div>
                       </div>
@@ -175,7 +168,7 @@ export function SuperAdminNegotiationsManagement() {
                         }}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        Ver
+                        {t('properties.view')}
                       </Button>
                     </div>
                   </div>
@@ -187,8 +180,8 @@ export function SuperAdminNegotiationsManagement() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Ofertas ({filteredOffers.length})</CardTitle>
-            <CardDescription>Todas las ofertas del sistema</CardDescription>
+            <CardTitle>{t('admin.offersCountLabel', { count: filteredOffers.length })}</CardTitle>
+            <CardDescription>{t('admin.offersAllDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -198,19 +191,19 @@ export function SuperAdminNegotiationsManagement() {
             ) : filteredOffers.length === 0 ? (
               <div className="text-center py-12">
                 <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No se encontraron ofertas</p>
+                <p className="text-muted-foreground">{t('admin.noOffersFound')}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-4">Propiedad</th>
-                      <th className="text-left p-4">Comprador</th>
-                      <th className="text-left p-4">Precio Oferta</th>
-                      <th className="text-left p-4">Estado</th>
-                      <th className="text-left p-4">Fecha</th>
-                      <th className="text-right p-4">Acciones</th>
+                      <th className="text-left p-4">{t('negotiations.propertyLabel')}</th>
+                      <th className="text-left p-4">{t('negotiations.roles.buyer')}</th>
+                      <th className="text-left p-4">{t('admin.offerPrice')}</th>
+                      <th className="text-left p-4">{t('properties.status')}</th>
+                      <th className="text-left p-4">{t('visits.date')}</th>
+                      <th className="text-right p-4">{t('common.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -227,7 +220,7 @@ export function SuperAdminNegotiationsManagement() {
                         <td className="p-4 font-medium">{formatCurrency(offer.offer_price || 0)}</td>
                         <td className="p-4">{getStatusBadge(offer.status)}</td>
                         <td className="p-4 text-sm text-muted-foreground">
-                          {offer.created_at ? format(new Date(offer.created_at), 'dd/MM/yyyy', { locale: es }) : '-'}
+                          {offer.created_at ? formatDate(offer.created_at) : '-'}
                         </td>
                         <td className="p-4">
                           <Button

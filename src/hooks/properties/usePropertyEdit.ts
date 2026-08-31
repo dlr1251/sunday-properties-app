@@ -9,8 +9,14 @@ export interface PropertyUpdateData {
   neighborhood?: string;
   city?: string;
   property_type?: string;
-  transaction_type?: string;
-  price?: number;
+  listing_type?: 'sale' | 'rental';
+  price?: number | null;
+  rent_monthly?: number | null;
+  lease_term_months?: number | null;
+  deposit?: number | null;
+  admin_fee?: number | null;
+  utilities_included?: string[];
+  pets_policy?: string | null;
   area?: number;
   bedrooms?: number;
   bathrooms?: number;

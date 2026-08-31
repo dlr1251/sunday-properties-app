@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PropertyCard } from './PropertyCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { formatCurrency, formatDate } from '../../utils/format';
 import { 
   Heart, 
   Search, 
@@ -47,6 +49,7 @@ interface FavoriteProperty {
 }
 
 export const FavoritesView: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<FavoriteProperty[]>([]);
@@ -135,13 +138,19 @@ export const FavoritesView: React.FC = () => {
     }
   });
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
+  const formatPrice = (price: number) => formatCurrency(price);
+
+  const propertyTypeLabel = (type: string) => {
+    const keyMap: Record<string, string> = {
+      apartment: 'properties.types.apartment',
+      house: 'properties.types.house',
+      townhouse: 'properties.types.countryHouse',
+      office: 'properties.types.office',
+      commercial: 'properties.types.commercial',
+      land: 'properties.types.land',
+      warehouse: 'properties.types.warehouse',
+    };
+    return keyMap[type] ? t(keyMap[type]) : type;
   };
 
   if (loading) {
@@ -149,7 +158,7 @@ export const FavoritesView: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando favoritos...</p>
+          <p className="text-muted-foreground">{t('properties.loadingFavorites')}</p>
         </div>
       </div>
     );
@@ -160,16 +169,16 @@ export const FavoritesView: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mis Favoritos</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.myFavorites')}</h1>
           <p className="text-gray-700 mt-1 font-semibold">
-            {favorites.length} propiedades guardadas
+            {t('properties.saved', { count: favorites.length })}
           </p>
         </div>
         
         <div className="flex items-center space-x-2">
           <Badge variant="secondary" className="bg-red-50 text-red-700 border-red-200">
             <Heart className="h-3 w-3 mr-1" />
-            {favorites.length} favoritos
+            {t('properties.favoritesCount', { count: favorites.length })}
           </Badge>
         </div>
       </div>
@@ -181,7 +190,7 @@ export const FavoritesView: React.FC = () => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar en favoritos..."
+                placeholder={t('properties.searchFavorites')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -193,28 +202,28 @@ export const FavoritesView: React.FC = () => {
             <Select value={filterBy} onValueChange={setFilterBy}>
               <SelectTrigger className="w-40">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrar" />
+                <SelectValue placeholder={t('common.filter')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="apartment">Apartamentos</SelectItem>
-                <SelectItem value="house">Casas</SelectItem>
-                <SelectItem value="townhouse">Casas Campestres</SelectItem>
-                <SelectItem value="office">Oficinas</SelectItem>
-                <SelectItem value="commercial">Locales</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
+                <SelectItem value="apartment">{t('properties.apartments')}</SelectItem>
+                <SelectItem value="house">{t('properties.houses')}</SelectItem>
+                <SelectItem value="townhouse">{t('properties.countryHouses')}</SelectItem>
+                <SelectItem value="office">{t('properties.offices')}</SelectItem>
+                <SelectItem value="commercial">{t('properties.shops')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Ordenar" />
+                <SelectValue placeholder={t('common.sort')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="created_at">Más recientes</SelectItem>
-                <SelectItem value="price_asc">Precio: Menor a Mayor</SelectItem>
-                <SelectItem value="price_desc">Precio: Mayor a Menor</SelectItem>
-                <SelectItem value="area_asc">Área: Menor a Mayor</SelectItem>
-                <SelectItem value="area_desc">Área: Mayor a Menor</SelectItem>
+                <SelectItem value="created_at">{t('properties.sortOptions.newest')}</SelectItem>
+                <SelectItem value="price_asc">{t('properties.sortOptions.priceAsc')}</SelectItem>
+                <SelectItem value="price_desc">{t('properties.sortOptions.priceDesc')}</SelectItem>
+                <SelectItem value="area_asc">{t('properties.sortOptions.areaAsc')}</SelectItem>
+                <SelectItem value="area_desc">{t('properties.sortOptions.areaDesc')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -228,20 +237,20 @@ export const FavoritesView: React.FC = () => {
             <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               {searchTerm || filterBy !== 'all' 
-                ? 'No se encontraron favoritos' 
-                : 'No tienes favoritos aún'
+                ? t('properties.noFavoritesFound') 
+                : t('properties.noFavoritesYet')
               }
             </h3>
             <p className="text-gray-700 mb-6 font-medium">
               {searchTerm || filterBy !== 'all'
-                ? 'Intenta ajustar los filtros de búsqueda'
-                : 'Explora propiedades y agrega las que te gusten a tus favoritos'
+                ? t('properties.tryAdjustingSearch')
+                : t('properties.exploreAndSave')
               }
             </p>
             {!searchTerm && filterBy === 'all' && (
               <Button onClick={() => navigate('/properties')}>
                 <Eye className="h-4 w-4 mr-2" />
-                Explorar Propiedades
+                {t('properties.exploreCta')}
               </Button>
             )}
           </div>
@@ -272,12 +281,12 @@ export const FavoritesView: React.FC = () => {
                   {favorite.property.verified && (
                     <Badge className="bg-blue-100 text-blue-800 border-blue-200">
                       <Star className="h-3 w-3 mr-1" />
-                      Verificado
+                      {t('properties.verified')}
                     </Badge>
                   )}
                   {favorite.property.premium && (
                     <Badge className="bg-green-100 text-green-800 border-green-200">
-                      Premium
+                      {t('properties.premium')}
                     </Badge>
                   )}
                 </div>
@@ -298,7 +307,7 @@ export const FavoritesView: React.FC = () => {
                     {formatPrice(favorite.property.price)}
                   </div>
                   <Badge variant="secondary">
-                    {favorite.property.property_type}
+                    {propertyTypeLabel(favorite.property.property_type)}
                   </Badge>
                 </div>
 
@@ -332,7 +341,7 @@ export const FavoritesView: React.FC = () => {
                     onClick={() => navigate(`/properties/${favorite.property.id}`)}
                   >
                     <Eye className="h-4 w-4 mr-2" />
-                    Ver Detalles
+                    {t('properties.viewDetails')}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -344,7 +353,7 @@ export const FavoritesView: React.FC = () => {
                 </div>
 
                 <div className="mt-3 text-xs font-medium text-gray-700">
-                  Agregado el {new Date(favorite.created_at).toLocaleDateString('es-CO')}
+                  {t('properties.addedOn', { date: formatDate(favorite.created_at) })}
                 </div>
               </div>
             </Card>

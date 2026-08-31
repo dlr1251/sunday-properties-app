@@ -1,35 +1,37 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Label } from '../../ui/label';
 import { Checkbox } from '../../ui/checkbox';
 import { Search } from 'lucide-react';
 import { useVerificationForm } from '../VerificationFormContext';
 
 export const Step2Discovery: React.FC = () => {
+  const { t } = useTranslation();
   const { formData, setFormData } = useVerificationForm();
 
   const discoveryOptions = [
-    { value: 'facebook', label: 'Facebook' },
-    { value: 'instagram', label: 'Instagram' },
-    { value: 'google', label: 'Google Search' },
-    { value: 'real_estate_website', label: 'Sitio web inmobiliario' },
-    { value: 'friend_referral', label: 'Referencia de amigo' },
-    { value: 'agent_referral', label: 'Referencia de agente' },
-    { value: 'other', label: 'Otro' },
+    { value: 'facebook', label: t('verification.discovery.facebook') },
+    { value: 'instagram', label: t('verification.discovery.instagram') },
+    { value: 'google', label: t('verification.discovery.google') },
+    { value: 'real_estate_website', label: t('verification.discovery.realEstateWebsite') },
+    { value: 'friend_referral', label: t('verification.discovery.friendReferral') },
+    { value: 'agent_referral', label: t('verification.discovery.agentReferral') },
+    { value: 'other', label: t('verification.discovery.other') },
   ];
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
         <Search className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold">¿Cómo nos encontraste?</h3>
-        <p className="text-muted-foreground">Ayúdanos a conocerte mejor</p>
+        <h3 className="text-lg font-semibold">{t('verification.discovery.title')}</h3>
+        <p className="text-muted-foreground">{t('verification.discovery.subtitle')}</p>
       </div>
 
       <div className="space-y-4">
         <div>
           <Label className="flex items-center gap-2">
             <Search className="h-4 w-4" />
-            ¿Cómo nos encontraste? *
+            {t('verification.discovery.howDidYouFindUs')}
           </Label>
           <div className="space-y-2 mt-2">
             {discoveryOptions.map((option) => (
@@ -63,16 +65,16 @@ export const Step2Discovery: React.FC = () => {
         <div>
           <Label className="flex items-center gap-2">
             <Search className="h-4 w-4" />
-            ¿Qué quieres hacer? * (puedes seleccionar varias opciones)
+            {t('verification.discovery.whatDoYouWant')}
           </Label>
           <div className="space-y-2 mt-2">
             {[
-              { value: 'buy', label: 'Comprar propiedades' },
-              { value: 'sell', label: 'Vender propiedades' },
-              { value: 'invest', label: 'Invertir en propiedades' },
-              { value: 'represent', label: 'Representar a otros' },
-              { value: 'consult', label: 'Consultar información' },
-              { value: 'other', label: 'Otro' },
+              { value: 'buy', label: t('verification.discovery.buy') },
+              { value: 'sell', label: t('verification.discovery.sell') },
+              { value: 'invest', label: t('verification.discovery.invest') },
+              { value: 'represent', label: t('verification.discovery.represent') },
+              { value: 'consult', label: t('verification.discovery.consult') },
+              { value: 'other', label: t('verification.discovery.other') },
             ].map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <Checkbox

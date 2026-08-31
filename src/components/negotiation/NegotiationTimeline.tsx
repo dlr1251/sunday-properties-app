@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -86,9 +87,9 @@ export const NegotiationTimeline: React.FC<NegotiationTimelineProps> = ({
       case 'rejected':
         return <XCircle className="h-4 w-4 text-red-500" />;
       case 'expired':
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
       default:
-        return <MessageSquare className="h-4 w-4 text-gray-500" />;
+        return <MessageSquare className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -103,9 +104,9 @@ export const NegotiationTimeline: React.FC<NegotiationTimelineProps> = ({
       case 'rejected':
         return 'bg-red-100 text-red-800 border-red-200';
       case 'expired':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-foreground border-border';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-foreground border-border';
     }
   };
 
@@ -142,7 +143,7 @@ export const NegotiationTimeline: React.FC<NegotiationTimelineProps> = ({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -151,7 +152,7 @@ export const NegotiationTimeline: React.FC<NegotiationTimelineProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
+    return new Date(dateString).toLocaleDateString(getIntlLocale(), {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -262,7 +263,7 @@ export const NegotiationTimeline: React.FC<NegotiationTimelineProps> = ({
                         </div>
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4 text-orange-500" />
-                          <span>{new Date(item.closing_date).toLocaleDateString('es-CO')}</span>
+                          <span>{new Date(item.closing_date).toLocaleDateString(getIntlLocale())}</span>
                         </div>
                       </div>
 

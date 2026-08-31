@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { Progress } from '../../ui/progress';
@@ -16,7 +17,8 @@ import {
   X,
   Plus,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Save
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { Step1BasicInfo } from './Step1BasicInfo';
@@ -24,11 +26,9 @@ import { Step2PropertyDetails } from './Step2PropertyDetails';
 import { Step3Images } from './Step3Images';
 import { Step4Documents } from './Step4Documents';
 import { Step5SellingConditions } from './Step5SellingConditions';
-import { Step6NegotiationRules } from './Step6NegotiationRules';
+import { Step5RentalConditions } from './Step5RentalConditions';
 import { Step7FinalReview } from './Step7FinalReview';
 import { VisitAvailabilityConfig } from '../VisitAvailabilityConfig';
-import { DocumentData } from '../../../services/documentAnalysis';
-import { negotiationSuggestionService } from '../../../services/negotiationSuggestion.service';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useVerification } from '../../../hooks/verification/useVerification';
 import { toast } from 'sonner';
@@ -36,28 +36,29 @@ import { usePropertyUpload } from '../../../hooks/properties/usePropertyUpload';
 import { usePropertyAudit } from '../../../hooks/properties/usePropertyAudit';
 import { SuccessModal } from '../../ui/success-modal';
 import type { PropertyData } from './types';
+import { formatCurrency } from '../../../utils/format';
 
 interface UploadWizardProps {
   onComplete: () => void;
   onCancel: () => void;
 }
 
-const steps = [
-  { id: 1, title: 'Documentos Legales', description: 'Libertad y tradición con IA' },
-  { id: 2, title: 'Información Básica', description: 'Nombre y ubicación' },
-  { id: 3, title: 'Características', description: 'Detalles de la propiedad' },
-  { id: 4, title: 'Fotografías', description: 'Imágenes y tour virtual' },
-  { id: 5, title: 'Condiciones de Venta', description: 'Precio y términos' },
-  { id: 6, title: 'Reglas de Negociación', description: 'Configurar ofertas automáticas' },
-  { id: 7, title: 'Disponibilidad de Visitas', description: 'Configurar horarios' },
-  { id: 8, title: 'Revisión Final', description: 'Confirmar y publicar' }
-];
-
 export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, onCancel }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { verificationStatus } = useVerification();
   const { logPropertyChange, comparePropertyChanges } = usePropertyAudit();
   const { createDraftProperty, updatePropertyFields, uploadImage, deleteImage, uploadDoc, submitForReview } = usePropertyUpload();
+
+  const steps = [
+    { id: 1, title: t('properties.wizard.steps.documents.title'), description: t('properties.wizard.steps.documents.description') },
+    { id: 2, title: t('properties.wizard.steps.basic.title'), description: t('properties.wizard.steps.basic.description') },
+    { id: 3, title: t('properties.wizard.steps.features.title'), description: t('properties.wizard.steps.features.description') },
+    { id: 4, title: t('properties.wizard.steps.photos.title'), description: t('properties.wizard.steps.photos.description') },
+    { id: 5, title: t('properties.wizard.steps.conditions.title'), description: t('properties.wizard.steps.conditions.description') },
+    { id: 6, title: t('properties.wizard.steps.availability.title'), description: t('properties.wizard.steps.availability.description') },
+    { id: 7, title: t('properties.wizard.steps.review.title'), description: t('properties.wizard.steps.review.description') }
+  ];
 
   // All hooks must be called before any conditional returns
   const [currentStep, setCurrentStep] = useState(1);
@@ -65,6 +66,7 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
   const [originalProperty, setOriginalProperty] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [propertyData, setPropertyData] = useState<PropertyData>({
+    listingType: 'sale',
     title: '',
     description: '',
     address: '',
@@ -84,6 +86,12 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     propertyType: '',
     strata: 0,
     price: 0,
+    rentMonthly: 0,
+    leaseTermMonths: 12,
+    deposit: 0,
+    adminFee: 0,
+    utilitiesIncluded: [],
+    petsPolicy: '',
     acceptsCrypto: false,
     financing: false,
     visitPrice: 49000,
@@ -104,8 +112,44 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<string | null>(null);
   const [uploadedDocs, setUploadedDocs] = useState<{[key: string]: {path: string, file: File}}>({});
-  const [analyzedDocs, setAnalyzedDocs] = useState<{[key: string]: DocumentData}>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [devBypass, setDevBypass] = useState(false);
+
+  // Presets para testing rápido (dev)
+  const TEST_PRESETS = [
+    { title: 'Apartamento El Poblado', description: 'Apartamento amplio con vista.', address: 'Carrera 43A #15-25', neighborhood: 'el-poblado', bedrooms: 3, bathrooms: 2, area: 120, parking: 2, propertyType: 'apartment', strata: 4, price: 850000000 },
+    { title: 'Casa Laureles', description: 'Casa con jardín y zona de parrilla.', address: 'Calle 70 #45-20', neighborhood: 'laureles', bedrooms: 4, bathrooms: 3, area: 180, parking: 2, propertyType: 'house', strata: 3, price: 650000000 },
+    { title: 'Apartamento Envigado', description: 'Apartamento nuevo, acabados premium.', address: 'Carrera 43 #30 Sur 15', neighborhood: 'envigado', bedrooms: 2, bathrooms: 2, area: 95, parking: 1, propertyType: 'apartment', strata: 5, price: 520000000 },
+    { title: 'Apartamento Sabaneta', description: 'Cerca al metro, excelente ubicación.', address: 'Calle 50 #70-10', neighborhood: 'sabaneta', bedrooms: 2, bathrooms: 1, area: 75, parking: 1, propertyType: 'apartment', strata: 3, price: 380000000 },
+  ];
+
+  const fillTestData = useCallback(() => {
+    const preset = TEST_PRESETS[Math.floor(Math.random() * TEST_PRESETS.length)];
+    const in3Months = new Date();
+    in3Months.setMonth(in3Months.getMonth() + 3);
+    setPropertyData(prev => ({
+      ...prev,
+      listingType: 'sale',
+      title: preset.title,
+      description: preset.description,
+      address: preset.address,
+      neighborhood: preset.neighborhood,
+      bedrooms: preset.bedrooms,
+      bathrooms: preset.bathrooms,
+      area: preset.area,
+      parking: preset.parking,
+      propertyType: preset.propertyType,
+      strata: preset.strata,
+      price: preset.price,
+      offeredTimeline: {
+        deedSigningDate: in3Months.toISOString().slice(0, 10),
+        propertyDeliveryDate: in3Months.toISOString().slice(0, 10),
+        paymentReceptionDate: in3Months.toISOString().slice(0, 10),
+      },
+      acceptedPaymentMethods: ['transferencia', 'efectivo'],
+    }));
+    toast.success(t('properties.wizard.testDataLoaded', { title: preset.title }));
+  }, [t]);
 
   // Optimized change handlers to prevent unnecessary re-renders
   const handleTitleChange = useCallback((value: string) => {
@@ -150,22 +194,18 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     setPropertyData(prev => ({ ...prev, price: numValue }));
   }, []);
 
-  const handleVisitPriceChange = useCallback((value: string) => {
-    const numValue = parseInt(value) || 0;
-    setPropertyData(prev => ({ ...prev, visitPrice: numValue }));
+  const handleOfferedTimelineChange = useCallback((field: 'deedSigningDate' | 'propertyDeliveryDate' | 'paymentReceptionDate', value: string) => {
+    setPropertyData(prev => ({
+      ...prev,
+      offeredTimeline: {
+        ...(prev.offeredTimeline ?? {}),
+        [field]: value || undefined
+      }
+    }));
   }, []);
 
-  const handleCommissionChange = useCallback((value: string) => {
-    const numValue = parseInt(value) || 0;
-    setPropertyData(prev => ({ ...prev, commission: numValue }));
-  }, []);
-
-  const handleAcceptsCryptoChange = useCallback((checked: boolean) => {
-    setPropertyData(prev => ({ ...prev, acceptsCrypto: checked }));
-  }, []);
-
-  const handleFinancingChange = useCallback((checked: boolean) => {
-    setPropertyData(prev => ({ ...prev, financing: checked }));
+  const handleAcceptedPaymentMethodsChange = useCallback((methods: string[]) => {
+    setPropertyData(prev => ({ ...prev, acceptedPaymentMethods: methods }));
   }, []);
 
   const handleMinPriceChange = useCallback((value: string) => {
@@ -235,176 +275,130 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     setPropertyData(prev => ({ ...prev, privacyAccepted: checked }));
   }, []);
 
-  const handlePaymentStagesChange = useCallback((stages: any[]) => {
-    setPropertyData(prev => ({ ...prev, paymentStages: stages }));
-  }, []);
-
-  const handleTimeframesChange = useCallback((timeframes: { opcionToPromesa: number; promesaToEscrituras: number }) => {
-    setPropertyData(prev => ({ ...prev, stageTimeframes: timeframes }));
-  }, []);
-
-  const handleDocumentAnalyzed = useCallback((docType: string, data: DocumentData) => {
-    console.log(`📋 Document ${docType} analyzed:`, data);
-
-    // Store analyzed data
-    setAnalyzedDocs(prev => ({
-      ...prev,
-      [docType]: data
-    }));
-
-    // Auto-fill property data based on extracted information
-    if (data.extractedData) {
-      setPropertyData(prev => {
-        const updates: any = {};
-
-        // CLYT data - NEW detailed structure
-        if (docType === 'clyt' && data.extractedData) {
-          const clyt = data.extractedData.clytDetailed;
-          
-          if (clyt?.DescripcionInmueble?.Ubicacion) {
-            const ubicacion = clyt.DescripcionInmueble.Ubicacion;
-            
-            // Extract address components
-            if (ubicacion.Direccion) updates.address = ubicacion.Direccion;
-            if (ubicacion.Edificio) {
-              // Include building name in title if available
-              const buildingStr = ubicacion.Edificio;
-              const floorStr = ubicacion.Piso ? ` Piso ${ubicacion.Piso}` : '';
-              const aptStr = clyt.DescripcionInmueble.Numero ? ` Apt ${clyt.DescripcionInmueble.Numero}` : '';
-              updates.title = `${buildingStr}${floorStr}${aptStr}`;
-            }
-            
-            // Extract neighborhood/city (try to match with our available options)
-            if (ubicacion.Barrio) {
-              const barrioLower = ubicacion.Barrio.toLowerCase();
-              // Map common neighborhoods
-              if (barrioLower.includes('poblado')) updates.neighborhood = 'el-poblado';
-              else if (barrioLower.includes('laureles')) updates.neighborhood = 'laureles';
-              else if (barrioLower.includes('envigado')) updates.neighborhood = 'envigado';
-              else if (barrioLower.includes('sabaneta')) updates.neighborhood = 'sabaneta';
-              else if (barrioLower.includes('bello')) updates.neighborhood = 'bello';
-            }
-          }
-          
-          // Extract area - convert from "136.59 MTS" to number
-          if (clyt?.DescripcionInmueble?.Area) {
-            const areaMatch = clyt.DescripcionInmueble.Area.match(/([\d.]+)/);
-            if (areaMatch) {
-              updates.area = parseFloat(areaMatch[1]);
-            }
-          }
-          
-          // Extract floor
-          if (clyt?.DescripcionInmueble?.Ubicacion?.Piso) {
-            const floorMatch = clyt.DescripcionInmueble.Ubicacion.Piso.match(/(\d+)/);
-            if (floorMatch) {
-              updates.floor = parseInt(floorMatch[1]);
-            }
-          }
-          
-          // Extract property type
-          if (clyt?.DescripcionInmueble?.Tipo) {
-            const tipo = clyt.DescripcionInmueble.Tipo.toLowerCase();
-            if (tipo.includes('apartamento')) updates.propertyType = 'apartment';
-            else if (tipo.includes('casa')) updates.propertyType = 'house';
-            else if (tipo.includes('oficina') || tipo.includes('oficinas')) updates.propertyType = 'office';
-            else if (tipo.includes('comercial')) updates.propertyType = 'commercial';
-          }
-          
-          // Also try legacy fields for compatibility
-          if (data.extractedData.propertyAddress) updates.address = data.extractedData.propertyAddress;
-          if (data.extractedData.propertyArea) updates.area = data.extractedData.propertyArea;
-        }
-
-        // Escrituras data
-        if (docType === 'escritura' && data.extractedData) {
-          if (data.extractedData.propertyAddress) updates.address = data.extractedData.propertyAddress;
-          if (data.extractedData.propertyValue) updates.price = data.extractedData.propertyValue;
-          if (data.extractedData.constructionArea) updates.area = data.extractedData.constructionArea;
-          if (data.extractedData.stratum) updates.strata = data.extractedData.stratum;
-        }
-
-        // Cédula data (if needed for owner info)
-        if (docType === 'cedula' && data.extractedData) {
-          // Could be used for owner verification in the future
-        }
-
-        return { ...prev, ...updates };
-      });
-
-      toast.success(`Datos extraídos automáticamente del documento ${docType.toUpperCase()}`);
-    }
-  }, []);
 
   useEffect(() => {
     if (verificationStatus && verificationStatus !== 'verified') {
-      toast.error('Debes verificar tu identidad antes de subir propiedades');
-      onCancel();
+      toast.error(t('properties.wizard.verifyIdentityFirst'));
     }
-  }, [verificationStatus, onCancel]);
+  }, [verificationStatus]);
 
-  // Generate negotiation conditions when entering step 5 if conditions not set
-  useEffect(() => {
-    if (currentStep === 5 && propertyData.price > 0 && propertyData.area > 0 && 
-        !propertyData.paymentStages && propertyData.neighborhood) {
-      console.log('🤖 Generating negotiation conditions for step 5...');
-      
-      const generateConditions = async () => {
-        try {
-          const conditions = await negotiationSuggestionService.generateConditions(
-            {
-              area: propertyData.area,
-              neighborhood: propertyData.neighborhood,
-              price: propertyData.price,
-              propertyType: propertyData.propertyType
-            },
-            {
-              liquidityTimeframe: 'normal',
-              liquidityAmount: 30,
-              riskTolerance: 'low'
-            }
-          );
-          
-          console.log('✅ Generated conditions:', conditions);
-          
-          setPropertyData(prev => ({
-            ...prev,
-            paymentStages: conditions.stages,
-            stageTimeframes: conditions.timeframes
-          }));
-          
-          toast.success('Condiciones de negociación generadas con IA');
-        } catch (error) {
-          console.error('❌ Error generating conditions:', error);
-          // Set default conditions on error
-          const defaults = negotiationSuggestionService.generateDefaultConditions(propertyData.price);
-          setPropertyData(prev => ({
-            ...prev,
-            paymentStages: defaults.stages,
-            stageTimeframes: defaults.timeframes
-          }));
-        }
-      };
-      
-      generateConditions();
+  const handleImageUpload = useCallback(async (files: FileList | null) => {
+    if (!files) return;
+    const newImages = Array.from(files);
+    const validImages = newImages.filter(file =>
+      file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024
+    );
+    if (validImages.length !== newImages.length) {
+      toast.error(t('properties.wizard.imagesMax10mb'));
+      return;
     }
-  }, [currentStep, propertyData.price, propertyData.area, propertyData.neighborhood, propertyData.propertyType, propertyData.paymentStages]);
+    if (propertyData.images.length + validImages.length > 20) {
+      toast.error(t('properties.wizard.imagesMax20'));
+      return;
+    }
+    const uploadedImageUrls: string[] = [];
+    for (const image of validImages) {
+      try {
+        const fileName = `${Date.now()}-${image.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const { error } = await supabase.storage.from('property-photos').upload(fileName, image);
+        if (error) throw error;
+        const { data: publicUrl } = supabase.storage.from('property-photos').getPublicUrl(fileName);
+        uploadedImageUrls.push(publicUrl.publicUrl);
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error('Upload error:', error);
+        if (import.meta.env.DEV) {
+          const blobUrl = URL.createObjectURL(image);
+          uploadedImageUrls.push(blobUrl);
+          toast.warning(t('properties.wizard.storageFailedPreview', { name: image.name, msg }));
+          continue;
+        }
+        toast.error(t('properties.wizard.uploadError', { name: image.name, msg }));
+        return;
+      }
+    }
+    setPropertyData(prev => ({
+      ...prev,
+      images: [...prev.images, ...validImages],
+      uploadedImages: [...(prev.uploadedImages || []), ...uploadedImageUrls]
+    }));
+  }, [propertyData.images.length, t]);
+
+  const loadSampleImage = useCallback(async () => {
+    const res = await fetch('/ai_food/jpeg/vista_1.jpeg');
+    if (!res.ok) throw new Error(t('properties.wizard.sampleImageMissing'));
+    const blob = await res.blob();
+    const file = new File([blob], 'vista_1.jpeg', { type: 'image/jpeg' });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    await handleImageUpload(dt.files);
+  }, [handleImageUpload, t]);
+
+  const buildDraftPayload = useCallback((): Record<string, unknown> => ({
+    title: propertyData.title || 'Draft Property',
+    description: propertyData.description || 'Draft property',
+    address: propertyData.address || 'To be updated',
+    neighborhood: propertyData.neighborhood || 'To be updated',
+    city: 'To be updated',
+    coordinates: propertyData.coordinates || { lat: 0, lng: 0 },
+    bedrooms: propertyData.bedrooms || 1,
+    bathrooms: propertyData.bathrooms || 1,
+    area: propertyData.area || 1,
+    property_type: propertyData.propertyType || 'apartment',
+    listing_type: propertyData.listingType,
+    price: propertyData.listingType === 'sale' ? (propertyData.price || 100000) : null,
+    rent_monthly: propertyData.listingType === 'rental' ? (propertyData.rentMonthly || 100000) : null,
+    lease_term_months: propertyData.listingType === 'rental' ? (propertyData.leaseTermMonths || 12) : null,
+    deposit: propertyData.listingType === 'rental' ? (propertyData.deposit || 0) : null,
+    admin_fee: propertyData.listingType === 'rental' ? (propertyData.adminFee || 0) : null,
+    utilities_included: propertyData.listingType === 'rental' ? (propertyData.utilitiesIncluded || []) : [],
+    pets_policy: propertyData.listingType === 'rental' ? (propertyData.petsPolicy || '') : null,
+    visit_price: propertyData.visitPrice ?? 49000,
+    accepts_crypto: propertyData.acceptsCrypto ?? false,
+    financing: propertyData.financing ?? false,
+    status: 'draft',
+    negotiation_terms: {
+      ...(propertyData.negotiationRules && typeof propertyData.negotiationRules === 'object' ? propertyData.negotiationRules : {}),
+      offeredTimeline: propertyData.offeredTimeline,
+      acceptedPaymentMethods: propertyData.acceptedPaymentMethods ?? []
+    }
+  }), [propertyData]);
 
   if (!verificationStatus) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="p-6">
-          <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            <span>Verificando identidad...</span>
+      <div className="min-h-[400px] flex items-center justify-center p-8">
+        <Card className="p-8 border-2">
+          <div className="flex items-center gap-3 text-gray-700">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+            <span className="font-medium">{t('properties.wizard.verifyingIdentity')}</span>
           </div>
         </Card>
       </div>
     );
   }
 
-  if (verificationStatus !== 'verified') {
-    return null; // Component will unmount due to onCancel call above
+  if (verificationStatus !== 'verified' && !devBypass) {
+    return (
+      <div className="min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
+        <AlertCircle className="h-16 w-16 text-amber-500 mb-4" />
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          {t('properties.wizard.verificationRequired')}
+        </h2>
+        <p className="text-gray-600 mb-6 max-w-md">
+          {t('properties.wizard.verificationRequiredBody')}
+        </p>
+        <div className="flex gap-3">
+          <Button onClick={onCancel} variant="outline">
+            {t('common.close')}
+          </Button>
+          {import.meta.env.DEV && (
+            <Button onClick={() => setDevBypass(true)} variant="secondary">
+              {t('properties.wizard.continueUnverifiedDev')}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const progress = (currentStep / steps.length) * 100;
@@ -413,14 +407,13 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     if (currentStep < steps.length) {
       let currentDraftId = draftId;
       
-      // Create draft property only when reaching step 7 (Visit Availability)
-      // This is the first step that requires a propertyId in the database
-      if (!currentDraftId && currentStep === 6) {
+      // Create draft property only when reaching step 6 (Visit Availability)
+      if (!currentDraftId && currentStep === 5) {
         try {
-          toast.info('Creating draft property...');
+          toast.info(t('properties.wizard.creatingDraft'));
           
           // Gather all collected data to create a complete draft
-          const draftData = {
+          const draftData: Record<string, unknown> = {
             title: propertyData.title || 'Draft Property',
             description: propertyData.description || 'Draft property',
             address: propertyData.address || 'To be updated',
@@ -431,11 +424,23 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
             bathrooms: propertyData.bathrooms || 1,
             area: propertyData.area || 1,
             property_type: propertyData.propertyType || 'apartment',
-            price: propertyData.price || 100000,
-            visit_price: propertyData.visitPrice || 49000,
-            accepts_crypto: propertyData.acceptsCrypto || false,
-            financing: propertyData.financing || false,
-            status: 'draft'
+            listing_type: propertyData.listingType,
+            price: propertyData.listingType === 'sale' ? (propertyData.price || 100000) : null,
+            rent_monthly: propertyData.listingType === 'rental' ? (propertyData.rentMonthly || 100000) : null,
+            lease_term_months: propertyData.listingType === 'rental' ? (propertyData.leaseTermMonths || 12) : null,
+            deposit: propertyData.listingType === 'rental' ? (propertyData.deposit || 0) : null,
+            admin_fee: propertyData.listingType === 'rental' ? (propertyData.adminFee || 0) : null,
+            utilities_included: propertyData.listingType === 'rental' ? (propertyData.utilitiesIncluded || []) : [],
+            pets_policy: propertyData.listingType === 'rental' ? (propertyData.petsPolicy || '') : null,
+            visit_price: propertyData.visitPrice ?? 49000,
+            accepts_crypto: propertyData.acceptsCrypto ?? false,
+            financing: propertyData.financing ?? false,
+            status: 'draft',
+            negotiation_terms: {
+              ...(propertyData.negotiationRules && typeof propertyData.negotiationRules === 'object' ? propertyData.negotiationRules : {}),
+              offeredTimeline: propertyData.offeredTimeline,
+              acceptedPaymentMethods: propertyData.acceptedPaymentMethods ?? []
+            }
           };
           
           console.log('Creating draft with data:', draftData);
@@ -445,13 +450,13 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
             console.log('Draft created with ID:', result.id);
             setDraftId(result.id);
             currentDraftId = result.id;
-            toast.success('Draft created successfully');
+            toast.success(t('properties.wizard.draftCreated'));
           } else {
             throw new Error('No ID returned from draft creation');
           }
         } catch (error: any) {
           console.error('Error creating draft:', error);
-          toast.error(`Error al crear borrador: ${error.message}`);
+          toast.error(t('properties.wizard.draftError', { message: error.message }));
           return; // Don't proceed to next step if draft creation fails
         }
       }
@@ -482,12 +487,19 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
               // Images already saved when uploaded
               break;
             case 5:
-              fieldsToUpdate.price = propertyData.price;
-              fieldsToUpdate.visit_price = propertyData.visitPrice;
-              fieldsToUpdate.commission = propertyData.commission;
-              break;
-            case 6:
-              fieldsToUpdate.negotiation_terms = propertyData.negotiationRules;
+              fieldsToUpdate.listing_type = propertyData.listingType;
+              fieldsToUpdate.price = propertyData.listingType === 'sale' ? propertyData.price : null;
+              fieldsToUpdate.rent_monthly = propertyData.listingType === 'rental' ? propertyData.rentMonthly : null;
+              fieldsToUpdate.lease_term_months = propertyData.listingType === 'rental' ? propertyData.leaseTermMonths : null;
+              fieldsToUpdate.deposit = propertyData.listingType === 'rental' ? propertyData.deposit : null;
+              fieldsToUpdate.admin_fee = propertyData.listingType === 'rental' ? propertyData.adminFee : null;
+              fieldsToUpdate.utilities_included = propertyData.listingType === 'rental' ? (propertyData.utilitiesIncluded ?? []) : [];
+              fieldsToUpdate.pets_policy = propertyData.listingType === 'rental' ? (propertyData.petsPolicy ?? '') : null;
+              fieldsToUpdate.negotiation_terms = {
+                ...(typeof propertyData.negotiationRules === 'object' ? propertyData.negotiationRules : {}),
+                offeredTimeline: propertyData.offeredTimeline,
+                acceptedPaymentMethods: propertyData.acceptedPaymentMethods ?? []
+              };
               break;
           }
 
@@ -507,58 +519,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
-  };
-
-  const handleImageUpload = async (files: FileList | null) => {
-    if (!files) return;
-
-    const newImages = Array.from(files);
-    const validImages = newImages.filter(file =>
-      file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024
-    );
-
-    if (validImages.length !== newImages.length) {
-      toast.error('Solo se permiten imágenes de hasta 5MB');
-        return;
-      }
-
-    if (propertyData.images.length + validImages.length > 20) {
-      toast.error('Máximo 20 imágenes permitidas');
-        return;
-      }
-
-    const uploadedImageUrls: string[] = [];
-
-    // Upload images to Supabase Storage and collect URLs
-    for (const image of validImages) {
-      try {
-        const fileName = `${Date.now()}-${image.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-        const { data, error } = await supabase.storage
-          .from('property-photos')
-          .upload(fileName, image);
-
-        if (error) throw error;
-
-        // Get public URL for the uploaded image
-        const { data: publicUrl } = supabase.storage
-          .from('property-photos')
-          .getPublicUrl(fileName);
-
-        uploadedImageUrls.push(publicUrl.publicUrl);
-        console.log('Image uploaded:', publicUrl.publicUrl);
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast.error(`Error al subir ${image.name}`);
-        return; // Stop if any upload fails
-      }
-    }
-
-    // Update propertyData with both File objects (for preview) and URLs (for storage)
-    setPropertyData(prev => ({
-      ...prev,
-      images: [...prev.images, ...validImages],
-      uploadedImages: [...(prev.uploadedImages || []), ...uploadedImageUrls]
-    }));
   };
 
   const removeImage = (index: number) => {
@@ -607,10 +567,10 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
         [docType]: { path: data.path, file }
       }));
 
-      toast.success(`${docType.toUpperCase()} subido exitosamente`);
+      toast.success(t('properties.wizard.docUploaded', { type: docType.toUpperCase() }));
     } catch (error) {
       console.error('Document upload error:', error);
-      toast.error(`Error al subir ${docType.toUpperCase()}`);
+      toast.error(t('properties.wizard.docUploadError', { type: docType.toUpperCase() }));
     }
   };
 
@@ -622,12 +582,12 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
           uploadedDocs={uploadedDocs}
           submitting={submitting}
           onDocUpload={handleDocUpload}
-          onDocumentAnalyzed={handleDocumentAnalyzed}
         />
       );
       case 2: return (
         <Step1BasicInfo
           propertyData={propertyData}
+          onListingTypeChange={(value) => setPropertyData((prev) => ({ ...prev, listingType: value }))}
           onTitleChange={handleTitleChange}
           onDescriptionChange={handleDescriptionChange}
           onAddressChange={handleAddressChange}
@@ -666,47 +626,50 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
           onMoveImage={moveImage}
           onSetPrimaryImage={(index) => setPrimaryImageIndex(index)}
           onRemoveImage={removeImage}
+          onLoadSampleImage={loadSampleImage}
         />
       );
       case 5: return (
-        <Step5SellingConditions
-          propertyData={propertyData}
-          formatPrice={formatPrice}
-          onPriceChange={handlePriceChange}
-          onVisitPriceChange={handleVisitPriceChange}
-          onCommissionChange={handleCommissionChange}
-          onAcceptsCryptoChange={handleAcceptsCryptoChange}
-          onFinancingChange={handleFinancingChange}
-          onPaymentStagesChange={handlePaymentStagesChange}
-          onTimeframesChange={handleTimeframesChange}
-        />
+        propertyData.listingType === 'sale' ? (
+          <Step5SellingConditions
+            propertyData={propertyData}
+            formatPrice={formatPrice}
+            onPriceChange={handlePriceChange}
+            onOfferedTimelineChange={handleOfferedTimelineChange}
+            onAcceptedPaymentMethodsChange={handleAcceptedPaymentMethodsChange}
+            onMinPriceChange={handleMinPriceChange}
+            onMaxClosingDaysChange={handleMaxClosingDaysChange}
+            onAutoRejectToggle={handleAutoRejectToggle}
+            onManualReviewToggle={handleManualReviewToggle}
+          />
+        ) : (
+          <Step5RentalConditions
+            propertyData={propertyData}
+            formatPrice={formatPrice}
+            onRentMonthlyChange={(value) => setPropertyData((prev) => ({ ...prev, rentMonthly: Number(value) || 0 }))}
+            onLeaseTermMonthsChange={(value) => setPropertyData((prev) => ({ ...prev, leaseTermMonths: Number(value) || 0 }))}
+            onDepositChange={(value) => setPropertyData((prev) => ({ ...prev, deposit: Number(value) || 0 }))}
+            onAdminFeeChange={(value) => setPropertyData((prev) => ({ ...prev, adminFee: Number(value) || 0 }))}
+            onUtilitiesIncludedChange={(utilities) => setPropertyData((prev) => ({ ...prev, utilitiesIncluded: utilities }))}
+            onPetsPolicyChange={(value) => setPropertyData((prev) => ({ ...prev, petsPolicy: value }))}
+          />
+        )
       );
-      case 6: return (
-        <Step6NegotiationRules
-          negotiationRules={propertyData.negotiationRules}
-          onMinPriceChange={handleMinPriceChange}
-          onMaxClosingDaysChange={handleMaxClosingDaysChange}
-          onPaymentMethodToggle={handlePaymentMethodToggle}
-          onAutoRejectToggle={handleAutoRejectToggle}
-          onManualReviewToggle={handleManualReviewToggle}
-        />
-      );
-      case 7: return draftId ? (
+      case 6: return draftId ? (
         <VisitAvailabilityConfig
           propertyId={draftId}
           onComplete={() => {
-            // Mark visit availability as configured
             setPropertyData(prev => ({ ...prev, visitAvailabilityConfigured: true }));
-            setCurrentStep(8);
+            setCurrentStep(7);
           }}
         />
       ) : (
         <div className="text-center p-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Creating draft property...</p>
+          <p className="text-gray-600">{t('properties.wizard.creatingDraft')}</p>
         </div>
       );
-      case 8: return (
+      case 7: return (
         <Step7FinalReview
           propertyData={propertyData}
           formatPrice={formatPrice}
@@ -719,7 +682,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
           uploadedDocs={uploadedDocs}
           submitting={submitting}
           onDocUpload={handleDocUpload}
-          onDocumentAnalyzed={handleDocumentAnalyzed}
         />
       );
     }
@@ -730,18 +692,18 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
       case 1:
         return uploadedDocs.clyt; // CLYT requerido en el primer paso
       case 2:
-        return propertyData.title && propertyData.description && propertyData.address && propertyData.neighborhood;
+        return propertyData.listingType && propertyData.title && propertyData.description && propertyData.address && propertyData.neighborhood;
       case 3:
         return propertyData.bedrooms > 0 && propertyData.bathrooms > 0 && propertyData.area > 0 && propertyData.propertyType;
       case 4:
         return propertyData.images.length >= 1 && propertyData.images.length <= 20;
       case 5:
-        return propertyData.price > 0;
+        return propertyData.listingType === 'sale'
+          ? propertyData.price > 0
+          : propertyData.rentMonthly > 0 && propertyData.leaseTermMonths > 0;
       case 6:
-        return true; // Las reglas de negociación son opcionales - draft will be created on nextStep
-      case 7:
         return true; // Visit availability - draft is created when entering this step
-      case 8:
+      case 7:
         return propertyData.termsAccepted && propertyData.privacyAccepted;
       default:
         return false;
@@ -751,11 +713,11 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
   const requireEligibility = (): boolean => {
     const emailVerified = Boolean((user as any)?.email_confirmed_at);
     if (!emailVerified) {
-      toast.error('Debes verificar tu email antes de enviar la publicación');
+      toast.error(t('properties.wizard.mustVerifyEmailSubmit'));
       return false;
     }
     if (verificationStatus !== 'verified') {
-      toast.error('Tu identidad debe estar verificada para enviar a aprobación');
+      toast.error(t('properties.wizard.mustVerifyIdentitySubmit'));
       return false;
     }
     return true;
@@ -764,17 +726,20 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
   const saveDraft = async () => {
     try {
       if (!user) return;
-      const draftData = {
-        ...propertyData,
-        currentStep,
-        uploadedDocs,
-        primaryImageIndex
-      };
-      await createDraftProperty(draftData);
-      toast.success('Borrador guardado exitosamente');
+      const payload = buildDraftPayload();
+      if (draftId) {
+        await updatePropertyFields(draftId, payload);
+        toast.success(t('properties.wizard.draftUpdated'));
+      } else {
+        const result = await createDraftProperty(payload);
+        if (result?.id) {
+          setDraftId(result.id);
+          toast.success(t('properties.wizard.draftSaved'));
+        }
+      }
     } catch (error) {
       console.error('Error saving draft:', error);
-      toast.error('Error al guardar el borrador');
+      toast.error(t('properties.wizard.draftSaveError'));
     }
   };
 
@@ -783,18 +748,27 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
 
     setSubmitting(true);
     try {
-      // Save to property_verifications table
+      // Sanitize: omit File objects and other non-JSON-serializable data
+      const { images: _im, virtualTour: _vt, freedomTradition: _ft, ...propertySerializable } = propertyData;
+      const submittedData = {
+        property: {
+          ...propertySerializable,
+          imagesCount: propertyData.images?.length ?? 0,
+          uploadedImages: propertyData.uploadedImages ?? []
+        },
+        uploadedDocsPaths: Object.fromEntries(
+          Object.entries(uploadedDocs).map(([k, v]) => [k, v?.path ?? null])
+        ),
+        primaryImageIndex
+      };
+
       const { error: verificationError } = await supabase
         .from('property_verifications')
         .insert({
           property_id: draftId,
           user_id: user.id,
           status: 'pending',
-          submitted_data: {
-            property: propertyData,
-            uploadedDocs,
-            primaryImageIndex
-          },
+          submitted_data: submittedData,
           visit_availability_configured: true
         });
 
@@ -805,22 +779,16 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
 
       // Show success modal
       setShowSuccessModal(true);
-    } catch (error) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : t('properties.wizard.submitError');
       console.error('Error submitting for review:', error);
-      toast.error('Error al enviar a revisión');
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number): string => formatCurrency(price);
 
   return (
     <div className="min-h-screen bg-background">
@@ -828,14 +796,14 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
       <div className="bg-white border-b border-border px-4 py-4 lg:px-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold">Publicar Propiedad</h1>
+            <h1 className="text-xl font-semibold">{t('properties.wizard.publishTitle')}</h1>
             <p className="text-muted-foreground">
-              Paso {currentStep} de {steps.length}: {steps[currentStep - 1].title}
+              {t('properties.wizard.stepOf', { current: currentStep, total: steps.length, title: steps[currentStep - 1].title })}
             </p>
           </div>
           <Button variant="ghost" onClick={onCancel}>
             <X className="h-4 w-4 mr-2" />
-            Cancelar
+            {t('common.cancel')}
           </Button>
         </div>
         
@@ -845,21 +813,28 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 lg:px-6">
+        {currentStep >= 2 && currentStep <= 5 && (
+          <div className="mb-4 flex justify-end">
+            <Button type="button" variant="outline" size="sm" onClick={fillTestData} className="text-xs">
+              {t('properties.wizard.fillTestData')}
+            </Button>
+          </div>
+        )}
         <Card className="p-6">
           {renderStep()}
       </Card>
 
         {/* Navigation */}
         <div className="flex items-center justify-between mt-6">
-        <Button
+          <Button
             variant="outline"
-          onClick={prevStep}
-          disabled={currentStep === 1}
-        >
+            onClick={prevStep}
+            disabled={currentStep === 1}
+          >
             <ChevronLeft className="h-4 w-4 mr-2" />
-          Anterior
-        </Button>
-        
+            {t('common.previous')}
+          </Button>
+
           <div className="flex items-center space-x-2">
             {steps.map((step) => (
               <div
@@ -871,23 +846,23 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
             ))}
           </div>
 
-          {currentStep === steps.length ? (
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={saveDraft} disabled={submitting}>Guardar Borrador</Button>
-            <Button onClick={submitForApproval} disabled={!canProceed() || submitting} className="bg-green-600 hover:bg-green-700">
-              <Check className="h-4 w-4 mr-2" />
-              Enviar a Revisión
+            <Button variant="outline" size="default" onClick={saveDraft} disabled={submitting}>
+              <Save className="h-4 w-4 mr-2" />
+              {t('properties.wizard.saveDraft')}
             </Button>
+            {currentStep === steps.length ? (
+              <Button onClick={submitForApproval} disabled={!canProceed() || submitting} className="bg-green-600 hover:bg-green-700">
+                <Check className="h-4 w-4 mr-2" />
+                {t('properties.wizard.submitForReview')}
+              </Button>
+            ) : (
+              <Button onClick={nextStep} disabled={!canProceed()}>
+                {t('common.next')}
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
           </div>
-        ) : (
-          <Button
-              onClick={nextStep}
-              disabled={!canProceed()}
-          >
-              Siguiente
-              <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
-        )}
         </div>
       </div>
 
@@ -898,10 +873,10 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
           setShowSuccessModal(false);
           onComplete();
         }}
-        title="¡Propiedad Enviada Exitosamente!"
-        message="Tu propiedad ha sido enviada para revisión. Puedes seguir el proceso desde tu dashboard."
+        title={t('properties.wizard.successTitle')}
+        message={t('properties.wizard.successMessage')}
         redirectTo="/dashboard"
-        redirectLabel="Ver mi Dashboard"
+        redirectLabel={t('properties.wizard.viewDashboard')}
       />
     </div>
   );

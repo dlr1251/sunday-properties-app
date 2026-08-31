@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -21,10 +22,10 @@ import {
   FileText
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { formatCurrency, formatDate } from '../../utils/format';
 
 export const UserPropertiesView: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { properties, loading, error } = useUserProperties(user?.id);
@@ -34,10 +35,10 @@ export const UserPropertiesView: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline', icon: any }> = {
-      draft: { label: 'Borrador', variant: 'secondary', icon: FileText },
-      pending: { label: 'Pendiente', variant: 'outline', icon: AlertCircle },
-      published: { label: 'Publicada', variant: 'default', icon: CheckCircle },
-      rejected: { label: 'Rechazada', variant: 'destructive', icon: XCircle },
+      draft: { label: t('properties.statusTypes.draft'), variant: 'secondary', icon: FileText },
+      pending: { label: t('properties.statusTypes.pending'), variant: 'outline', icon: AlertCircle },
+      published: { label: t('properties.statusTypes.published'), variant: 'default', icon: CheckCircle },
+      rejected: { label: t('properties.statusTypes.rejected'), variant: 'destructive', icon: XCircle },
     };
     
     const config = statusConfig[status] || { label: status, variant: 'secondary' as const, icon: AlertCircle };
@@ -50,13 +51,19 @@ export const UserPropertiesView: React.FC = () => {
     );
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
+  const formatPrice = (price: number) => formatCurrency(price);
+
+  const propertyTypeLabel = (type: string) => {
+    const keyMap: Record<string, string> = {
+      apartment: 'properties.types.apartment',
+      house: 'properties.types.house',
+      townhouse: 'properties.types.countryHouse',
+      office: 'properties.types.office',
+      commercial: 'properties.types.commercial',
+      land: 'properties.types.land',
+      warehouse: 'properties.types.warehouse',
+    };
+    return keyMap[type] ? t(keyMap[type]) : type;
   };
 
   const handleEditProperty = (property: any) => {
@@ -113,10 +120,10 @@ export const UserPropertiesView: React.FC = () => {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Home className="h-5 w-5" />
-                  Mis Propiedades
+                  {t('dashboard.myProperties')}
                 </CardTitle>
                 <CardDescription>
-                  Gestiona todas tus propiedades publicadas
+                  {t('properties.manageYourProperties')}
                 </CardDescription>
               </div>
               <Button
@@ -124,7 +131,7 @@ export const UserPropertiesView: React.FC = () => {
                 className="bg-[#2dc97b] text-[#150f0f] hover:bg-[#26b36b]"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Subir Propiedad
+                {t('properties.uploadProperty')}
               </Button>
             </div>
           </CardHeader>
@@ -133,17 +140,17 @@ export const UserPropertiesView: React.FC = () => {
               <div className="text-center py-12">
                 <Home className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No tienes propiedades registradas
+                  {t('properties.noRegisteredProperties')}
                 </h3>
                 <p className="text-gray-500 mb-6">
-                  Comienza subiendo tu primera propiedad para venderla o arrendarla.
+                  {t('properties.startUploading')}
                 </p>
                 <Button
                   onClick={() => setShowUploadWizard(true)}
                   className="bg-[#2dc97b] text-[#150f0f] hover:bg-[#26b36b]"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Subir Primera Propiedad
+                  {t('properties.uploadFirstProperty')}
                 </Button>
               </div>
             ) : (
@@ -173,11 +180,11 @@ export const UserPropertiesView: React.FC = () => {
                       <div className="p-4 space-y-3">
                         <div>
                           <h3 className="font-semibold text-lg text-gray-900 mb-1 line-clamp-2">
-                            {property.title || 'Sin título'}
+                            {property.title || t('properties.untitled')}
                           </h3>
                           <p className="text-sm font-medium text-gray-700 flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {property.address || 'Dirección no especificada'}
+                            {property.address || t('properties.addressNotSpecified')}
                             {property.neighborhood && `, ${property.neighborhood}`}
                             {property.city && `, ${property.city}`}
                           </p>
@@ -185,15 +192,15 @@ export const UserPropertiesView: React.FC = () => {
 
                         <div className="flex items-center justify-between pt-2 border-t">
                           <div>
-                            <p className="text-xs font-semibold text-gray-700">Precio</p>
+                            <p className="text-xs font-semibold text-gray-700">{t('properties.price')}</p>
                             <p className="text-lg font-bold text-gray-900">
-                              {property.price ? formatPrice(property.price) : 'No especificado'}
+                              {property.price ? formatPrice(property.price) : t('properties.notSpecified')}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs font-semibold text-gray-700">Tipo</p>
+                            <p className="text-xs font-semibold text-gray-700">{t('properties.type')}</p>
                             <p className="text-sm font-semibold text-gray-900 capitalize">
-                              {property.property_type || 'N/A'}
+                              {property.property_type ? propertyTypeLabel(property.property_type) : t('properties.notSpecified')}
                             </p>
                           </div>
                         </div>
@@ -202,7 +209,7 @@ export const UserPropertiesView: React.FC = () => {
                           <div className="flex items-center gap-1 text-xs font-medium text-gray-700 pt-2 border-t">
                             <Calendar className="h-3 w-3" />
                             <span>
-                              Creada {format(new Date(property.created_at), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                              {t('properties.createdOn', { date: formatDate(property.created_at) })}
                             </span>
                           </div>
                         )}
@@ -216,7 +223,7 @@ export const UserPropertiesView: React.FC = () => {
                             className="flex-1 font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                           >
                             <Eye className="h-4 w-4 mr-1" />
-                            Ver
+                            {t('properties.view')}
                           </Button>
                           <Button
                             variant="outline"
@@ -225,7 +232,7 @@ export const UserPropertiesView: React.FC = () => {
                             className="flex-1 font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                           >
                             <Edit className="h-4 w-4 mr-1" />
-                            Editar
+                            {t('common.edit')}
                           </Button>
                         </div>
                       </div>

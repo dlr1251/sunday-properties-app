@@ -47,6 +47,8 @@ export interface NegotiationProperty {
   floor_plan?: string | null;
   financing?: boolean | null;
   accepts_crypto?: boolean | null;
+  negotiation_terms?: Record<string, unknown> | null;
+  created_at?: string | null;
 }
 
 export interface NegotiationOffer {
@@ -234,7 +236,9 @@ export function useNegotiationData(negotiationId: string) {
           video: property.video || null,
           floor_plan: property.floor_plan || null,
           financing: property.financing || null,
-          accepts_crypto: property.accepts_crypto || null
+          accepts_crypto: property.accepts_crypto || null,
+          negotiation_terms: property.negotiation_terms || null,
+          created_at: property.created_at || null
         };
 
         // Helper para formatear participantes

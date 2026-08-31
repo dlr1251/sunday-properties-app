@@ -9,7 +9,7 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
+  defaultTheme = 'light',
   storageKey = 'sunday-theme',
 }: ThemeProviderProps) {
   const [mounted, setMounted] = useState(false);
@@ -32,7 +32,7 @@ export function ThemeProvider({
     <NextThemesProvider
       attribute="class"
       defaultTheme={defaultTheme}
-      enableSystem
+      enableSystem={false}
       disableTransitionOnChange={false}
       storageKey={storageKey}
     >

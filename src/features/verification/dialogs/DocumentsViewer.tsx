@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import EntityDialog from '../../../components/data/EntityDialog';
 
 export type DocumentsViewerProps = {
@@ -9,29 +10,30 @@ export type DocumentsViewerProps = {
 };
 
 export function DocumentsViewer(props: DocumentsViewerProps) {
+  const { t } = useTranslation();
   const { open, onOpenChange, verification, onApprove } = props;
   return (
-    <EntityDialog open={open} onOpenChange={onOpenChange} title="View documents" size="lg">
+    <EntityDialog open={open} onOpenChange={onOpenChange} title={t('admin.viewDocuments')} size="lg">
       <div className="grid grid-cols-1 gap-3 text-sm">
         {verification?.document_url ? (
           <div>
-            <span className="text-muted-foreground">Document:</span>
-            <img src={verification.document_url} alt="Document" className="mt-2 border rounded" />
+            <span className="text-muted-foreground">{t('admin.documentFallback')}:</span>
+            <img src={verification.document_url} alt={t('admin.documentFallback')} className="mt-2 border rounded" />
           </div>
         ) : null}
         {verification?.selfie_url ? (
           <div>
-            <span className="text-muted-foreground">Selfie:</span>
-            <img src={verification.selfie_url} alt="Selfie" className="mt-2 border rounded" />
+            <span className="text-muted-foreground">{t('verification.dashboard.facePhoto')}:</span>
+            <img src={verification.selfie_url} alt={t('verification.dashboard.facePhoto')} className="mt-2 border rounded" />
           </div>
         ) : null}
-        <div><span className="text-muted-foreground">Status:</span> {verification?.status ?? '—'}</div>
-        <div><span className="text-muted-foreground">Type:</span> {verification?.document_type ?? '—'}</div>
+        <div><span className="text-muted-foreground">{t('properties.status')}:</span> {verification?.status ?? '—'}</div>
+        <div><span className="text-muted-foreground">{t('admin.documentType')}:</span> {verification?.document_type ?? '—'}</div>
       </div>
       {onApprove ? (
         <div className="mt-4 flex justify-end">
           <button type="button" className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-muted" onClick={() => verification && onApprove(verification)}>
-            Approve
+            {t('common.approve')}
           </button>
         </div>
       ) : null}
@@ -40,4 +42,3 @@ export function DocumentsViewer(props: DocumentsViewerProps) {
 }
 
 export default DocumentsViewer;
-

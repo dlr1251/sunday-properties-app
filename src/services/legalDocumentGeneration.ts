@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../i18n';
 import { supabase } from '../lib/supabase';
 
 // Reuse XAI service from documentAnalysis
@@ -430,7 +431,7 @@ Genera SOLO el documento OTROSÍ, sin introducciones.`;
   }
 
   private formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0

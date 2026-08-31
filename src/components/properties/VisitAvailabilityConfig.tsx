@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,28 +20,23 @@ import {
   Ban
 } from 'lucide-react';
 import { useVisitAvailability } from '../../hooks/useVisitAvailability';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 
 interface VisitAvailabilityConfigProps {
   propertyId: string;
   onComplete?: () => void;
 }
 
-const DAYS_OF_WEEK = [
-  { value: 0, label: 'Domingo' },
-  { value: 1, label: 'Lunes' },
-  { value: 2, label: 'Martes' },
-  { value: 3, label: 'Miércoles' },
-  { value: 4, label: 'Jueves' },
-  { value: 5, label: 'Viernes' },
-  { value: 6, label: 'Sábado' }
-];
+const DAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
 
 export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = ({
   propertyId,
   onComplete
 }) => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const {
     availability,
     blockedDates,
@@ -77,31 +73,23 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
     setCreatingDefaults(true);
     try {
       // Create availability for each day of the week (0=Sunday, 6=Saturday)
-      const defaultSchedules = [
-        { day: 1, label: 'Lunes' },    // Monday
-        { day: 2, label: 'Martes' },   // Tuesday
-        { day: 3, label: 'Miércoles' }, // Wednesday
-        { day: 4, label: 'Jueves' },   // Thursday
-        { day: 5, label: 'Viernes' },  // Friday
-        { day: 6, label: 'Sábado' },   // Saturday
-        { day: 0, label: 'Domingo' }   // Sunday
-      ];
+      const defaultSchedules = [1, 2, 3, 4, 5, 6, 0];
 
-      const promises = defaultSchedules.map(schedule =>
+      const promises = defaultSchedules.map(day =>
         saveAvailability(
-          schedule.day,
-          '08:00', // 8am
-          '18:00', // 6pm
-          1,       // 1 day advance booking
-          3        // max 3 visits per day
+          day,
+          '08:00',
+          '18:00',
+          1,
+          3
         )
       );
 
       await Promise.all(promises);
-      toast.success('Horarios por defecto creados exitosamente');
+      toast.success(t('properties.wizard.availability.defaultsCreated'));
     } catch (error) {
       console.error('Error creating default availability:', error);
-      toast.error('Error al crear horarios por defecto');
+      toast.error(t('properties.wizard.availability.defaultsError'));
     } finally {
       setCreatingDefaults(false);
     }
@@ -141,7 +129,8 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
   };
 
   const getDayLabel = (dayOfWeek: number) => {
-    return DAYS_OF_WEEK.find(d => d.value === dayOfWeek)?.label || 'Desconocido';
+    const key = DAY_KEYS[dayOfWeek];
+    return key ? t(`properties.wizard.availability.days.${key}`) : t('properties.wizard.availability.unknownDay');
   };
 
   return (
@@ -150,10 +139,10 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Configuración de Disponibilidad para Visitas
+            {t('properties.wizard.availability.title')}
           </CardTitle>
           <CardDescription>
-            Define los horarios en los que los compradores pueden agendar visitas a tu propiedad
+            {t('properties.wizard.availability.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -161,36 +150,36 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h3 className="text-lg lg:text-xl font-semibold">Horarios Disponibles</h3>
+                <h3 className="text-lg lg:text-xl font-semibold">{t('properties.wizard.availability.schedulesTitle')}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Configura los días y horarios en que los compradores pueden visitar tu propiedad
+                  {t('properties.wizard.availability.schedulesHint')}
                 </p>
               </div>
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="w-full sm:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
-                    Agregar Horario
+                    {t('properties.wizard.availability.addSchedule')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Agregar Disponibilidad</DialogTitle>
+                    <DialogTitle>{t('properties.wizard.availability.addTitle')}</DialogTitle>
                     <DialogDescription>
-                      Configura un horario para recibir visitas
+                      {t('properties.wizard.availability.addDescription')}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label>Día de la Semana</Label>
+                      <Label>{t('properties.wizard.availability.dayOfWeek')}</Label>
                       <select
                         className="w-full border rounded-md p-2"
                         value={selectedDay}
                         onChange={(e) => setSelectedDay(Number(e.target.value))}
                       >
-                        {DAYS_OF_WEEK.map(day => (
-                          <option key={day.value} value={day.value}>
-                            {day.label}
+                        {DAY_KEYS.map((key, value) => (
+                          <option key={value} value={value}>
+                            {t(`properties.wizard.availability.days.${key}`)}
                           </option>
                         ))}
                       </select>
@@ -198,7 +187,7 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Hora Inicio</Label>
+                        <Label>{t('properties.wizard.availability.startTime')}</Label>
                         <Input
                           type="time"
                           value={startTime}
@@ -206,7 +195,7 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Hora Fin</Label>
+                        <Label>{t('properties.wizard.availability.endTime')}</Label>
                         <Input
                           type="time"
                           value={endTime}
@@ -216,7 +205,7 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Días de anticipación requeridos</Label>
+                      <Label>{t('properties.wizard.availability.advanceDays')}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -225,12 +214,12 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                         onChange={(e) => setAdvanceBookingDays(Number(e.target.value))}
                       />
                       <p className="text-sm text-muted-foreground">
-                        Los compradores deben agendar con al menos {advanceBookingDays} día(s) de anticipación
+                        {t('properties.wizard.availability.advanceHint', { count: advanceBookingDays })}
                       </p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Máximo de visitas por día</Label>
+                      <Label>{t('properties.wizard.availability.maxVisits')}</Label>
                       <Input
                         type="number"
                         min="1"
@@ -242,10 +231,10 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                      Cancelar
+                      {t('common.cancel')}
                     </Button>
                     <Button onClick={handleSaveAvailability}>
-                      Guardar
+                      {t('common.save')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -260,10 +249,10 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
               <div className="text-center p-8 border-2 border-dashed rounded-lg">
                 <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground mb-4">
-                  No has configurado horarios de disponibilidad
+                  {t('properties.wizard.availability.emptyTitle')}
                 </p>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Los compradores necesitan horarios disponibles para agendar visitas
+                  {t('properties.wizard.availability.emptyHint')}
                 </p>
                 <div className="space-y-3">
                   <Button
@@ -274,17 +263,17 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                     {creatingDefaults ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Creando horarios...
+                        {t('properties.wizard.availability.creatingDefaults')}
                       </>
                     ) : (
                       <>
                         <Clock className="h-4 w-4 mr-2" />
-                        Crear Horarios por Defecto (8am-6pm)
+                        {t('properties.wizard.availability.createDefaults')}
                       </>
                     )}
                   </Button>
                   <p className="text-xs text-muted-foreground">
-                    Crea horarios de Lunes a Domingo de 8:00 AM a 6:00 PM que podrás editar después
+                    {t('properties.wizard.availability.createDefaultsHint')}
                   </p>
                 </div>
               </div>
@@ -304,11 +293,11 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                           {slot.is_active ? (
                             <Badge variant="default" className="text-xs bg-green-100 text-green-800">
                               <CheckCircle className="h-3 w-3 mr-1" />
-                              Activo
+                              {t('properties.wizard.availability.active')}
                             </Badge>
                           ) : (
                             <Badge variant="secondary" className="text-xs">
-                              Inactivo
+                              {t('properties.wizard.availability.inactive')}
                             </Badge>
                           )}
                         </div>
@@ -316,7 +305,7 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                           {slot.start_time} - {slot.end_time}
                         </p>
                         <p className="text-xs lg:text-sm text-muted-foreground">
-                          Máx. {slot.max_visits_per_day} visitas/día • {slot.advance_booking_days} día(s) anticipación
+                          {t('properties.wizard.availability.slotSummary', { max: slot.max_visits_per_day, days: slot.advance_booking_days })}
                         </p>
                       </div>
                     </div>
@@ -343,33 +332,33 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
           <div className="space-y-4 pt-6 border-t">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Fechas Bloqueadas</h3>
+                <h3 className="text-lg font-semibold">{t('properties.wizard.availability.blockedTitle')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Bloquea fechas específicas en las que no quieres recibir visitas
+                  {t('properties.wizard.availability.blockedHint')}
                 </p>
               </div>
               <Dialog open={showBlockDateDialog} onOpenChange={setShowBlockDateDialog}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline">
                     <Ban className="h-4 w-4 mr-2" />
-                    Bloquear Fecha
+                    {t('properties.wizard.availability.blockDate')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Bloquear Fecha</DialogTitle>
+                    <DialogTitle>{t('properties.wizard.availability.blockDateTitle')}</DialogTitle>
                     <DialogDescription>
-                      Selecciona una fecha en la que no quieres recibir visitas
+                      {t('properties.wizard.availability.blockDateDescription')}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label>Fecha</Label>
+                      <Label>{t('properties.wizard.availability.date')}</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" className="w-full justify-start">
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {selectedDate ? format(selectedDate, 'PPP', { locale: es }) : 'Seleccionar fecha'}
+                            {selectedDate ? format(selectedDate, 'PPP', { locale: dateLocale }) : t('properties.wizard.availability.selectDate')}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -377,7 +366,7 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                             mode="single"
                             selected={selectedDate}
                             onSelect={setSelectedDate}
-                            locale={es}
+                            locale={dateLocale}
                             disabled={(date) => date < new Date()}
                           />
                         </PopoverContent>
@@ -385,9 +374,9 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Motivo (opcional)</Label>
+                      <Label>{t('properties.wizard.availability.reasonOptional')}</Label>
                       <Textarea
-                        placeholder="Ej: Mantenimiento programado"
+                        placeholder={t('properties.wizard.availability.reasonPlaceholder')}
                         value={blockReason}
                         onChange={(e) => setBlockReason(e.target.value)}
                       />
@@ -395,10 +384,10 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setShowBlockDateDialog(false)}>
-                      Cancelar
+                      {t('common.cancel')}
                     </Button>
                     <Button onClick={handleBlockDate} disabled={!selectedDate}>
-                      Bloquear
+                      {t('properties.wizard.availability.block')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -414,7 +403,7 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
                   >
                     <div>
                       <p className="font-medium">
-                        {format(new Date(blocked.blocked_date), 'PPP', { locale: es })}
+                        {format(new Date(blocked.blocked_date), 'PPP', { locale: dateLocale })}
                       </p>
                       {blocked.reason && (
                         <p className="text-sm text-muted-foreground">{blocked.reason}</p>
@@ -437,7 +426,7 @@ export const VisitAvailabilityConfig: React.FC<VisitAvailabilityConfigProps> = (
             <div className="flex justify-end pt-4 border-t">
               <Button onClick={onComplete}>
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Continuar
+                {t('properties.wizard.availability.continue')}
               </Button>
             </div>
           )}

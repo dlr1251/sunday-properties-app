@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import FormModal from '../../../components/data/FormModal';
 import AutoForm, { AutoFormField } from '../../../components/data/AutoForm';
@@ -10,29 +11,30 @@ export type ChangeRoleDialogProps = {
   onSubmit: (values: ChangeRoleInput) => Promise<void> | void;
 };
 
-const fields: AutoFormField[] = [
-  {
-    name: 'role',
-    label: 'New role',
-    type: 'select',
-    options: [
-      { label: 'User', value: 'user' },
-      { label: 'Agent', value: 'agent' },
-      { label: 'Admin', value: 'admin' },
-      { label: 'Super Admin', value: 'super_admin' },
-    ],
-  },
-];
-
 export function ChangeRoleDialog(props: ChangeRoleDialogProps) {
+  const { t } = useTranslation();
   const { open, onOpenChange, onSubmit } = props;
   const defaults: ChangeRoleInput = { role: 'user' } as any;
+
+  const fields: AutoFormField[] = [
+    {
+      name: 'role',
+      label: t('admin.newRole'),
+      type: 'select',
+      options: [
+        { label: t('profile.roles.user'), value: 'user' },
+        { label: t('profile.roles.agent'), value: 'agent' },
+        { label: t('profile.roles.admin'), value: 'admin' },
+        { label: t('profile.roles.super_admin'), value: 'super_admin' },
+      ],
+    },
+  ];
 
   return (
     <FormModal<z.infer<typeof changeRoleSchema>>
       open={open}
       onOpenChange={onOpenChange}
-      title="Change role"
+      title={t('admin.changeRole')}
       schema={changeRoleSchema}
       defaultValues={defaults}
       onSubmit={onSubmit}
@@ -45,5 +47,3 @@ export function ChangeRoleDialog(props: ChangeRoleDialogProps) {
 }
 
 export default ChangeRoleDialog;
-
-

@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -115,7 +116,7 @@ export const FinancialAnalysisView: React.FC = () => {
   });
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,

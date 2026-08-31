@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import EntityDialog from '../../../components/data/EntityDialog';
 
 export type UserDetailsDialogProps = {
@@ -15,20 +16,19 @@ export type UserDetailsDialogProps = {
 };
 
 export function UserDetailsDialog(props: UserDetailsDialogProps) {
+  const { t } = useTranslation();
   const { open, onOpenChange, user } = props;
   return (
-    <EntityDialog open={open} onOpenChange={onOpenChange} title={user?.name ?? 'User details'}>
+    <EntityDialog open={open} onOpenChange={onOpenChange} title={user?.name ?? t('admin.userDetailsFallback')}>
       <div className="grid grid-cols-1 gap-2 text-sm">
-        <div><span className="text-muted-foreground">Email:</span> {user?.email ?? '—'}</div>
-        <div><span className="text-muted-foreground">Role:</span> {user?.role ?? '—'}</div>
-        <div><span className="text-muted-foreground">Verification:</span> {user?.verification_status ?? '—'}</div>
-        <div><span className="text-muted-foreground">Created:</span> {user?.created_at ?? '—'}</div>
-        <div><span className="text-muted-foreground">Last sign-in:</span> {user?.last_sign_in_at ?? '—'}</div>
+        <div><span className="text-muted-foreground">{t('profile.email')}:</span> {user?.email ?? '—'}</div>
+        <div><span className="text-muted-foreground">{t('profile.role')}:</span> {user?.role ? t(`profile.roles.${user.role}`, { defaultValue: user.role }) : '—'}</div>
+        <div><span className="text-muted-foreground">{t('admin.verificationStatus')}:</span> {user?.verification_status ?? '—'}</div>
+        <div><span className="text-muted-foreground">{t('common.created')}:</span> {user?.created_at ?? '—'}</div>
+        <div><span className="text-muted-foreground">{t('admin.lastSignIn')}:</span> {user?.last_sign_in_at ?? '—'}</div>
       </div>
     </EntityDialog>
   );
 }
 
 export default UserDetailsDialog;
-
-
