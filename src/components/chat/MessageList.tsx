@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ import {
   User,
   Download
 } from 'lucide-react';
+import { useIntlLocale } from '../../i18n/useDateFnsLocale';
 
 interface Message {
   id: string;
@@ -43,6 +45,8 @@ export const MessageList: React.FC<MessageListProps> = ({
   onSendDocument,
   isLoading = false
 }) => {
+  const { t } = useTranslation();
+  const intlLocale = useIntlLocale();
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +80,7 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('es-CO', {
+    return date.toLocaleTimeString(intlLocale, {
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -89,11 +93,11 @@ export const MessageList: React.FC<MessageListProps> = ({
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Hoy';
+      return t('chat.today');
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Ayer';
+      return t('chat.yesterday');
     } else {
-      return date.toLocaleDateString('es-CO', {
+      return date.toLocaleDateString(intlLocale, {
         day: 'numeric',
         month: 'short'
       });
@@ -128,10 +132,10 @@ export const MessageList: React.FC<MessageListProps> = ({
             <div className="text-center">
               <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-                No hay mensajes
+                {t('chat.noMessages')}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Comienza la conversación enviando un mensaje
+                {t('chat.startBySending')}
               </p>
             </div>
           </div>
@@ -184,7 +188,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                             className="w-full"
                           >
                             <Download className="h-4 w-4 mr-1" />
-                            Descargar
+                            {t('chat.download')}
                           </Button>
                         </div>
                       ) : message.message_type === 'system' ? (
@@ -224,7 +228,7 @@ export const MessageList: React.FC<MessageListProps> = ({
           <div className="flex justify-center">
             <div className="flex items-center space-x-2 text-muted-foreground">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <span className="text-sm">Enviando mensaje...</span>
+              <span className="text-sm">{t('chat.sendingMessage')}</span>
             </div>
           </div>
         )}
@@ -253,7 +257,7 @@ export const MessageList: React.FC<MessageListProps> = ({
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Escribe un mensaje..."
+              placeholder={t('chat.placeholder')}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}

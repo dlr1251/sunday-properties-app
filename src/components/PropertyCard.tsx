@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Sparkles,
 } from 'lucide-react';
+import { formatCurrency } from '../utils/format';
 
 interface PropertyCardProps {
   id?: string;
@@ -21,6 +22,9 @@ interface PropertyCardProps {
   bedrooms: number;
   bathrooms: number;
   price: string;
+  /** Optional pre-formatted price label (e.g. includes /mes). */
+  priceLabel?: string;
+  listingType?: 'sale' | 'rental';
   image?: string;
   rating?: number;
   isFavorite?: boolean;
@@ -42,6 +46,8 @@ export function PropertyCard({
   bedrooms,
   bathrooms,
   price,
+  priceLabel,
+  listingType = 'sale',
   image = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3VzZSUyMGJ1aWxkaW5nJTIwZXh0ZXJpb3J8ZW58MXx8fHwxNzYwOTEwNTg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
   isFavorite = false,
   onFavorite,
@@ -54,13 +60,8 @@ export function PropertyCard({
   const { t } = useTranslation();
 
   const formatPrice = (price: string) => {
-    const numericPrice = parseInt(price.replace(/[^\d]/g, ''));
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(numericPrice);
+    const numericPrice = parseInt(price.replace(/[^\d]/g, ''), 10);
+    return formatCurrency(numericPrice);
   };
 
   const handleCardClick = () => {
@@ -101,6 +102,11 @@ export function PropertyCard({
 
         {/* Badges - Top Left */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+          {listingType === 'rental' && (
+            <Badge variant="default" className="shadow-sm">
+              {t('properties.listingTypes.rental')}
+            </Badge>
+          )}
           {premium && (
             <Badge variant="premium" className="shadow-sm">
               <Sparkles className="h-3 w-3 mr-1" />
@@ -108,7 +114,7 @@ export function PropertyCard({
             </Badge>
           )}
           {verified && (
-            <Badge variant="success" className="shadow-sm">
+            <Badge variant="verified" className="shadow-sm">
               <CheckCircle2 className="h-3 w-3 mr-1" />
               {t('properties.verified')}
             </Badge>
@@ -130,7 +136,7 @@ export function PropertyCard({
             'border border-border/50',
             'shadow-sm',
             'transition-colors duration-200',
-            isFavorite ? 'text-destructive' : 'text-muted-foreground hover:text-destructive',
+            isFavorite ? 'text-brand-gold' : 'text-muted-foreground hover:text-brand-gold',
           ].join(' ')}
           onClick={handleFavorite}
           whileHover={{ scale: 1.1 }}
@@ -148,7 +154,7 @@ export function PropertyCard({
         <div className="absolute bottom-3 left-3 z-10">
           <div className="px-3 py-1.5 rounded-lg bg-background/95 backdrop-blur-sm shadow-sm">
             <span className="text-lg font-bold text-foreground">
-              {formatPrice(price)}
+              {priceLabel ?? formatPrice(price)}
             </span>
           </div>
         </div>

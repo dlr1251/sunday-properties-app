@@ -1,16 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
 
-// Configuración de Supabase (Vite embeds these at build time; set on Vercel for production)
+// Vite embeds these at build time. Set VITE_SUPABASE_* in Vercel for production.
 const isDevelopment = import.meta.env.DEV;
-const envUrl = import.meta.env.VITE_SUPABASE_URL;
-const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseUrl = (envUrl && envUrl.trim()) ? envUrl.trim() : (isDevelopment
-  ? 'http://127.0.0.1:54327'
-  : 'https://prtyuwdkrrqhtwolcrav.supabase.co');
-const supabaseAnonKey = (envKey && envKey.trim()) ? envKey.trim() : (isDevelopment
-  ? 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
-  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydHl1d2RrcnJxaHR3b2xjcmF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4OTA1MDUsImV4cCI6MjA3NjQ2NjUwNX0.0n7zBh6TvTdHtEDn_lNE0IaPkIVK3Ujhf6hZ2yNFOGo');
+const envUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+
+const supabaseUrl = envUrl || (isDevelopment ? 'http://127.0.0.1:54327' : 'https://prtyuwdkrrqhtwolcrav.supabase.co');
+const supabaseAnonKey = envKey || (isDevelopment ? 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH' : 'MISSING_ANON_KEY');
+
+if (!isDevelopment && !envKey) {
+  console.error(
+    '[Supabase] VITE_SUPABASE_ANON_KEY is missing in production. ' +
+    'Add it in Vercel → Project → Settings → Environment Variables, then redeploy. Supabase requests will return 401 until then.'
+  );
+}
 
 // Configuración condicional para realtime
 // Nota: Realtime está temporalmente deshabilitado en desarrollo

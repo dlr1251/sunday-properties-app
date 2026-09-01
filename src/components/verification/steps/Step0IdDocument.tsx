@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../ui/button';
 import { Label } from '../../ui/label';
 import { Card } from '../../ui/card';
@@ -6,8 +7,10 @@ import { Upload, FileText, Loader2, AlertCircle, CheckCircle, Eye, X } from 'luc
 import { useVerificationForm } from '../VerificationFormContext';
 import { documentAnalysisService, DocumentData } from '../../../services/documentAnalysis';
 import { toast } from 'sonner';
+import { AiLegalDisclaimer } from '@/components/ai/AiLegalDisclaimer';
 
 export const Step0IdDocument: React.FC = () => {
+  const { t } = useTranslation();
   const {
     uploadedIdDoc,
     setUploadedIdDoc,
@@ -27,13 +30,13 @@ export const Step0IdDocument: React.FC = () => {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Por favor selecciona un archivo válido (JPG, PNG, GIF o PDF)');
+      toast.error(t('verification.documents.invalidFile'));
       return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('El archivo es demasiado grande. Máximo 10MB');
+      toast.error(t('verification.documents.fileTooLarge'));
       return;
     }
 
@@ -48,31 +51,31 @@ export const Step0IdDocument: React.FC = () => {
     // Start analysis immediately
     setAnalyzing(true);
     try {
-      toast.info('Analizando documento con IA...', { duration: 2000 });
+      toast.info(t('verification.idDocument.analyzing'), { duration: 2000 });
       
       const analysisResult = await documentAnalysisService.analyzeDocument('cedula', file);
       
       setIdDocAnalysis(analysisResult);
       
       if (analysisResult.confidence > 0.7) {
-        toast.success('Documento analizado exitosamente', {
-          description: `Confianza: ${Math.round(analysisResult.confidence * 100)}%`,
+        toast.success(t('verification.idDocument.analyzedSuccess'), {
+          description: t('verification.idDocument.confidence', { value: Math.round(analysisResult.confidence * 100) }),
         });
       } else {
-        toast.warning('Documento analizado con baja confianza', {
-          description: 'Por favor revisa los datos extraídos',
+        toast.warning(t('verification.idDocument.lowConfidence'), {
+          description: t('verification.idDocument.reviewExtracted'),
         });
       }
     } catch (error: any) {
       console.error('Error analyzing document:', error);
-      setAnalysisError(error.message || 'Error al analizar el documento');
-      toast.error('Error al analizar el documento', {
-        description: 'Por favor intenta nuevamente o continúa sin análisis automático',
+      setAnalysisError(error.message || t('verification.idDocument.analyzeError'));
+      toast.error(t('verification.idDocument.analyzeError'), {
+        description: t('verification.idDocument.analyzeErrorHint'),
       });
     } finally {
       setAnalyzing(false);
     }
-  }, [setUploadedIdDoc, setIdDocPreview, setIdDocAnalysis]);
+  }, [setUploadedIdDoc, setIdDocPreview, setIdDocAnalysis, t]);
 
   const removeDocument = () => {
     setUploadedIdDoc(null);
@@ -87,9 +90,9 @@ export const Step0IdDocument: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <FileText className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold">Documento de Identidad</h3>
+        <h3 className="text-lg font-semibold">{t('verification.idDocument.title')}</h3>
         <p className="text-muted-foreground">
-          Sube tu cédula de ciudadanía. Los datos se extraerán automáticamente con IA.
+          {t('verification.idDocument.subtitle')}
         </p>
       </div>
 
@@ -98,10 +101,10 @@ export const Step0IdDocument: React.FC = () => {
           <div className="text-center">
             <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <Label htmlFor="id-doc-upload" className="text-base font-medium cursor-pointer">
-              Selecciona tu documento de identidad
+              {t('verification.idDocument.selectDocument')}
             </Label>
             <p className="text-sm text-muted-foreground mt-2 mb-4">
-              Formatos soportados: JPG, PNG, GIF, PDF (máx. 10MB)
+              {t('verification.idDocument.formats')}
             </p>
             <input
               type="file"
@@ -113,13 +116,14 @@ export const Step0IdDocument: React.FC = () => {
             <Button asChild>
               <label htmlFor="id-doc-upload" className="cursor-pointer">
                 <Upload className="h-4 w-4 mr-2" />
-                Seleccionar Archivo
+                {t('verification.documents.selectFile')}
               </label>
             </Button>
           </div>
         </Card>
       ) : (
         <div className="space-y-4">
+          <AiLegalDisclaimer />
           {/* Document Preview */}
           <Card className="p-4">
             <div className="flex items-center justify-between mb-4">
@@ -140,12 +144,12 @@ export const Step0IdDocument: React.FC = () => {
                     onClick={() => window.open(idDocPreview, '_blank')}
                   >
                     <Eye className="h-4 w-4 mr-2" />
-                    Ver
+                    {t('verification.dashboard.view')}
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={removeDocument}>
                   <X className="h-4 w-4 mr-2" />
-                  Eliminar
+                  {t('common.delete')}
                 </Button>
               </div>
             </div>
@@ -154,7 +158,7 @@ export const Step0IdDocument: React.FC = () => {
             {analyzing && (
               <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Analizando documento con IA...</span>
+                <span>{t('verification.idDocument.analyzing')}</span>
               </div>
             )}
 
@@ -165,14 +169,14 @@ export const Step0IdDocument: React.FC = () => {
                     <>
                       <CheckCircle className="h-4 w-4 text-green-600" />
                       <span className="text-green-600 font-medium">
-                        Análisis completado ({Math.round(idDocAnalysis.confidence * 100)}% confianza)
+                        {t('verification.idDocument.analysisComplete', { value: Math.round(idDocAnalysis.confidence * 100) })}
                       </span>
                     </>
                   ) : (
                     <>
                       <AlertCircle className="h-4 w-4 text-yellow-600" />
                       <span className="text-yellow-600 font-medium">
-                        Análisis completado con advertencias ({Math.round(idDocAnalysis.confidence * 100)}% confianza)
+                        {t('verification.idDocument.analysisWarnings', { value: Math.round(idDocAnalysis.confidence * 100) })}
                       </span>
                     </>
                   )}
@@ -180,7 +184,7 @@ export const Step0IdDocument: React.FC = () => {
 
                 {idDocAnalysis.warnings && idDocAnalysis.warnings.length > 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <p className="text-sm font-medium text-yellow-800 mb-1">Advertencias:</p>
+                    <p className="text-sm font-medium text-yellow-800 mb-1">{t('verification.idDocument.warnings')}</p>
                     <ul className="text-sm text-yellow-700 list-disc list-inside">
                       {idDocAnalysis.warnings.map((warning, idx) => (
                         <li key={idx}>{warning}</li>
@@ -192,35 +196,35 @@ export const Step0IdDocument: React.FC = () => {
                 {/* Extracted Data Preview */}
                 {extractedData && (
                   <div className="bg-gray-50 rounded-lg p-4 border">
-                    <p className="text-sm font-medium mb-2">Datos extraídos:</p>
+                    <p className="text-sm font-medium mb-2">{t('verification.idDocument.extractedData')}</p>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       {extractedData.fullName && (
                         <div>
-                          <span className="text-muted-foreground">Nombre:</span>
+                          <span className="text-muted-foreground">{t('verification.idDocument.name')}</span>
                           <p className="font-medium">{extractedData.fullName}</p>
                         </div>
                       )}
                       {extractedData.idNumber && (
                         <div>
-                          <span className="text-muted-foreground">Cédula:</span>
+                          <span className="text-muted-foreground">{t('verification.idDocument.idNumber')}</span>
                           <p className="font-medium">{extractedData.idNumber}</p>
                         </div>
                       )}
                       {extractedData.birthDate && (
                         <div>
-                          <span className="text-muted-foreground">Fecha de Nacimiento:</span>
+                          <span className="text-muted-foreground">{t('verification.idDocument.dateOfBirth')}</span>
                           <p className="font-medium">{extractedData.birthDate}</p>
                         </div>
                       )}
                       {extractedData.nationality && (
                         <div>
-                          <span className="text-muted-foreground">Nacionalidad:</span>
+                          <span className="text-muted-foreground">{t('verification.idDocument.nationality')}</span>
                           <p className="font-medium">{extractedData.nationality}</p>
                         </div>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Estos datos se usarán para prellenar el formulario en el siguiente paso.
+                      {t('verification.idDocument.prefillHint')}
                     </p>
                   </div>
                 )}

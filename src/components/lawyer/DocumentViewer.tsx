@@ -17,6 +17,9 @@ import {
   Calendar,
   User
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { formatDateTime, formatCurrency } from '../../utils/format';
+import { getIntlLocale } from '../../i18n/locale';
 
 interface Document {
   id: string;
@@ -50,6 +53,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   onSign,
   onShare
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('preview');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -74,43 +78,24 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   // Mock document content - in real app this would come from Supabase
   const mockDocumentContent = `
     PROMESA DE COMPRAVENTA
     
-    En Medellín, a los ${new Date().getDate()} días del mes de ${new Date().toLocaleDateString('es-CO', { month: 'long' })} de ${new Date().getFullYear()}, entre:
+    En Medellín, a los ${new Date().getDate()} días del mes de ${new Date().toLocaleDateString(getIntlLocale(), { month: 'long' })} de ${new Date().getFullYear()}, entre:
     
-    COMPRADOR: ${document.signed_by || 'Por definir'}
-    Cédula de Ciudadanía: ${document.signed_by ? 'CC. 12345678' : 'Por definir'}
+    COMPRADOR: ${document.signed_by || t('lawyer.toBeDefined')}
+    Cédula de Ciudadanía: ${document.signed_by ? 'CC. 12345678' : t('lawyer.toBeDefined')}
     
-    VENDEDOR: ${document.signed_by || 'Por definir'}
-    Cédula de Ciudadanía: ${document.signed_by ? 'CC. 87654321' : 'Por definir'}
+    VENDEDOR: ${document.signed_by || t('lawyer.toBeDefined')}
+    Cédula de Ciudadanía: ${document.signed_by ? 'CC. 87654321' : t('lawyer.toBeDefined')}
     
     Se ha convenido celebrar la siguiente PROMESA DE COMPRAVENTA:
     
     PRIMERO: El VENDEDOR se compromete a vender y el COMPRADOR a comprar el inmueble ubicado en:
     ${document.description}
     
-    SEGUNDO: El precio de venta es de ${formatPrice(520000000)} (quinientos veinte millones de pesos colombianos).
+    SEGUNDO: El precio de venta es de ${formatCurrency(520000000)} (quinientos veinte millones de pesos colombianos).
     
     TERCERO: El COMPRADOR pagará el precio de la siguiente manera:
     - 30% al momento de la firma de escritura pública
@@ -124,7 +109,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     
     COMPRADOR: _________________    VENDEDOR: _________________
     
-    Fecha: ${formatDate(document.created_at)}
+    Fecha: ${formatDateTime(document.created_at)}
   `;
 
   return (
@@ -158,10 +143,10 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         <CardContent className="flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="preview">Vista Previa</TabsTrigger>
-              <TabsTrigger value="details">Detalles</TabsTrigger>
-              <TabsTrigger value="history">Historial</TabsTrigger>
-              <TabsTrigger value="actions">Acciones</TabsTrigger>
+              <TabsTrigger value="preview">{t('lawyer.preview')}</TabsTrigger>
+              <TabsTrigger value="details">{t('lawyer.details')}</TabsTrigger>
+              <TabsTrigger value="history">{t('lawyer.history')}</TabsTrigger>
+              <TabsTrigger value="actions">{t('lawyer.actions')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="preview" className="mt-4">
@@ -176,27 +161,27 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-sm text-muted-foreground mb-2">Información del Documento</h4>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-2">{t('lawyer.documentInfo')}</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span>ID:</span>
+                        <span>{t('lawyer.id')}</span>
                         <span className="font-mono">{document.id}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Tipo:</span>
+                        <span>{t('lawyer.type')}</span>
                         <Badge variant="outline">{document.document_type}</Badge>
                       </div>
                       <div className="flex justify-between">
-                        <span>Versión:</span>
+                        <span>{t('lawyer.version')}</span>
                         <span>{document.version}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Creado:</span>
-                        <span>{formatDate(document.created_at)}</span>
+                        <span>{t('lawyer.created')}</span>
+                        <span>{formatDateTime(document.created_at)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Última modificación:</span>
-                        <span>{formatDate(document.last_modified)}</span>
+                        <span>{t('lawyer.lastModified')}</span>
+                        <span>{formatDateTime(document.last_modified)}</span>
                       </div>
                     </div>
                   </div>
@@ -204,23 +189,23 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-sm text-muted-foreground mb-2">Estado de Firma</h4>
+                    <h4 className="font-semibold text-sm text-muted-foreground mb-2">{t('lawyer.signatureStatus')}</h4>
                     <div className="space-y-2 text-sm">
                       {document.signed_by ? (
                         <>
                           <div className="flex justify-between">
-                            <span>Firmado por:</span>
+                            <span>{t('lawyer.signedBy')}</span>
                             <span>{document.signed_by}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>Fecha de firma:</span>
-                            <span>{formatDate(document.signed_at!)}</span>
+                            <span>{t('lawyer.signedAt')}</span>
+                            <span>{formatDateTime(document.signed_at!)}</span>
                           </div>
                         </>
                       ) : (
                         <div className="text-center py-4">
                           <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">Documento pendiente de firma</p>
+                          <p className="text-sm text-muted-foreground">{t('lawyer.pendingSignature')}</p>
                         </div>
                       )}
                     </div>
@@ -237,10 +222,10 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-sm">Documento creado</h4>
-                      <span className="text-xs text-muted-foreground">{formatDate(document.created_at)}</span>
+                      <h4 className="font-semibold text-sm">{t('lawyer.documentCreated')}</h4>
+                      <span className="text-xs text-muted-foreground">{formatDateTime(document.created_at)}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Versión inicial del documento</p>
+                    <p className="text-sm text-muted-foreground">{t('lawyer.initialVersion')}</p>
                   </div>
                 </div>
                 
@@ -250,8 +235,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-sm">Documento modificado</h4>
-                      <span className="text-xs text-muted-foreground">{formatDate(document.last_modified)}</span>
+                      <h4 className="font-semibold text-sm">{t('lawyer.documentModified')}</h4>
+                      <span className="text-xs text-muted-foreground">{formatDateTime(document.last_modified)}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">Modificado por {document.modified_by}</p>
                   </div>
@@ -264,8 +249,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Documento firmado</h4>
-                        <span className="text-xs text-muted-foreground">{formatDate(document.signed_at)}</span>
+                        <h4 className="font-semibold text-sm">{t('lawyer.documentSigned')}</h4>
+                        <span className="text-xs text-muted-foreground">{formatDateTime(document.signed_at)}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">Firmado por {document.signed_by}</p>
                     </div>
@@ -277,7 +262,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
             <TabsContent value="actions" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-muted-foreground">Acciones Disponibles</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground">{t('lawyer.availableActions')}</h4>
                   <div className="space-y-2">
                     <Button className="w-full justify-start" variant="outline">
                       <Download className="h-4 w-4 mr-2" />
@@ -307,7 +292,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 </div>
                 
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-muted-foreground">Envío</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground">{t('lawyer.send')}</h4>
                   <div className="space-y-2">
                     <Button className="w-full justify-start" variant="outline">
                       <Send className="h-4 w-4 mr-2" />

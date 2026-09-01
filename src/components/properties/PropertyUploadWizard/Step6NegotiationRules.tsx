@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -30,6 +31,7 @@ export const Step6NegotiationRules: React.FC<Step6NegotiationRulesProps> = ({
   onAutoRejectToggle,
   onManualReviewToggle,
 }) => {
+  const { t } = useTranslation();
   console.log('⚖️ Step6NegotiationRules rendering with rules:', negotiationRules);
 
   const handleNumericInputChange = useCallback((handler: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,52 +47,52 @@ export const Step6NegotiationRules: React.FC<Step6NegotiationRulesProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Reglas de Negociación</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('properties.wizard.negotiation.title')}</h3>
         <p className="text-muted-foreground mb-6">
-          Configura reglas automáticas para filtrar ofertas y agilizar el proceso de negociación.
+          {t('properties.wizard.negotiation.subtitle')}
         </p>
 
         <div className="space-y-6">
           {/* Precio Mínimo */}
           <div className="space-y-2">
-            <Label htmlFor="minPrice">Precio Mínimo (Opcional)</Label>
+            <Label htmlFor="minPrice">{t('properties.wizard.negotiation.minPrice')}</Label>
             <Input
               id="minPrice"
               type="number"
-              placeholder="Ej: 500000000"
+              placeholder={t('common.example', { value: '500000000' })}
               value={negotiationRules.minPrice || ''}
               onChange={handleNumericInputChange(onMinPriceChange)}
             />
             <p className="text-sm text-muted-foreground">
-              Las ofertas por debajo de este precio serán rechazadas automáticamente
+              {t('properties.wizard.negotiation.minPriceHint')}
             </p>
           </div>
 
           {/* Plazo Máximo de Cierre */}
           <div className="space-y-2">
-            <Label htmlFor="maxClosingDays">Plazo Máximo de Cierre (Días)</Label>
+            <Label htmlFor="maxClosingDays">{t('properties.wizard.negotiation.maxClosingDays')}</Label>
             <Input
               id="maxClosingDays"
               type="number"
-              placeholder="Ej: 90"
+              placeholder={t('common.example', { value: '90' })}
               value={negotiationRules.maxClosingDays || ''}
               onChange={handleNumericInputChange(onMaxClosingDaysChange)}
             />
             <p className="text-sm text-muted-foreground">
-              Las ofertas con plazos superiores serán marcadas para revisión manual
+              {t('properties.wizard.negotiation.maxClosingDaysHint')}
             </p>
           </div>
 
           {/* Métodos de Pago Requeridos */}
           <div className="space-y-3">
-            <Label>Métodos de Pago Requeridos</Label>
+            <Label>{t('properties.wizard.negotiation.requiredMethods')}</Label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { id: 'cash', label: 'Efectivo' },
-                { id: 'bank_transfer', label: 'Transferencia Bancaria' },
-                { id: 'crypto', label: 'Criptomonedas' },
-                { id: 'financing', label: 'Financiación' },
-                { id: 'leasing', label: 'Leasing' }
+                { id: 'cash', labelKey: 'cash' },
+                { id: 'bank_transfer', labelKey: 'bank_transfer' },
+                { id: 'crypto', labelKey: 'crypto' },
+                { id: 'financing', labelKey: 'financing' },
+                { id: 'leasing', labelKey: 'leasing' }
               ].map((method) => (
                 <div key={method.id} className="flex items-center space-x-2">
                   <Checkbox
@@ -99,7 +101,7 @@ export const Step6NegotiationRules: React.FC<Step6NegotiationRulesProps> = ({
                     onCheckedChange={() => onPaymentMethodToggle(method.id)}
                   />
                   <Label htmlFor={`payment-${method.id}`} className="text-sm">
-                    {method.label}
+                    {t(`properties.wizard.paymentMethods.${method.labelKey}`)}
                   </Label>
                 </div>
               ))}
@@ -115,7 +117,7 @@ export const Step6NegotiationRules: React.FC<Step6NegotiationRulesProps> = ({
                 onCheckedChange={handleCheckboxChange(onAutoRejectToggle)}
               />
               <Label htmlFor="autoReject" className="text-sm">
-                Habilitar rechazo automático de ofertas no deseadas
+                {t('properties.wizard.negotiation.autoReject')}
               </Label>
             </div>
 
@@ -126,7 +128,7 @@ export const Step6NegotiationRules: React.FC<Step6NegotiationRulesProps> = ({
                 onCheckedChange={handleCheckboxChange(onManualReviewToggle)}
               />
               <Label htmlFor="manualReview" className="text-sm">
-                Requerir revisión manual para ofertas grandes
+                {t('properties.wizard.negotiation.manualReview')}
               </Label>
             </div>
           </div>

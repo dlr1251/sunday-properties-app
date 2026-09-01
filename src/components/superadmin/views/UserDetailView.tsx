@@ -21,7 +21,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../../i18n/useDateFnsLocale';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
 import { Skeleton } from '../../ui/skeleton';
@@ -32,6 +33,8 @@ interface UserDetailViewProps {
 }
 
 export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
+  const { t } = useTranslation();
+  const dateFnsLocale = useDateFnsLocale();
   const { data, loading, error, update, refresh } = useResourceDetail({
     resourceType: 'user',
     resourceId: userId,
@@ -76,7 +79,7 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
       setVerificationDocs(docs || []);
     } catch (err: any) {
       console.error('Error fetching verification documents:', err);
-      toast.error('Error al cargar documentos de verificación');
+      toast.error(t('admin.loadVerificationDocsError'));
     } finally {
       setLoadingDocs(false);
     }
@@ -94,7 +97,7 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
         window.open(urlData.signedUrl, '_blank');
       }
     } catch (err: any) {
-      toast.error('Error al acceder al documento');
+      toast.error(t('admin.documentAccessError'));
       console.error(err);
     }
   };
@@ -123,11 +126,11 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      super_admin: { label: 'Super Admin', variant: 'destructive' },
-      admin: { label: 'Admin', variant: 'default' },
-      lawyer: { label: 'Abogado', variant: 'secondary' },
-      agent: { label: 'Agente', variant: 'outline' },
-      user: { label: 'Usuario', variant: 'outline' },
+      super_admin: { label: t('profile.roles.super_admin'), variant: 'destructive' },
+      admin: { label: t('profile.roles.admin'), variant: 'default' },
+      lawyer: { label: t('profile.roles.lawyer'), variant: 'secondary' },
+      agent: { label: t('profile.roles.agent'), variant: 'outline' },
+      user: { label: t('profile.roles.user'), variant: 'outline' },
     };
     const config = variants[role] || { label: role, variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -137,11 +140,11 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
     if (status === 'verified') {
       return (
         <Badge variant="default" className="bg-green-600 hover:bg-green-700">
-          Verificado
+          {t('admin.status.verified')}
         </Badge>
       );
     }
-    return <Badge variant="outline">Pendiente</Badge>;
+    return <Badge variant="outline">{t('admin.status.pending')}</Badge>;
   };
 
   if (loading) {
@@ -158,7 +161,7 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
     return (
       <div className="text-center py-8">
         <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-        <p className="text-destructive">{error || 'Usuario no encontrado'}</p>
+        <p className="text-destructive">{error || t('admin.userNotFound')}</p>
       </div>
     );
   }
@@ -171,23 +174,23 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
       {/* Header with Edit Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Detalles del Usuario</h3>
+          <h3 className="text-lg font-semibold">{t('admin.userDetails')}</h3>
           <p className="text-sm text-muted-foreground">{data.email}</p>
         </div>
         {!isEditing ? (
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="h-4 w-4 mr-2" />
-            Editar
+            {t('common.edit')}
           </Button>
         ) : (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleCancel}>
               <X className="h-4 w-4 mr-2" />
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button size="sm" onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
-              Guardar
+              {t('common.save')}
             </Button>
           </div>
         )}
@@ -195,22 +198,22 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
 
       <Tabs defaultValue="info" className="w-full">
         <TabsList>
-          <TabsTrigger value="info">Información</TabsTrigger>
+          <TabsTrigger value="info">{t('admin.information')}</TabsTrigger>
           <TabsTrigger value="properties">Propiedades ({propertiesOwned.length + propertiesAgent.length})</TabsTrigger>
           <TabsTrigger value="documents">Documentos ({verificationDocs.length})</TabsTrigger>
-          <TabsTrigger value="events">Historial</TabsTrigger>
+          <TabsTrigger value="events">{t('lawyer.history')}</TabsTrigger>
         </TabsList>
 
         {/* Información Básica */}
         <TabsContent value="info" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Información Básica</CardTitle>
+              <CardTitle>{t('admin.basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Nombre Completo</Label>
+                  <Label>{t('profile.fullName')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.full_name}
@@ -222,7 +225,7 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Email</Label>
+                  <Label>{t('profile.email')}</Label>
                   {isEditing ? (
                     <Input
                       type="email"
@@ -235,7 +238,7 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Teléfono</Label>
+                  <Label>{t('profile.phone')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.phone}
@@ -247,18 +250,18 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Rol</Label>
+                  <Label>{t('profile.role')}</Label>
                   {isEditing ? (
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.role}
                       onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     >
-                      <option value="user">Usuario</option>
-                      <option value="agent">Agente</option>
-                      <option value="lawyer">Abogado</option>
-                      <option value="admin">Admin</option>
-                      <option value="super_admin">Super Admin</option>
+                      <option value="user">{t('profile.roles.user')}</option>
+                      <option value="agent">{t('profile.roles.agent')}</option>
+                      <option value="lawyer">{t('profile.roles.lawyer')}</option>
+                      <option value="admin">{t('profile.roles.admin')}</option>
+                      <option value="super_admin">{t('profile.roles.super_admin')}</option>
                     </select>
                   ) : (
                     <div>{getRoleBadge(data.role)}</div>
@@ -266,17 +269,17 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Estado</Label>
+                  <Label>{t('properties.status')}</Label>
                   {isEditing ? (
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     >
-                      <option value="active">Activo</option>
-                      <option value="inactive">Inactivo</option>
-                      <option value="suspended">Suspendido</option>
-                      <option value="pending">Pendiente</option>
+                      <option value="active">{t('profile.accountStatuses.active')}</option>
+                      <option value="inactive">{t('profile.accountStatuses.inactive')}</option>
+                      <option value="suspended">{t('profile.accountStatuses.suspended')}</option>
+                      <option value="pending">{t('admin.status.pending')}</option>
                     </select>
                   ) : (
                     <Badge variant={data.status === 'active' ? 'default' : 'secondary'}>
@@ -286,17 +289,17 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Estado de Verificación</Label>
+                  <Label>{t('admin.verificationStatus')}</Label>
                   {isEditing ? (
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.verification_status}
                       onChange={(e) => setFormData({ ...formData, verification_status: e.target.value })}
                     >
-                      <option value="unverified">No Verificado</option>
-                      <option value="pending">Pendiente</option>
-                      <option value="verified">Verificado</option>
-                      <option value="rejected">Rechazado</option>
+                      <option value="unverified">{t('admin.status.unverified')}</option>
+                      <option value="pending">{t('admin.status.pending')}</option>
+                      <option value="verified">{t('admin.status.verified')}</option>
+                      <option value="rejected">{t('admin.status.rejected')}</option>
                     </select>
                   ) : (
                     <div>{getStatusBadge(data.verification_status || 'unverified')}</div>
@@ -304,19 +307,19 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Fecha de Registro</Label>
+                  <Label>{t('admin.registeredAt')}</Label>
                   <p className="text-sm font-medium">
                     {data.created_at
-                      ? format(new Date(data.created_at), 'dd/MM/yyyy HH:mm', { locale: es })
+                      ? format(new Date(data.created_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })
                       : '-'}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Última Actualización</Label>
+                  <Label>{t('admin.updatedAt')}</Label>
                   <p className="text-sm font-medium">
                     {data.updated_at
-                      ? format(new Date(data.updated_at), 'dd/MM/yyyy HH:mm', { locale: es })
+                      ? format(new Date(data.updated_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })
                       : '-'}
                   </p>
                 </div>
@@ -329,11 +332,11 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
         <TabsContent value="properties" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Propiedades como Propietario ({propertiesOwned.length})</CardTitle>
+              <CardTitle>{t('admin.propertiesAsOwner', { count: propertiesOwned.length })}</CardTitle>
             </CardHeader>
             <CardContent>
               {propertiesOwned.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No tiene propiedades como propietario</p>
+                <p className="text-sm text-muted-foreground">{t('profile.noPropertiesFound')}</p>
               ) : (
                 <div className="space-y-2">
                   {propertiesOwned.map((prop: any) => (
@@ -355,11 +358,11 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Propiedades como Agente ({propertiesAgent.length})</CardTitle>
+              <CardTitle>{t('admin.propertiesAsAgent', { count: propertiesAgent.length })}</CardTitle>
             </CardHeader>
             <CardContent>
               {propertiesAgent.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No tiene propiedades como agente</p>
+                <p className="text-sm text-muted-foreground">{t('profile.noPropertiesFound')}</p>
               ) : (
                 <div className="space-y-2">
                   {propertiesAgent.map((prop: any) => (
@@ -384,7 +387,7 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
         <TabsContent value="documents" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Documentos de Verificación</CardTitle>
+              <CardTitle>{t('admin.verificationDocuments')}</CardTitle>
             </CardHeader>
             <CardContent>
               {loadingDocs ? (
@@ -394,7 +397,7 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                   ))}
                 </div>
               ) : verificationDocs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay documentos de verificación</p>
+                <p className="text-sm text-muted-foreground">{t('admin.noDocumentsFound')}</p>
               ) : (
                 <div className="space-y-2">
                   {verificationDocs.map((doc: any) => (
@@ -402,10 +405,10 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-blue-600" />
                         <div>
-                          <p className="font-medium">{doc.document_type || 'Documento'}</p>
+                          <p className="font-medium">{doc.document_type || t('admin.documentFallback')}</p>
                           <p className="text-sm text-muted-foreground">
                             {doc.created_at
-                              ? format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: es })
+                              ? format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: dateFnsLocale })
                               : '-'}
                           </p>
                         </div>
@@ -436,8 +439,8 @@ export function UserDetailView({ userId, onUpdate }: UserDetailViewProps) {
         <TabsContent value="events" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Historial de Eventos</CardTitle>
-              <CardDescription>Registro, verificación y acciones importantes</CardDescription>
+              <CardTitle>{t('admin.eventHistory')}</CardTitle>
+              <CardDescription>{t('admin.eventHistory')}</CardDescription>
             </CardHeader>
             <CardContent>
               <UserEventTimeline userId={userId} />

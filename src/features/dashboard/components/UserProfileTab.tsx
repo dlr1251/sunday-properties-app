@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAvatarUrl } from '@/utils/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -47,7 +48,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../../i18n/useDateFnsLocale';
 
 interface PersonalData {
   full_name: string;
@@ -72,6 +74,8 @@ interface PreferencesData {
 }
 
 export const UserProfileTab: React.FC = () => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const { user, profile, updateProfile, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('personal');
@@ -145,29 +149,48 @@ export const UserProfileTab: React.FC = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: personalData.full_name,
-          phone: personalData.phone,
-          bio: personalData.bio,
-          location: personalData.location,
-          address: personalData.address || null,
-          date_of_birth: personalData.date_of_birth || null,
-          nationality: personalData.nationality || null,
-          website: personalData.website || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profile.id);
+      const updatedAt = new Date().toISOString();
+      const emptyToNull = (v: string) => (v?.trim() || null);
 
-      if (error) throw error;
+      // Full payload including optional columns (address, date_of_birth, nationality from additional_features migration)
+      const fullPayload = {
+        full_name: emptyToNull(personalData.full_name),
+        phone: emptyToNull(personalData.phone),
+        bio: emptyToNull(personalData.bio),
+        location: emptyToNull(personalData.location),
+        website: emptyToNull(personalData.website),
+        address: emptyToNull(personalData.address),
+        date_of_birth: emptyToNull(personalData.date_of_birth),
+        nationality: emptyToNull(personalData.nationality),
+        updated_at: updatedAt,
+      };
+
+      let result = await supabase.from('profiles').update(fullPayload).eq('id', profile.id);
+
+      if (result.error) {
+        const msg = result.error.message || '';
+        if (msg.includes('does not exist') || msg.includes('column')) {
+          // Schema may not have optional columns; retry with base columns only
+          const basePayload = {
+            full_name: fullPayload.full_name,
+            phone: fullPayload.phone,
+            bio: fullPayload.bio,
+            location: fullPayload.location,
+            website: fullPayload.website,
+            updated_at: updatedAt,
+          };
+          result = await supabase.from('profiles').update(basePayload).eq('id', profile.id);
+        }
+        if (result.error) throw result.error;
+      }
 
       await refreshProfile();
       setIsEditingPersonal(false);
-      toast.success('Datos personales actualizados exitosamente');
+      toast.success(t('profile.toasts.personalUpdated'));
     } catch (error: any) {
       console.error('Error updating personal data:', error);
-      toast.error('Error al actualizar los datos personales');
+      const message = error?.message || error?.error_description || t('profile.toasts.personalUpdateError');
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -190,10 +213,10 @@ export const UserProfileTab: React.FC = () => {
 
       await refreshProfile();
       setIsEditingPreferences(false);
-      toast.success('Preferencias actualizadas exitosamente');
+      toast.success(t('profile.toasts.preferencesUpdated'));
     } catch (error: any) {
       console.error('Error updating preferences:', error);
-      toast.error('Error al actualizar las preferencias');
+      toast.error(t('profile.toasts.preferencesUpdateError'));
     } finally {
       setSaving(false);
     }
@@ -205,13 +228,13 @@ export const UserProfileTab: React.FC = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Por favor selecciona un archivo de imagen');
+      toast.error(t('profile.toasts.avatarTypeError'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('La imagen es demasiado grande. Máximo 5MB');
+      toast.error(t('profile.toasts.avatarSizeError'));
       return;
     }
 
@@ -264,10 +287,10 @@ export const UserProfileTab: React.FC = () => {
       if (updateError) throw updateError;
 
       await refreshProfile();
-      toast.success('Foto de perfil actualizada exitosamente');
+      toast.success(t('profile.toasts.avatarUpdated'));
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
-      toast.error(error.message || 'Error al subir la foto de perfil');
+      toast.error(error.message || t('profile.toasts.avatarUploadError'));
     } finally {
       setUploadingAvatar(false);
     }
@@ -279,17 +302,17 @@ export const UserProfileTab: React.FC = () => {
 
   const handlePasswordSubmit = async () => {
     if (!passwordData.newPassword || !passwordData.confirmPassword) {
-      toast.error('Por favor completa todos los campos');
+      toast.error(t('profile.toasts.fillAllFields'));
       return;
     }
 
     if (passwordData.newPassword.length < 8 || !/[A-Za-z]/.test(passwordData.newPassword) || !/\d/.test(passwordData.newPassword)) {
-      toast.error('La contraseña debe tener al menos 8 caracteres, una letra y un número');
+      toast.error(t('auth.passwordRequirements'));
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('Las contraseñas no coinciden');
+      toast.error(t('profile.toasts.passwordMismatch'));
       return;
     }
 
@@ -302,7 +325,7 @@ export const UserProfileTab: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Contraseña actualizada exitosamente');
+      toast.success(t('profile.toasts.passwordUpdated'));
       setShowPasswordDialog(false);
       setPasswordData({
         currentPassword: '',
@@ -311,7 +334,7 @@ export const UserProfileTab: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Error changing password:', error);
-      toast.error(error.message || 'Error al cambiar la contraseña');
+      toast.error(error.message || t('profile.toasts.passwordChangeError'));
     } finally {
       setChangingPassword(false);
     }
@@ -343,7 +366,7 @@ export const UserProfileTab: React.FC = () => {
         const hasVisits = (userData.visits?.[0]?.count || 0) > 0;
 
         if (hasProperties || hasOffers || hasVisits) {
-          toast.error('No puedes eliminar tu cuenta porque tienes propiedades, ofertas o visitas asociadas. Por favor, elimina primero estos datos.');
+          toast.error(t('profile.toasts.cannotDeleteWithData'));
           setShowDeleteDialog(false);
           setDeletingAccount(false);
           return;
@@ -359,11 +382,11 @@ export const UserProfileTab: React.FC = () => {
       if (deleteError) throw deleteError;
 
       // Sign out and redirect
-      toast.success('Cuenta eliminada exitosamente');
+      toast.success(t('profile.toasts.accountDeleted'));
       await signOut();
     } catch (error: any) {
       console.error('Error deleting account:', error);
-      toast.error(error.message || 'Error al eliminar la cuenta');
+      toast.error(error.message || t('profile.toasts.deleteError'));
     } finally {
       setDeletingAccount(false);
     }
@@ -408,7 +431,7 @@ export const UserProfileTab: React.FC = () => {
         <CardContent className="p-6">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-700 font-semibold">Cargando perfil...</p>
+            <p className="text-gray-700 font-semibold">{t('profile.loading')}</p>
           </div>
         </CardContent>
       </Card>
@@ -416,20 +439,19 @@ export const UserProfileTab: React.FC = () => {
   }
 
   const getRoleBadge = (role: string) => {
-    const roleConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      super_admin: { label: 'Super Admin', variant: 'default' },
-      admin: { label: 'Administrador', variant: 'default' },
-      lawyer: { label: 'Abogado', variant: 'secondary' },
-      agent: { label: 'Agente', variant: 'secondary' },
-      user: { label: 'Usuario', variant: 'outline' },
+    const variantMap: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+      super_admin: 'default',
+      admin: 'default',
+      lawyer: 'secondary',
+      agent: 'secondary',
+      user: 'outline',
     };
-
-    const config = roleConfig[role] || roleConfig.user;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const variant = variantMap[role] || 'outline';
+    return <Badge variant={variant}>{t(`profile.roles.${role}`, { defaultValue: t('profile.roles.user') })}</Badge>;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-16">
       {/* Header Card */}
       <Card>
         <CardHeader>
@@ -437,7 +459,7 @@ export const UserProfileTab: React.FC = () => {
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar className="w-20 h-20 ring-4 ring-gray-100">
-                  <AvatarImage src={(profile as any).avatar_url} alt={profile.full_name} />
+                  <AvatarImage src={getAvatarUrl(profile)} alt={profile.full_name} />
                   <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700">
                     {profile.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>
@@ -458,7 +480,7 @@ export const UserProfileTab: React.FC = () => {
                 </label>
               </div>
               <div>
-                <CardTitle className="text-2xl">{profile.full_name || 'Usuario'}</CardTitle>
+                <CardTitle className="text-2xl">{profile.full_name || t('user')}</CardTitle>
                 <CardDescription className="flex items-center gap-2 mt-1">
                   <Mail className="w-4 h-4" />
                   {user.email}
@@ -468,7 +490,7 @@ export const UserProfileTab: React.FC = () => {
                   {profile.verification_status === 'verified' ? (
                     <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 shadow-sm">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Verificado
+                      {t('profile.verified')}
                     </Badge>
                   ) : (
                     <Button
@@ -478,7 +500,7 @@ export const UserProfileTab: React.FC = () => {
                       className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
                     >
                       <Shield className="w-3 h-3 mr-1" />
-                      Verificar Cuenta
+                      {t('profile.verifyAccount')}
                       <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
                   )}
@@ -491,22 +513,18 @@ export const UserProfileTab: React.FC = () => {
 
       {/* Main Content Tabs */}
       <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="personal" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            Datos Personales
-          </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Preferencias
+            {t('profile.personalAndPreferences')}
           </TabsTrigger>
           <TabsTrigger value="account" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
-            Gestión de Cuenta
+            {t('profile.accountManagement')}
           </TabsTrigger>
         </TabsList>
 
-        {/* Personal Data Tab */}
+        {/* Personal Data + Preferences Tab (merged) */}
         <TabsContent value="personal" className="space-y-6">
           <Card>
             <CardHeader>
@@ -514,10 +532,10 @@ export const UserProfileTab: React.FC = () => {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <User className="w-5 h-5" />
-                    Información Personal
+                    {t('profile.personalInfo')}
                   </CardTitle>
                   <CardDescription>
-                    Actualiza tu información personal y de contacto
+                    {t('profile.personalInfoDescription')}
                   </CardDescription>
                 </div>
                 {!isEditingPersonal && (
@@ -528,7 +546,7 @@ export const UserProfileTab: React.FC = () => {
                     className="font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Editar
+                    {t('common.edit')}
                   </Button>
                 )}
               </div>
@@ -538,16 +556,16 @@ export const UserProfileTab: React.FC = () => {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="full_name">Nombre Completo *</Label>
+                      <Label htmlFor="full_name">{t('profile.fullNameRequired')}</Label>
                       <Input
                         id="full_name"
                         value={personalData.full_name}
                         onChange={(e) => setPersonalData({ ...personalData, full_name: e.target.value })}
-                        placeholder="Tu nombre completo"
+                        placeholder={t('profile.placeholders.fullName')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono</Label>
+                      <Label htmlFor="phone">{t('profile.phone')}</Label>
                       <Input
                         id="phone"
                         value={personalData.phone}
@@ -559,28 +577,28 @@ export const UserProfileTab: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="location">Ubicación</Label>
+                      <Label htmlFor="location">{t('profile.location')}</Label>
                       <Input
                         id="location"
                         value={personalData.location}
                         onChange={(e) => setPersonalData({ ...personalData, location: e.target.value })}
-                        placeholder="Ciudad, País"
+                        placeholder={t('profile.placeholders.location')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="address">Dirección</Label>
+                      <Label htmlFor="address">{t('profile.address')}</Label>
                       <Input
                         id="address"
                         value={personalData.address}
                         onChange={(e) => setPersonalData({ ...personalData, address: e.target.value })}
-                        placeholder="Dirección completa"
+                        placeholder={t('profile.placeholders.address')}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="date_of_birth">Fecha de Nacimiento</Label>
+                      <Label htmlFor="date_of_birth">{t('profile.dateOfBirth')}</Label>
                       <Input
                         id="date_of_birth"
                         type="date"
@@ -589,34 +607,34 @@ export const UserProfileTab: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="nationality">Nacionalidad</Label>
+                      <Label htmlFor="nationality">{t('profile.nationality')}</Label>
                       <Input
                         id="nationality"
                         value={personalData.nationality}
                         onChange={(e) => setPersonalData({ ...personalData, nationality: e.target.value })}
-                        placeholder="Ej: Colombiana"
+                        placeholder={t('profile.placeholders.nationality')}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="website">Sitio Web</Label>
+                    <Label htmlFor="website">{t('profile.website')}</Label>
                     <Input
                       id="website"
                       type="url"
                       value={personalData.website}
                       onChange={(e) => setPersonalData({ ...personalData, website: e.target.value })}
-                      placeholder="https://tu-sitio.com"
+                      placeholder={t('profile.placeholders.website')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="bio">Biografía</Label>
+                    <Label htmlFor="bio">{t('profile.bio')}</Label>
                     <Textarea
                       id="bio"
                       value={personalData.bio}
                       onChange={(e) => setPersonalData({ ...personalData, bio: e.target.value })}
-                      placeholder="Cuéntanos sobre ti..."
+                      placeholder={t('profile.placeholders.bio')}
                       rows={4}
                     />
                   </div>
@@ -629,11 +647,11 @@ export const UserProfileTab: React.FC = () => {
                       className="font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                     >
                       <X className="w-4 h-4 mr-2" />
-                      Cancelar
+                      {t('common.cancel')}
                     </Button>
                     <Button onClick={handleSavePersonal} disabled={saving}>
                       <Save className="w-4 h-4 mr-2" />
-                      {saving ? 'Guardando...' : 'Guardar Cambios'}
+                      {saving ? t('common.saving') : t('common.saveChanges')}
                     </Button>
                   </div>
                 </>
@@ -643,29 +661,29 @@ export const UserProfileTab: React.FC = () => {
                     <div className="flex items-start gap-3">
                       <User className="w-5 h-5 text-gray-600 mt-0.5" />
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Nombre Completo</p>
-                        <p className="text-base font-semibold text-gray-900">{profile.full_name || 'No especificado'}</p>
+                        <p className="text-sm font-semibold text-gray-800">{t('profile.fullName')}</p>
+                        <p className="text-base font-semibold text-gray-900">{profile.full_name || t('common.notSpecified')}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <Phone className="w-5 h-5 text-gray-600 mt-0.5" />
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Teléfono</p>
-                        <p className="text-base font-semibold text-gray-900">{profile.phone || 'No especificado'}</p>
+                        <p className="text-sm font-semibold text-gray-800">{t('profile.phone')}</p>
+                        <p className="text-base font-semibold text-gray-900">{profile.phone || t('common.notSpecified')}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-gray-600 mt-0.5" />
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Ubicación</p>
-                        <p className="text-base font-semibold text-gray-900">{profile.location || 'No especificada'}</p>
+                        <p className="text-sm font-semibold text-gray-800">{t('profile.location')}</p>
+                        <p className="text-base font-semibold text-gray-900">{profile.location || t('common.notSpecified')}</p>
                       </div>
                     </div>
                     {(profile as any).address && (
                       <div className="flex items-start gap-3">
                         <MapPin className="w-5 h-5 text-gray-600 mt-0.5" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-800">Dirección</p>
+                          <p className="text-sm font-semibold text-gray-800">{t('profile.address')}</p>
                           <p className="text-base font-semibold text-gray-900">{(profile as any).address}</p>
                         </div>
                       </div>
@@ -674,9 +692,9 @@ export const UserProfileTab: React.FC = () => {
                       <div className="flex items-start gap-3">
                         <Calendar className="w-5 h-5 text-gray-600 mt-0.5" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-800">Fecha de Nacimiento</p>
+                          <p className="text-sm font-semibold text-gray-800">{t('profile.dateOfBirth')}</p>
                           <p className="text-base font-semibold text-gray-900">
-                            {format(new Date((profile as any).date_of_birth), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                            {format(new Date((profile as any).date_of_birth), 'PPP', { locale: dateLocale })}
                           </p>
                         </div>
                       </div>
@@ -685,7 +703,7 @@ export const UserProfileTab: React.FC = () => {
                       <div className="flex items-start gap-3">
                         <Globe className="w-5 h-5 text-gray-600 mt-0.5" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-800">Nacionalidad</p>
+                          <p className="text-sm font-semibold text-gray-800">{t('profile.nationality')}</p>
                           <p className="text-base font-semibold text-gray-900">{(profile as any).nationality}</p>
                         </div>
                       </div>
@@ -693,7 +711,7 @@ export const UserProfileTab: React.FC = () => {
                   </div>
                   {profile.bio && (
                     <div>
-                      <p className="text-sm font-semibold text-gray-800 mb-2">Biografía</p>
+                      <p className="text-sm font-semibold text-gray-800 mb-2">{t('profile.bio')}</p>
                       <p className="text-base font-medium text-gray-900">{profile.bio}</p>
                     </div>
                   )}
@@ -714,20 +732,18 @@ export const UserProfileTab: React.FC = () => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
 
-        {/* Preferences Tab */}
-        <TabsContent value="preferences" className="space-y-6">
+          {/* Preferences section (merged into same tab) */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Settings className="w-5 h-5" />
-                    Preferencias
+                    {t('profile.preferences')}
                   </CardTitle>
                   <CardDescription>
-                    Personaliza tu experiencia en la plataforma
+                    {t('profile.preferencesDescription')}
                   </CardDescription>
                 </div>
                 {!isEditingPreferences && (
@@ -738,7 +754,7 @@ export const UserProfileTab: React.FC = () => {
                     className="font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Editar
+                    {t('common.edit')}
                   </Button>
                 )}
               </div>
@@ -748,10 +764,10 @@ export const UserProfileTab: React.FC = () => {
                 <>
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-gray-900">Idioma y Región</h3>
+                      <h3 className="text-lg font-semibold mb-4 text-gray-900">{t('profile.languageAndRegion')}</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="language">Idioma</Label>
+                          <Label htmlFor="language">{t('profile.language')}</Label>
                           <Select
                             value={preferencesData.language}
                             onValueChange={(value) => setPreferencesData({ ...preferencesData, language: value })}
@@ -767,7 +783,7 @@ export const UserProfileTab: React.FC = () => {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="currency">Moneda</Label>
+                          <Label htmlFor="currency">{t('profile.currency')}</Label>
                           <Select
                             value={preferencesData.currency}
                             onValueChange={(value) => setPreferencesData({ ...preferencesData, currency: value })}
@@ -776,14 +792,14 @@ export const UserProfileTab: React.FC = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="COP">COP - Peso Colombiano</SelectItem>
-                              <SelectItem value="USD">USD - Dólar Estadounidense</SelectItem>
-                              <SelectItem value="EUR">EUR - Euro</SelectItem>
+                              <SelectItem value="COP">{t('profile.currencies.COP')}</SelectItem>
+                              <SelectItem value="USD">{t('profile.currencies.USD')}</SelectItem>
+                              <SelectItem value="EUR">{t('profile.currencies.EUR')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="timezone">Zona Horaria</Label>
+                          <Label htmlFor="timezone">{t('profile.timezone')}</Label>
                           <Select
                             value={preferencesData.timezone}
                             onValueChange={(value) => setPreferencesData({ ...preferencesData, timezone: value })}
@@ -792,10 +808,10 @@ export const UserProfileTab: React.FC = () => {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="America/Bogota">Bogotá (GMT-5)</SelectItem>
-                              <SelectItem value="America/New_York">Nueva York (GMT-5)</SelectItem>
-                              <SelectItem value="Europe/Madrid">Madrid (GMT+1)</SelectItem>
-                              <SelectItem value="America/Mexico_City">Ciudad de México (GMT-6)</SelectItem>
+                              <SelectItem value="America/Bogota">{t('profile.timezones.bogota')}</SelectItem>
+                              <SelectItem value="America/New_York">{t('profile.timezones.newYork')}</SelectItem>
+                              <SelectItem value="Europe/Madrid">{t('profile.timezones.madrid')}</SelectItem>
+                              <SelectItem value="America/Mexico_City">{t('profile.timezones.mexicoCity')}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -805,9 +821,9 @@ export const UserProfileTab: React.FC = () => {
                     <Separator />
 
                     <div>
-                      <h3 className="text-lg font-semibold mb-4">Apariencia</h3>
+                      <h3 className="text-lg font-semibold mb-4">{t('profile.appearance')}</h3>
                       <div className="space-y-2">
-                        <Label htmlFor="theme">Tema</Label>
+                        <Label htmlFor="theme">{t('profile.theme')}</Label>
                         <Select
                           value={preferencesData.theme}
                           onValueChange={(value) => setPreferencesData({ ...preferencesData, theme: value })}
@@ -816,9 +832,9 @@ export const UserProfileTab: React.FC = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="light">Claro</SelectItem>
-                            <SelectItem value="dark">Oscuro</SelectItem>
-                            <SelectItem value="system">Sistema</SelectItem>
+                            <SelectItem value="light">{t('settings.themes.light')}</SelectItem>
+                            <SelectItem value="dark">{t('settings.themes.dark')}</SelectItem>
+                            <SelectItem value="system">{t('settings.themes.system')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -829,14 +845,14 @@ export const UserProfileTab: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                         <Bell className="w-5 h-5" />
-                        Notificaciones
+                        {t('settings.notifications')}
                       </h3>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
-                            <Label className="font-semibold text-gray-800">Notificaciones por Email</Label>
+                            <Label className="font-semibold text-gray-800">{t('profile.emailNotifications')}</Label>
                             <p className="text-sm text-gray-700 font-medium">
-                              Recibe notificaciones importantes por correo electrónico
+                              {t('profile.emailNotificationsHint')}
                             </p>
                           </div>
                           <Switch
@@ -848,9 +864,9 @@ export const UserProfileTab: React.FC = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
-                            <Label className="font-semibold text-gray-800">Notificaciones Push</Label>
+                            <Label className="font-semibold text-gray-800">{t('profile.pushNotifications')}</Label>
                             <p className="text-sm text-gray-700 font-medium">
-                              Recibe notificaciones en tiempo real en tu dispositivo
+                              {t('profile.pushNotificationsHint')}
                             </p>
                           </div>
                           <Switch
@@ -862,9 +878,9 @@ export const UserProfileTab: React.FC = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
-                            <Label className="font-semibold text-gray-800">Notificaciones SMS</Label>
+                            <Label className="font-semibold text-gray-800">{t('profile.smsNotifications')}</Label>
                             <p className="text-sm text-gray-700 font-medium">
-                              Recibe notificaciones importantes por mensaje de texto
+                              {t('profile.smsNotificationsHint')}
                             </p>
                           </div>
                           <Switch
@@ -876,9 +892,9 @@ export const UserProfileTab: React.FC = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
-                            <Label className="font-semibold text-gray-800">Emails de Marketing</Label>
+                            <Label className="font-semibold text-gray-800">{t('profile.marketingEmails')}</Label>
                             <p className="text-sm text-gray-700 font-medium">
-                              Recibe promociones y contenido de marketing
+                              {t('profile.marketingEmailsHint')}
                             </p>
                           </div>
                           <Switch
@@ -899,11 +915,11 @@ export const UserProfileTab: React.FC = () => {
                         className="font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                       >
                         <X className="w-4 h-4 mr-2" />
-                        Cancelar
+                        {t('common.cancel')}
                       </Button>
                       <Button onClick={handleSavePreferences} disabled={saving}>
                         <Save className="w-4 h-4 mr-2" />
-                        {saving ? 'Guardando...' : 'Guardar Preferencias'}
+                        {saving ? t('common.saving') : t('profile.savePreferences')}
                       </Button>
                     </div>
                   </div>
@@ -911,10 +927,10 @@ export const UserProfileTab: React.FC = () => {
               ) : (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Idioma y Región</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('profile.languageAndRegion')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Idioma</p>
+                        <p className="text-sm font-semibold text-gray-800">{t('profile.language')}</p>
                         <p className="text-base font-semibold text-gray-900">
                           {preferencesData.language === 'es' ? 'Español' :
                            preferencesData.language === 'en' ? 'English' :
@@ -922,11 +938,11 @@ export const UserProfileTab: React.FC = () => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Moneda</p>
+                        <p className="text-sm font-semibold text-gray-800">{t('profile.currency')}</p>
                         <p className="text-base font-semibold text-gray-900">{preferencesData.currency}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">Zona Horaria</p>
+                        <p className="text-sm font-semibold text-gray-800">{t('profile.timezone')}</p>
                         <p className="text-base font-semibold text-gray-900">{preferencesData.timezone}</p>
                       </div>
                     </div>
@@ -935,20 +951,20 @@ export const UserProfileTab: React.FC = () => {
                   <Separator />
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 text-gray-900">Apariencia</h3>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900">{t('profile.appearance')}</h3>
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">Tema</p>
-                      <p className="text-base font-semibold text-gray-900 capitalize">{preferencesData.theme}</p>
+                      <p className="text-sm font-semibold text-gray-800">{t('profile.theme')}</p>
+                      <p className="text-base font-semibold text-gray-900">{t(`settings.themes.${preferencesData.theme}`, { defaultValue: preferencesData.theme })}</p>
                     </div>
                   </div>
 
                   <Separator />
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 text-gray-900">Notificaciones</h3>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900">{t('settings.notifications')}</h3>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-gray-800">Notificaciones por Email</span>
+                        <span className="text-sm font-semibold text-gray-800">{t('profile.emailNotifications')}</span>
                         {preferencesData.email_notifications ? (
                           <CheckCircle className="w-5 h-5 text-green-700" />
                         ) : (
@@ -956,7 +972,7 @@ export const UserProfileTab: React.FC = () => {
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-gray-800">Notificaciones Push</span>
+                        <span className="text-sm font-semibold text-gray-800">{t('profile.pushNotifications')}</span>
                         {preferencesData.push_notifications ? (
                           <CheckCircle className="w-5 h-5 text-green-700" />
                         ) : (
@@ -964,7 +980,7 @@ export const UserProfileTab: React.FC = () => {
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-gray-800">Notificaciones SMS</span>
+                        <span className="text-sm font-semibold text-gray-800">{t('profile.smsNotifications')}</span>
                         {preferencesData.sms_notifications ? (
                           <CheckCircle className="w-5 h-5 text-green-700" />
                         ) : (
@@ -972,7 +988,7 @@ export const UserProfileTab: React.FC = () => {
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-gray-800">Emails de Marketing</span>
+                        <span className="text-sm font-semibold text-gray-800">{t('profile.marketingEmails')}</span>
                         {preferencesData.marketing_emails ? (
                           <CheckCircle className="w-5 h-5 text-green-700" />
                         ) : (
@@ -993,10 +1009,10 @@ export const UserProfileTab: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                Información de la Cuenta
+                {t('profile.accountInfo')}
               </CardTitle>
               <CardDescription>
-                Gestiona la seguridad y configuración de tu cuenta
+                {t('profile.accountInfoDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1005,17 +1021,17 @@ export const UserProfileTab: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-gray-600" />
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">Email</p>
+                      <p className="text-sm font-semibold text-gray-800">{t('profile.email')}</p>
                       <p className="text-base font-semibold text-gray-900">{user.email}</p>
                       {user.email_confirmed_at ? (
                         <p className="text-xs font-semibold text-green-700 mt-1 flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" />
-                          Email confirmado
+                          {t('profile.emailConfirmed')}
                         </p>
                       ) : (
                         <p className="text-xs font-semibold text-yellow-700 mt-1 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
-                          Email pendiente de confirmación
+                          {t('profile.emailPending')}
                         </p>
                       )}
                     </div>
@@ -1026,9 +1042,9 @@ export const UserProfileTab: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-gray-600" />
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">Miembro desde</p>
+                      <p className="text-sm font-semibold text-gray-800">{t('profile.memberSince')}</p>
                       <p className="text-base font-semibold text-gray-900">
-                        {format(new Date(profile.created_at), "d 'de' MMMM 'de' yyyy", { locale: es })}
+                        {format(new Date(profile.created_at), 'PPP', { locale: dateLocale })}
                       </p>
                     </div>
                   </div>
@@ -1038,23 +1054,23 @@ export const UserProfileTab: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-gray-600" />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-800">Estado de Verificación</p>
+                      <p className="text-sm font-semibold text-gray-800">{t('profile.verificationStatus')}</p>
                       <div className="flex items-center gap-2 mt-1">
                         {profile.verification_status === 'verified' ? (
                           <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 shadow-sm font-semibold">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Verificado
+                            {t('profile.verified')}
                           </Badge>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="font-semibold text-gray-700">No Verificado</Badge>
+                            <Badge variant="outline" className="font-semibold text-gray-700">{t('profile.notVerified')}</Badge>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => navigate('/verification')}
                               className="text-blue-700 hover:bg-blue-50 border-blue-300 font-semibold"
                             >
-                              Verificar Ahora
+                              {t('profile.verifyNow')}
                               <ArrowRight className="w-3 h-3 ml-1" />
                             </Button>
                           </div>
@@ -1068,7 +1084,7 @@ export const UserProfileTab: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <User className="w-5 h-5 text-gray-600" />
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">Rol</p>
+                      <p className="text-sm font-semibold text-gray-800">{t('profile.role')}</p>
                       <div className="mt-1">{getRoleBadge(profile.role)}</div>
                     </div>
                   </div>
@@ -1081,10 +1097,10 @@ export const UserProfileTab: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Lock className="w-5 h-5" />
-                Seguridad
+                {t('profile.security')}
               </CardTitle>
               <CardDescription>
-                Gestiona la seguridad de tu cuenta
+                {t('profile.securityDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1094,7 +1110,7 @@ export const UserProfileTab: React.FC = () => {
                 onClick={handleChangePassword}
               >
                 <Key className="w-4 h-4 mr-2" />
-                Cambiar Contraseña
+                {t('profile.changePassword')}
               </Button>
               <Button 
                 variant="outline" 
@@ -1102,7 +1118,7 @@ export const UserProfileTab: React.FC = () => {
                 onClick={handleDeleteAccount}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Eliminar Cuenta
+                {t('profile.deleteAccount')}
               </Button>
             </CardContent>
           </Card>
@@ -1111,10 +1127,10 @@ export const UserProfileTab: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <LogOut className="w-5 h-5" />
-                Sesión
+                {t('profile.session')}
               </CardTitle>
               <CardDescription>
-                Gestiona tu sesión actual
+                {t('profile.sessionDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1124,7 +1140,7 @@ export const UserProfileTab: React.FC = () => {
                 onClick={signOut}
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Cerrar Sesión
+                {t('nav.signOut')}
               </Button>
             </CardContent>
           </Card>
@@ -1137,31 +1153,31 @@ export const UserProfileTab: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="w-5 h-5" />
-              Cambiar Contraseña
+              {t('profile.changePassword')}
             </DialogTitle>
             <DialogDescription>
-              Ingresa tu nueva contraseña. Debe tener al menos 8 caracteres, incluir una letra y un número.
+              {t('profile.passwordDialogHint')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="new-password">Nueva Contraseña</Label>
+              <Label htmlFor="new-password">{t('profile.newPassword')}</Label>
               <Input
                 id="new-password"
                 type="password"
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                placeholder="Ingresa tu nueva contraseña"
+                placeholder={t('profile.newPasswordPlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+              <Label htmlFor="confirm-password">{t('profile.confirmNewPassword')}</Label>
               <Input
                 id="confirm-password"
                 type="password"
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                placeholder="Confirma tu nueva contraseña"
+                placeholder={t('profile.confirmPasswordPlaceholder')}
               />
             </div>
           </div>
@@ -1175,10 +1191,10 @@ export const UserProfileTab: React.FC = () => {
               disabled={changingPassword}
               className="font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={handlePasswordSubmit} disabled={changingPassword}>
-              {changingPassword ? 'Cambiando...' : 'Cambiar Contraseña'}
+              {changingPassword ? t('profile.changingPassword') : t('profile.changePassword')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1190,19 +1206,19 @@ export const UserProfileTab: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <AlertCircle className="w-5 h-5" />
-              Eliminar Cuenta
+              {t('profile.deleteAccount')}
             </DialogTitle>
             <DialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta y todos los datos asociados.
+              {t('profile.deleteAccountDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-800 font-medium mb-2">Advertencia:</p>
+              <p className="text-sm text-red-800 font-medium mb-2">{t('profile.deleteAccountWarningTitle')}</p>
               <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
-                <li>Tu perfil será eliminado permanentemente</li>
-                <li>No podrás recuperar tu cuenta después de eliminarla</li>
-                <li>Si tienes propiedades, ofertas o visitas asociadas, no podrás eliminar tu cuenta</li>
+                <li>{t('profile.deleteWarning1')}</li>
+                <li>{t('profile.deleteWarning2')}</li>
+                <li>{t('profile.deleteWarning3')}</li>
               </ul>
             </div>
           </div>
@@ -1213,14 +1229,14 @@ export const UserProfileTab: React.FC = () => {
               disabled={deletingAccount}
               className="font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleDeleteAccountConfirm}
               disabled={deletingAccount}
               className="bg-red-600 hover:bg-red-700 text-white font-semibold"
             >
-              {deletingAccount ? 'Eliminando...' : 'Eliminar Cuenta'}
+              {deletingAccount ? t('profile.deleting') : t('profile.deleteAccount')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,6 @@
+import { getIntlLocale } from '../i18n';
 import { supabase } from '../lib/supabase';
+import { appendAiPromptDisclaimer } from '@/lib/ai/append-prompt-disclaimer';
 
 // Reuse XAI service from documentAnalysis
 class XAIService {
@@ -12,6 +14,8 @@ class XAIService {
     try {
       console.log('🤖 Calling xAI API for legal document generation');
 
+      const fullPrompt = appendAiPromptDisclaimer(prompt);
+
       const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -20,7 +24,7 @@ class XAIService {
         },
         body: JSON.stringify({
           model: 'grok-4-fast-reasoning',
-          messages: [{ role: 'user', content: prompt }],
+          messages: [{ role: 'user', content: fullPrompt }],
           temperature: 0.3, // Lower temperature for more consistent legal documents
           max_tokens: 4000,
         }),
@@ -430,7 +434,7 @@ Genera SOLO el documento OTROSÍ, sin introducciones.`;
   }
 
   private formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0

@@ -10,6 +10,7 @@ interface Profile {
   role: string;
   status: string;
   verification_status?: string;
+  avatar_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('👤 fetchProfile: Database error:', {
@@ -106,6 +107,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         }
 
+        return null;
+      }
+
+      // 0 rows: user in auth but no profile row (e.g. trigger didn't run, migration gap)
+      if (!data) {
+        const u = session?.user;
+        if (u) {
+          const fallback: Profile = {
+            id: userId,
+            email: u.email ?? '',
+            full_name: u.user_metadata?.full_name ?? u.email ?? '',
+            phone: u.phone ?? '',
+            role: 'user',
+            status: 'active',
+            created_at: u.created_at ?? new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          return fallback;
+        }
         return null;
       }
 

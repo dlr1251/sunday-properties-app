@@ -1,7 +1,7 @@
 import React from 'react';
 import { DayPicker } from 'react-day-picker';
-import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 import 'react-day-picker/dist/style.css';
 
 interface CalendarProps {
@@ -20,10 +20,11 @@ export const Calendar: React.FC<CalendarProps> = ({
   onSelect,
   disabled,
   className = '',
-  locale = es,
+  locale,
   showOutsideDays = true,
   ...props
 }) => {
+  const appLocale = useDateFnsLocale();
   return (
     <div className={`p-3 ${className}`} {...props}>
       <DayPicker
@@ -31,7 +32,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         selected={selected}
         onSelect={onSelect}
         disabled={disabled}
-        locale={locale}
+        locale={locale ?? appLocale}
         showOutsideDays={showOutsideDays}
         className="w-full"
         classNames={{

@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../../i18n';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Progress } from '../../ui/progress';
@@ -49,7 +50,7 @@ export const NegotiationMetrics: React.FC<NegotiationMetricsProps> = ({
     : 0);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -157,7 +158,7 @@ export const NegotiationMetrics: React.FC<NegotiationMetricsProps> = ({
               <span className="text-sm">
                 {offers.length > 0 
                   ? new Date(Math.min(...offers.map(o => new Date(o.created_at).getTime())))
-                      .toLocaleDateString('es-CO')
+                      .toLocaleDateString(getIntlLocale())
                   : 'N/A'
                 }
               </span>
@@ -167,7 +168,7 @@ export const NegotiationMetrics: React.FC<NegotiationMetricsProps> = ({
               <span className="text-sm">
                 {offers.length > 0 
                   ? new Date(Math.max(...offers.map(o => new Date(o.created_at).getTime())))
-                      .toLocaleDateString('es-CO')
+                      .toLocaleDateString(getIntlLocale())
                   : 'N/A'
                 }
               </span>

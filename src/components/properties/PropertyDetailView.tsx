@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
+import { formatCurrency } from '../../utils/format';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -14,7 +18,6 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { 
   ImageLightbox,
-  ContactPanel,
   ShareModal,
   NeighborhoodInsights,
   SimilarProperties,
@@ -24,7 +27,6 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { 
   Heart, 
   Share2, 
-  MapPin, 
   Bed, 
   Bath, 
   Square, 
@@ -39,7 +41,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Phone,
-  MessageCircle,
   Camera,
   Play,
   Loader2,
@@ -50,6 +51,14 @@ import {
   Eye
 } from 'lucide-react';
 
+/** Minimal visit row for "my visits to this property" list */
+interface PropertyVisitSummary {
+  id: string;
+  scheduled_date: string;
+  scheduled_time?: string;
+  status: string;
+}
+
 interface PropertyDetailProps {
   propertyId: string;
   onBack: () => void;
@@ -57,6 +66,8 @@ interface PropertyDetailProps {
 
 
 export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, onBack }) => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { favorites, addToFavorites, removeFromFavorites, isFavorited } = useFavorites();
@@ -70,6 +81,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
   const [showShareModal, setShowShareModal] = useState(false);
   const [showEditPanel, setShowEditPanel] = useState(false);
   const [hasVisited, setHasVisited] = useState(false);
+  const [propertyVisits, setPropertyVisits] = useState<PropertyVisitSummary[]>([]);
   
   const isFavorite = isFavorited(propertyId);
   const isOwner = user?.id === property?.owner_id;
@@ -103,14 +115,14 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       if (error) throw error;
       
       if (!data) {
-        toast.error('Propiedad no encontrada');
+        toast.error(t('properties.detail.notFound'));
         onBack();
         return;
       }
 
       // Only show published properties to regular users
       if (data.status !== 'published' && user?.id !== data.owner_id) {
-        toast.error('Esta propiedad no está disponible');
+        toast.error(t('properties.detail.notAvailable'));
         onBack();
         return;
       }
@@ -118,7 +130,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       setProperty(data);
     } catch (error: any) {
       console.error('Error fetching property:', error);
-      toast.error('Error al cargar la propiedad');
+      toast.error(t('properties.detail.loadError'));
     } finally {
       setLoading(false);
     }
@@ -130,27 +142,22 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
     try {
       const { data, error } = await supabase
         .from('visits')
-        .select('id')
+        .select('id, scheduled_date, scheduled_time, status')
         .eq('property_id', propertyId)
         .eq('visitor_id', user.id)
-        .eq('status', 'completed')
-        .limit(1);
+        .order('scheduled_date', { ascending: false });
 
       if (error) throw error;
-      setHasVisited(data && data.length > 0);
+      const visits = (data || []) as PropertyVisitSummary[];
+      setPropertyVisits(visits);
+      setHasVisited(visits.some((v) => v.status === 'completed'));
     } catch (error) {
       console.error('Error checking visit status:', error);
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const visitStatusLabel = (status: string) =>
+    t(`properties.detail.visitStatuses.${status}`, { defaultValue: status });
 
   const nextImage = () => {
     const total = (property?.images || []).length;
@@ -169,7 +176,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Cargando propiedad...</p>
+          <p className="text-muted-foreground">{t('properties.detail.loading')}</p>
         </div>
       </div>
     );
@@ -180,8 +187,8 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Propiedad no encontrada</p>
-          <Button onClick={onBack} className="mt-4">Volver</Button>
+          <p className="text-muted-foreground">{t('properties.detail.notFound')}</p>
+          <Button onClick={onBack} className="mt-4">{t('common.back')}</Button>
         </div>
       </div>
     );
@@ -189,6 +196,11 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
 
   const displayProperty = property;
   const images = property?.images && property.images.length > 0 ? property.images : [];
+  const isRentalListing = displayProperty?.listing_type === 'rental';
+  const mainPrice: number = Number(isRentalListing ? displayProperty?.rent_monthly : displayProperty?.price) || 0;
+  const mainPriceLabel = isRentalListing
+    ? t('properties.detail.pricePerMonth', { amount: formatCurrency(mainPrice) })
+    : formatCurrency(mainPrice);
   const owner = property?.owner_id ? {
     id: property.owner_id,
     name: property.owner?.full_name || '',
@@ -210,7 +222,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" onClick={onBack}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
+              {t('common.back')}
             </Button>
             <div>
               <h1 className="text-xl font-semibold">{displayProperty.title}</h1>
@@ -224,7 +236,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               size="sm"
               onClick={async () => {
                 if (!user) {
-                  toast.error('Debes iniciar sesión para agregar a favoritos');
+                  toast.error(t('properties.detail.mustLoginFavorites'));
                   return;
                 }
                 if (isFavorite) {
@@ -234,7 +246,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 }
               }}
             >
-              <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+              <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'fill-brand-gold text-brand-gold' : ''}`} />
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setShowShareModal(true)}>
               <Share2 className="h-4 w-4" />
@@ -243,11 +255,10 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         </div>
       </motion.div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 lg:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-6 min-w-0">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* 1. Image Gallery - top on single column, top-left on xl */}
+          <div className="order-1 xl:col-span-2 space-y-6 min-w-0">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -302,22 +313,22 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex space-x-2">
                     {displayProperty.verified && (
-                    <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                    <Badge variant="verified">
                       <Shield className="h-3 w-3 mr-1" />
-                      Verificado
+                      {t('properties.verified')}
                     </Badge>
                   )}
                     {displayProperty.premium && (
-                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                    <Badge variant="premium">
                       <Star className="h-3 w-3 mr-1" />
-                      Premium
+                      {t('properties.premium')}
                     </Badge>
                   )}
                 </div>
               </div>
 
               {/* Thumbnail Strip */}
-                <div className="p-4 bg-gray-50">
+                <div className="p-4 bg-muted/50">
                 <div className="flex space-x-2 overflow-x-auto">
                     {images.map((image: string, index: number) => (
                     <button
@@ -329,7 +340,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                     >
                       <img
                         src={image}
-                        alt={`Vista ${index + 1}`}
+                        alt={t('properties.detail.viewAlt', { n: index + 1 })}
                         className="w-full h-full object-cover"
                       />
                     </button>
@@ -338,7 +349,208 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               </div>
             </Card>
             </motion.div>
+          </div>
 
+          {/* 2. Sidebar - price & actions (below image on mobile, right on xl) */}
+          <div className="order-2 xl:col-start-3 xl:row-start-1 xl:row-span-3 space-y-6 min-w-0 w-full max-w-full xl:max-w-none">
+            <Card className="p-4 sm:p-5 overflow-hidden">
+              <div className="flex items-baseline justify-between gap-2 mb-3">
+                <h2 className="text-xl sm:text-2xl font-bold text-primary truncate">
+                  {mainPriceLabel}
+                </h2>
+                <span className="text-sm text-muted-foreground shrink-0">
+                  {displayProperty.monthly_costs
+                    ? t('properties.detail.monthlyCosts', { amount: formatCurrency(displayProperty.monthly_costs) })
+                    : t('properties.detail.na')}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {isOwner ? (
+                  <>
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => {
+                        // Navigate to properties page or show full details
+                        window.location.href = `/properties/${propertyId}`;
+                      }}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      {t('properties.detail.viewFullDetails')}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => navigate(`/properties/${propertyId}/edit`)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      {t('properties.detail.editProperty')}
+                    </Button>
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="text-xs">
+                        {t('properties.detail.ownerAlert')}
+                      </AlertDescription>
+                    </Alert>
+                  </>
+                ) : (
+                  // Non-owner actions: Schedule visit, contact, make offer
+                  <>
+                    {hasVisited && (
+                      <Alert className="mb-2 border-success/30 bg-success/10">
+                        <Eye className="h-4 w-4 text-success" />
+                        <AlertDescription className="text-xs text-success">
+                          {t('properties.detail.alreadyVisited')}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <Button 
+                      className="w-full min-w-0" 
+                      size="sm"
+                      onClick={() => setShowVisitModal(true)}
+                      disabled={!user || property.status !== 'published' || (profile && profile.verification_status !== 'verified')}
+                    >
+                      <Calendar className="h-4 w-4 mr-2 shrink-0" />
+                      <span className="truncate">{hasVisited ? t('properties.detail.scheduleAnotherVisit') : t('visits.schedule')}</span>
+                    </Button>
+                    {hasVisited && user && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full h-10 sm:h-11 text-sm sm:text-base" 
+                        size="lg"
+                        onClick={() => navigate('/dashboard?tab=visits')}
+                      >
+                        <Eye className="h-4 w-4 mr-2 shrink-0" />
+                        <span className="truncate">{t('properties.detail.viewMyVisits')}</span>
+                      </Button>
+                    )}
+                    {user && propertyVisits.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">{t('properties.detail.yourVisits')}</p>
+                        <ul className="space-y-1.5">
+                          {propertyVisits.map((v) => (
+                            <li key={v.id}>
+                              <button
+                                type="button"
+                                onClick={() => navigate('/dashboard?tab=visits')}
+                                className="text-left w-full text-sm text-primary hover:underline flex items-center justify-between gap-2"
+                              >
+                                <span>
+                                  {v.scheduled_date
+                                    ? format(new Date(v.scheduled_date), "d MMM y", { locale: dateLocale })
+                                    : '—'}
+                                  {v.scheduled_time && ` · ${v.scheduled_time}`}
+                                </span>
+                                <Badge variant="secondary" className="text-xs shrink-0">
+                                  {visitStatusLabel(v.status)}
+                                </Badge>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {user && profile && profile.verification_status !== 'verified' && (
+                      <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription className="text-xs">
+                          {t('properties.detail.mustVerifyToSchedule')}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => {
+                        if (!user) {
+                          toast.error(t('properties.detail.mustLoginToOffer'));
+                          return;
+                        }
+                        if (!hasVisited) {
+                          toast.error(t('properties.detail.mustVisitToOffer'));
+                          return;
+                        }
+                        if (property.status !== 'published') {
+                          toast.error(t('properties.detail.propertyNotAvailableForOffers'));
+                          return;
+                        }
+                        setShowOfferForm(true);
+                      }}
+                      disabled={!user || !hasVisited || property.status !== 'published'}
+                    >
+                      <DollarSign className="h-4 w-4 mr-2 shrink-0" />
+                      <span className="truncate">{t('properties.makeOffer')}</span>
+                    </Button>
+                    {!hasVisited && user && (
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription className="text-xs">
+                          {t('properties.detail.mustVisitBeforeOffer')}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <Separator className="my-3" />
+
+              <div className="text-center text-xs text-muted-foreground">
+                {typeof displayProperty.visit_price === 'number' && (
+                  <p>{t('properties.detail.visitFee', { amount: formatCurrency(displayProperty.visit_price) })}</p>
+                )}
+                <p>{t('properties.detail.includesNda')}</p>
+              </div>
+            </Card>
+
+            {/* Smart Offer Form */}
+            {showOfferForm && (
+              <Card className="p-6">
+                <SmartOfferForm
+                  isOpen={showOfferForm}
+                  onOpenChange={setShowOfferForm}
+                  propertyId={propertyId}
+                  propertyPrice={mainPrice}
+                  transactionType={isRentalListing ? 'rental' : 'sale'}
+                  negotiationRules={displayProperty.negotiation_rules || {}}
+                  onSubmit={(offer) => {
+                    console.log('Offer submitted:', offer);
+                    toast.success(t('properties.detail.offerSent'));
+                    setShowOfferForm(false);
+                  }}
+                  onCancel={() => setShowOfferForm(false)}
+                />
+              </Card>
+            )}
+          </div>
+
+          {/* 3. Ubicación / Map - third on single column (below photos and price), below image on xl */}
+          <div className="order-3 xl:col-span-2 space-y-6 min-w-0">
+            {/* Property Map */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.25 }}
+            >
+              <PropertyDetailMap
+                propertyId={propertyId}
+                title={displayProperty.title}
+                address={displayProperty.address}
+                neighborhood={displayProperty.neighborhood}
+                city={displayProperty.city}
+                coordinates={property?.coordinates}
+                image={images.length > 0 ? images[0] : undefined}
+                height="400px"
+                showHeader={true}
+              />
+            </motion.div>
+          </div>
+
+          {/* 4. Rest of main content - Property Details, Neighborhood, Similar */}
+          <div className="order-4 xl:col-span-2 space-y-6 min-w-0">
             {/* Property Details */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -346,27 +558,27 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               transition={{ duration: 0.3, delay: 0.1 }}
             >
             <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Detalles de la Propiedad</h2>
+              <h2 className="text-2xl font-bold mb-4">{t('properties.detail.propertyDetails')}</h2>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Bed className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm text-muted-foreground">Habitaciones</p>
+                  <p className="text-sm text-muted-foreground">{t('properties.bedrooms')}</p>
                     <p className="font-semibold">{displayProperty.bedrooms}</p>
                 </div>
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Bath className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm text-muted-foreground">Baños</p>
+                  <p className="text-sm text-muted-foreground">{t('properties.bathrooms')}</p>
                     <p className="font-semibold">{displayProperty.bathrooms}</p>
                 </div>
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Square className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm text-muted-foreground">Área</p>
+                  <p className="text-sm text-muted-foreground">{t('properties.area')}</p>
                     <p className="font-semibold">{displayProperty.area}m²</p>
                 </div>
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Car className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm text-muted-foreground">Parqueadero</p>
+                  <p className="text-sm text-muted-foreground">{t('properties.parking')}</p>
                     <p className="font-semibold">{displayProperty.parking}</p>
                   </div>
               </div>
@@ -375,12 +587,12 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Descripción</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('properties.detail.description')}</h3>
                     <p className="text-muted-foreground">{displayProperty.description}</p>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Características</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('properties.detail.characteristics')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {(displayProperty.features || []).map((feature: string, index: number) => (
                       <div key={index} className="flex items-center space-x-2">
@@ -392,7 +604,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Etiquetas</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('properties.detail.tags')}</h3>
                   <div className="flex flex-wrap gap-2">
                       {(displayProperty.tags || []).map((tag: string, index: number) => (
                       <Badge key={index} variant="secondary">
@@ -420,25 +632,6 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               </motion.div>
             )}
 
-            {/* Property Map */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
-            >
-              <PropertyDetailMap
-                propertyId={propertyId}
-                title={displayProperty.title}
-                address={displayProperty.address}
-                neighborhood={displayProperty.neighborhood}
-                city={displayProperty.city}
-                coordinates={property?.coordinates}
-                image={images.length > 0 ? images[0] : undefined}
-                height="400px"
-                showHeader={true}
-              />
-            </motion.div>
-
             {/* Similar Properties */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -449,189 +642,11 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 currentPropertyId={propertyId}
                 neighborhood={displayProperty.neighborhood || ''}
                 city={displayProperty.city || ''}
-                priceRange={{ min: displayProperty.price * 0.7, max: displayProperty.price * 1.3 }}
+                priceRange={{ min: mainPrice * 0.7, max: mainPrice * 1.3 }}
                 onPropertyClick={(id) => {
                   window.location.href = `/properties/${id}`;
                 }}
               />
-            </motion.div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Price Card */}
-            <Card className="p-6">
-              <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-primary mb-2">
-                  {formatPrice(displayProperty.price)}
-                </h2>
-                <p className="text-muted-foreground">
-                  Costos mensuales: {displayProperty.monthly_costs ? formatPrice(displayProperty.monthly_costs) : 'N/D'}
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {isOwner ? (
-                  // Owner actions: View and Edit
-                  <>
-                    <Button 
-                      className="w-full" 
-                      size="lg"
-                      onClick={() => {
-                        // Navigate to properties page or show full details
-                        window.location.href = `/properties/${propertyId}`;
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver Detalles Completos
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      size="lg"
-                      onClick={() => navigate(`/properties/${propertyId}/edit`)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar Propiedad
-                    </Button>
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription className="text-xs">
-                        Esta es tu propiedad. Puedes editarla y gestionarla desde tu panel de propiedades.
-                      </AlertDescription>
-                    </Alert>
-                  </>
-                ) : (
-                  // Non-owner actions: Schedule visit, contact, make offer
-                  <>
-                    <Button 
-                      className="w-full" 
-                      size="lg"
-                      onClick={() => setShowVisitModal(true)}
-                      disabled={!user || property.status !== 'published' || (profile && profile.verification_status !== 'verified')}
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Agendar Visita
-                    </Button>
-                    {user && profile && profile.verification_status !== 'verified' && (
-                      <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription className="text-xs">
-                          Debes verificar tu cuenta para agendar visitas. Ve a Verificación de Perfil.
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                    <Button variant="outline" className="w-full" size="lg">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Contactar Vendedor
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      size="lg"
-                      onClick={() => {
-                        if (!user) {
-                          toast.error('Debes iniciar sesión para hacer una oferta');
-                          return;
-                        }
-                        if (property.status !== 'published') {
-                          toast.error('Esta propiedad no está disponible para ofertas');
-                          return;
-                        }
-                        setShowOfferForm(true);
-                      }}
-                      disabled={!user || property.status !== 'published'}
-                    >
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Hacer Oferta
-                    </Button>
-                    {!hasVisited && user && (
-                      <Alert>
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription className="text-xs">
-                          Recomendamos visitar la propiedad antes de hacer una oferta
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                  </>
-                )}
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="text-center">
-                {typeof displayProperty.visit_price === 'number' && (
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Costo de visita: {formatPrice(displayProperty.visit_price)}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Incluye NDA y documentación legal
-                </p>
-              </div>
-            </Card>
-
-            {/* Smart Offer Form */}
-            {showOfferForm && (
-              <Card className="p-6">
-                <SmartOfferForm
-                  isOpen={showOfferForm}
-                  onOpenChange={setShowOfferForm}
-                  propertyId={propertyId}
-                  propertyPrice={displayProperty.price}
-                  negotiationRules={displayProperty.negotiation_rules || {}}
-                  onSubmit={(offer) => {
-                    console.log('Offer submitted:', offer);
-                    toast.success('Oferta enviada exitosamente');
-                    setShowOfferForm(false);
-                  }}
-                  onCancel={() => setShowOfferForm(false)}
-                />
-              </Card>
-            )}
-
-            {/* Owner Card - Replaced with ContactPanel */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              <ContactPanel
-                owner={{
-                  id: property?.owner_id || property?.owner?.id || '',
-                  full_name: property?.owner?.full_name || displayProperty.owner?.name || 'Propietario',
-                  email: property?.owner?.email || '',
-                  phone: property?.owner?.phone || '',
-                  avatar_url: property?.owner?.avatar_url,
-                  verification_status: property?.verified ? 'verified' : 'pending',
-                  properties_count: displayProperty.owner?.propertiesCount || 0,
-                }}
-                propertyId={propertyId}
-                propertyTitle={displayProperty.title}
-              />
-            </motion.div>
-
-            {/* Map Card */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-            >
-            <Card className="p-6">
-              <h3 className="font-semibold mb-4 flex items-center">
-                <MapPin className="h-4 w-4 mr-2" />
-                Ubicación
-              </h3>
-                <div className="h-48 bg-muted rounded-lg flex items-center justify-center hover:shadow-md transition-shadow cursor-pointer">
-                <div className="text-center">
-                  <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Mapa interactivo</p>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                  {displayProperty.address}
-              </p>
-            </Card>
             </motion.div>
           </div>
         </div>
@@ -655,11 +670,12 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         isOpen={showOfferForm}
         onOpenChange={setShowOfferForm}
         propertyId={propertyId}
-        propertyPrice={displayProperty.price}
+        propertyPrice={mainPrice}
+        transactionType={isRentalListing ? 'rental' : 'sale'}
         negotiationRules={displayProperty.negotiation_rules || {}}
         onSubmit={(offer) => {
           console.log('Offer submitted:', offer);
-          toast.success('Oferta enviada exitosamente');
+          toast.success(t('properties.detail.offerSent'));
           setShowOfferForm(false);
         }}
         onCancel={() => setShowOfferForm(false)}
@@ -691,7 +707,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
           onPropertyUpdated={(updatedProperty) => {
             setProperty(updatedProperty);
             setShowEditPanel(false);
-            toast.success('Propiedad actualizada exitosamente');
+            toast.success(t('properties.detail.updatedSuccess'));
           }}
         />
       )}

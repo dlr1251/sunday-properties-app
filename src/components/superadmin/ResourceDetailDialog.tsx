@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { ResourceType } from '../../../hooks/superadmin/useResourceDetail';
 import { UserDetailView } from './views/UserDetailView';
@@ -21,18 +22,20 @@ export function ResourceDetailDialog({
   resourceId,
   onUpdate,
 }: ResourceDetailDialogProps) {
+  const { t } = useTranslation();
+
   const getTitle = () => {
     switch (resourceType) {
       case 'user':
-        return 'Detalles del Usuario';
+        return t('admin.userDetails');
       case 'property':
-        return 'Detalles de la Propiedad';
+        return t('admin.propertyDetails');
       case 'negotiation':
-        return 'Detalles de la Negociación';
+        return t('admin.negotiationDetails');
       case 'document':
-        return 'Detalles del Documento';
+        return t('admin.documentDetails');
       default:
-        return 'Detalles del Recurso';
+        return t('admin.resourceDetails');
     }
   };
 
@@ -40,7 +43,7 @@ export function ResourceDetailDialog({
     if (!resourceId) {
       return (
         <div className="text-center py-8 text-muted-foreground">
-          <p>No se ha seleccionado ningún recurso</p>
+          <p>{t('admin.noResourceSelected')}</p>
         </div>
       );
     }
@@ -57,7 +60,7 @@ export function ResourceDetailDialog({
       default:
         return (
           <div className="text-center py-8 text-muted-foreground">
-            <p>Tipo de recurso no soportado</p>
+            <p>{t('admin.unsupportedResource')}</p>
           </div>
         );
     }
@@ -69,7 +72,7 @@ export function ResourceDetailDialog({
         <DialogHeader>
           <DialogTitle>{getTitle()}</DialogTitle>
           <DialogDescription>
-            Visualiza y edita toda la información del recurso seleccionado
+            {t('admin.resourceDialogDescription')}
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4">
@@ -79,4 +82,3 @@ export function ResourceDetailDialog({
     </Dialog>
   );
 }
-

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,12 +43,15 @@ import {
 } from 'lucide-react';
 import { useAdminNegotiations } from '../../hooks/admin/useAdminNegotiations';
 import { toast } from 'sonner';
+import { formatCurrency, formatDate } from '../../utils/format';
 
 interface NegotiationMonitoringPanelProps {
   onViewNegotiation?: (negotiationId: string) => void;
 }
 
-export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMonitoringPanelProps) {
+export function NegotiationMonitoringPanel({
+  onViewNegotiation }: NegotiationMonitoringPanelProps) {
+    const { t } = useTranslation();
   const {
     negotiations,
     loading,
@@ -85,7 +89,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
       setSelectedNegotiationId(null);
       setInterventionAction(null);
     } else {
-      toast.error(result.error || 'Error en la intervención');
+      toast.error(result.error || t('admin.interventionError'));
     }
     setActionLoading(null);
   };
@@ -106,24 +110,9 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
   };
 
   const getStatusLabel = (status: string, isExpiringSoon?: boolean) => {
-    if (isExpiringSoon) return 'Expirando Pronto';
-
-    const labels: Record<string, string> = {
-      pending: 'Pendiente',
-      accepted: 'Aceptada',
-      rejected: 'Rechazada',
-      expired: 'Expirada',
-      counter_offered: 'Contraoferta'
-    };
-    return labels[status] || status;
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
+    if (isExpiringSoon) return t('admin.expiringSoon');
+    const key = status === 'counter_offered' ? 'countered' : status;
+    return t(`admin.status.${key}`, { defaultValue: status });
   };
 
   const getNegotiationDiscount = (offerAmount: number, propertyPrice: number) => {
@@ -138,7 +127,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Monitoreo de Negociaciones</h2>
+          <h2 className="text-2xl font-bold">{t('admin.monitoringTitle')}</h2>
           <p className="text-muted-foreground">
             Supervisar y intervenir en negociaciones activas
           </p>
@@ -219,12 +208,12 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="search">Buscar</Label>
+              <Label htmlFor="search">{t('common.search')}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="Propiedad, comprador, vendedor..."
+                  placeholder={t('admin.searchByPropertyBuyerSeller')}
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                   className="pl-10"
@@ -232,14 +221,14 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
               </div>
             </div>
             <div>
-              <Label>Estado</Label>
+              <Label>{t('admin.reviewStatus')}</Label>
               <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="pending">Pendientes</SelectItem>
+                  <SelectItem value="pending">{t('admin.pendingPlural')}</SelectItem>
                   <SelectItem value="accepted">Aceptadas</SelectItem>
                   <SelectItem value="rejected">Rechazadas</SelectItem>
                   <SelectItem value="expired">Expiradas</SelectItem>
@@ -248,7 +237,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
               </Select>
             </div>
             <div>
-              <Label>Tipo de Propiedad</Label>
+              <Label>{t('admin.propertyType')}</Label>
               <Select value={filters.property_type} onValueChange={(value) => setFilters(prev => ({ ...prev, property_type: value }))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -275,7 +264,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
                 }}
                 className="w-full"
               >
-                Limpiar Filtros
+                {t('common.clearFilters')}
               </Button>
             </div>
           </div>
@@ -306,11 +295,11 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Propiedad</TableHead>
+                  <TableHead>{t('visits.property')}</TableHead>
                   <TableHead>Oferta</TableHead>
                   <TableHead>Comprador</TableHead>
                   <TableHead>Vendedor</TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead>{t('admin.reviewStatus')}</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -333,7 +322,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
                         <div>
                           <p className="font-medium">{formatCurrency(negotiation.amount)}</p>
                           <p className="text-sm text-muted-foreground">
-                            {discount > 0 ? `${discount.toFixed(1)}% descuento` : 'Sin descuento'}
+                            {discount > 0 ? t('admin.discountPct', { value: discount.toFixed(1) }) : t('admin.noDiscount')}
                           </p>
                         </div>
                       </TableCell>
@@ -360,7 +349,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">
-                        <p>{new Date(negotiation.created_at).toLocaleDateString('es-CO')}</p>
+                        <p>{formatDate(negotiation.created_at)}</p>
                         <p className="text-muted-foreground">
                           {negotiation.days_since_offer} día{negotiation.days_since_offer !== 1 ? 's' : ''} atrás
                         </p>
@@ -419,7 +408,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {interventionAction === 'accept' ? 'Aceptar Negociación' : 'Rechazar Negociación'}
+              {interventionAction === 'accept' ? t('admin.acceptNegotiation') : t('admin.rejectNegotiation')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -442,7 +431,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInterveneDialog(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               variant={interventionAction === 'accept' ? 'default' : 'destructive'}
@@ -450,7 +439,7 @@ export function NegotiationMonitoringPanel({ onViewNegotiation }: NegotiationMon
               disabled={!interventionReason.trim() || actionLoading === selectedNegotiationId}
             >
               {actionLoading === selectedNegotiationId ? 'Procesando...' : 
-               interventionAction === 'accept' ? 'Aceptar Negociación' : 'Rechazar Negociación'}
+               interventionAction === 'accept' ? t('admin.acceptNegotiation') : t('admin.rejectNegotiation')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ import {
   User
 } from 'lucide-react';
 import { useAdminProperties } from '../../hooks/admin/useAdminProperties';
+import { formatCurrency as formatPrice, formatDate } from '../../utils/format';
 
 interface PropertyVerification {
   id: string;
@@ -58,6 +60,7 @@ interface PropertyVerification {
 }
 
 export const AdminPropertyVerificationPanel: React.FC = () => {
+  const { t } = useTranslation();
   const {
     properties,
     loading,
@@ -117,19 +120,11 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
   // Map properties to include computed fields for UI
   const mappedProperties: PropertyVerification[] = properties.map(property => ({
     ...property,
     location: `${property.address}, ${property.city}`,
-    owner_name: property.owner?.full_name || 'Usuario',
+    owner_name: property.owner?.full_name || t('common.unnamed'),
     owner_email: property.owner?.email || 'usuario@email.com',
     documents: [], // For now, simulate empty documents array
   }));
@@ -161,7 +156,7 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Home className="h-4 w-4 text-blue-600" />
-              Total Propiedades
+              {t('admin.properties')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -173,7 +168,7 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="h-4 w-4 text-yellow-600" />
-              Pendientes
+              {t('admin.pendingPlural')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -213,12 +208,12 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
       {/* Filters */}
       <div className="flex gap-4">
         <div className="flex-1">
-          <Label htmlFor="search">Buscar</Label>
+          <Label htmlFor="search">{t('common.search')}</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="search"
-              placeholder="Buscar por título, propietario o ubicación..."
+              placeholder={t('admin.searchByTitleOwnerLocation')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -226,14 +221,14 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
           </div>
         </div>
         <div>
-          <Label htmlFor="status">Estado</Label>
+          <Label htmlFor="status">{t('admin.reviewStatus')}</Label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendientes</SelectItem>
+              <SelectItem value="pending">{t('admin.pendingPlural')}</SelectItem>
               <SelectItem value="published">Publicadas</SelectItem>
               <SelectItem value="sold">Vendidas</SelectItem>
               <SelectItem value="rented">Alquiladas</SelectItem>
@@ -248,7 +243,7 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            Verificación de Propiedades
+            {t('admin.propertyVerificationTitle')}
           </CardTitle>
           <CardDescription>
             Revisa y aprueba las propiedades antes de su publicación
@@ -259,10 +254,10 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
             <table className="w-full">
               <thead className="border-b">
                 <tr>
-                  <th className="text-left p-4 font-medium">Propiedad</th>
+                  <th className="text-left p-4 font-medium">{t('visits.property')}</th>
                   <th className="text-left p-4 font-medium">Propietario</th>
                   <th className="text-left p-4 font-medium">Precio</th>
-                  <th className="text-left p-4 font-medium">Estado</th>
+                  <th className="text-left p-4 font-medium">{t('admin.reviewStatus')}</th>
                   <th className="text-left p-4 font-medium">Archivos</th>
                   <th className="text-left p-4 font-medium">Acciones</th>
                 </tr>
@@ -301,11 +296,7 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
                     <td className="p-4">
                       <Badge variant={getStatusBadgeVariant(property.status)} className="flex items-center gap-1 w-fit">
                         {getStatusIcon(property.status)}
-                        {property.status === 'pending' ? 'Pendiente' :
-                         property.status === 'published' ? 'Publicada' :
-                         property.status === 'sold' ? 'Vendida' :
-                         property.status === 'rented' ? 'Alquilada' :
-                         property.status === 'archived' ? 'Archivada' : property.status}
+                        {t(`admin.status.${property.status}`, { defaultValue: property.status })}
                       </Badge>
                     </td>
                     <td className="p-4">
@@ -370,7 +361,7 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === 'approve' ? 'Aprobar Propiedad' : 'Rechazar Propiedad'}
+              {reviewAction === 'approve' ? t('admin.approveProperty') : t('admin.rejectProperty')}
             </DialogTitle>
             <DialogDescription>
               {reviewAction === 'approve'
@@ -420,13 +411,13 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
                   variant="outline"
                   onClick={() => setReviewDialogOpen(false)}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   onClick={() => handleReview(selectedProperty.id, reviewAction)}
                   variant={reviewAction === 'approve' ? 'default' : 'destructive'}
                 >
-                  {reviewAction === 'approve' ? 'Aprobar' : 'Rechazar'}
+                  {reviewAction === 'approve' ? t('common.approve') : t('common.reject')}
                 </Button>
               </div>
             </div>
@@ -438,9 +429,9 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
       <Dialog open={!!selectedProperty && !reviewDialogOpen} onOpenChange={() => setSelectedProperty(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalles de Propiedad</DialogTitle>
+            <DialogTitle>{t('admin.propertyDetails')}</DialogTitle>
             <DialogDescription>
-              Información completa de la propiedad para revisión
+              {t('admin.propertyVerificationDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -497,7 +488,7 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
                   </div>
 
                   <div>
-                    <Label className="font-medium">Propietario</Label>
+                    <Label className="font-medium">{t('admin.owner')}</Label>
                     <div className="mt-1">
                       <p className="font-medium">{selectedProperty.owner_name}</p>
                       <p className="text-sm text-muted-foreground">{selectedProperty.owner_email}</p>
@@ -505,23 +496,19 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
                   </div>
 
                   <div>
-                    <Label className="font-medium">Estado</Label>
+                    <Label className="font-medium">{t('admin.reviewStatus')}</Label>
                     <div className="mt-1">
                       <Badge variant={getStatusBadgeVariant(selectedProperty.status)}>
-                        {selectedProperty.status === 'pending' ? 'Pendiente' :
-                         selectedProperty.status === 'published' ? 'Publicada' :
-                         selectedProperty.status === 'sold' ? 'Vendida' :
-                         selectedProperty.status === 'rented' ? 'Alquilada' :
-                         selectedProperty.status === 'archived' ? 'Archivada' : selectedProperty.status}
+                        {t(`admin.status.${selectedProperty.status}`, { defaultValue: selectedProperty.status })}
                       </Badge>
                     </div>
                   </div>
 
                   <div>
-                    <Label className="font-medium">Fechas</Label>
+                    <Label className="font-medium">{t('admin.createdAt')}</Label>
                     <div className="mt-1 space-y-1 text-sm">
-                      <p>Creada: {new Date(selectedProperty.created_at).toLocaleDateString('es-CO')}</p>
-                      <p>Actualizada: {new Date(selectedProperty.updated_at).toLocaleDateString('es-CO')}</p>
+                      <p>{t('admin.createdAt')}: {formatDate(selectedProperty.created_at)}</p>
+                      <p>{t('admin.updatedAt')}: {formatDate(selectedProperty.updated_at)}</p>
                     </div>
                   </div>
                 </div>
@@ -545,12 +532,12 @@ export const AdminPropertyVerificationPanel: React.FC = () => {
               {/* Documents Section */}
               {selectedProperty.documents && selectedProperty.documents.length > 0 && (
                 <div>
-                  <Label className="font-medium">Documentos ({selectedProperty.documents.length})</Label>
+                  <Label className="font-medium">{t('admin.documentsCountLabel', { count: selectedProperty.documents.length })}</Label>
                   <div className="mt-2 space-y-2">
                     {selectedProperty.documents.map((doc, index) => (
                       <div key={index} className="flex items-center gap-2 p-2 border rounded">
                         <FileText className="h-4 w-4" />
-                        <span className="text-sm">Documento {index + 1}</span>
+                        <span className="text-sm">{t('admin.documentFallback')} {index + 1}</span>
                       </div>
                     ))}
                   </div>

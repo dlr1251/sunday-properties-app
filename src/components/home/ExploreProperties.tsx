@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { PropertyGrid } from './PropertyGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
+import { formatCurrency } from '../../utils/format';
 import {
   Map,
   Grid3X3,
@@ -31,6 +33,20 @@ import {
   Droplets
 } from 'lucide-react';
 
+const FEATURE_I18N_KEY: Record<string, string> = {
+  'Piscina': 'properties.features.pool',
+  'Gimnasio': 'properties.features.gym',
+  'Portería': 'properties.features.doorman',
+  'Terraza': 'properties.features.terrace',
+  'Jardín': 'properties.features.garden',
+  'Ascensor': 'properties.features.elevator',
+  'Parqueadero': 'properties.features.parking',
+  'Cuarto de servicio': 'properties.features.serviceRoom',
+  'Estudio': 'properties.features.study',
+  'Jacuzzi': 'properties.features.jacuzzi',
+  'WiFi': 'properties.features.wifi',
+};
+
 interface SearchFilters {
   location: string;
   propertyType: string;
@@ -54,6 +70,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
   onPropertySelect,
   onViewAllProperties
 }) => {
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,20 +84,20 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
   });
 
   const propertyTypes = [
-    { value: 'all', label: 'Todos los tipos', icon: Home },
-    { value: 'apartment', label: 'Apartamentos', icon: Building2 },
-    { value: 'house', label: 'Casas', icon: Home },
-    { value: 'office', label: 'Oficinas', icon: Briefcase },
-    { value: 'commercial', label: 'Locales', icon: Store },
+    { value: 'all', label: t('properties.allTypes'), icon: Home },
+    { value: 'apartment', label: t('properties.apartments'), icon: Building2 },
+    { value: 'house', label: t('properties.houses'), icon: Home },
+    { value: 'office', label: t('properties.offices'), icon: Briefcase },
+    { value: 'commercial', label: t('properties.shops'), icon: Store },
   ];
 
   const priceRanges = [
-    { label: 'Cualquier precio', value: [0, 10000000000] },
-    { label: 'Hasta $300M', value: [0, 300000000] },
-    { label: '$300M - $600M', value: [300000000, 600000000] },
-    { label: '$600M - $1B', value: [600000000, 1000000000] },
-    { label: '$1B - $2B', value: [1000000000, 2000000000] },
-    { label: '$2B+', value: [2000000000, 10000000000] },
+    { label: t('properties.anyPrice'), value: [0, 10000000000] },
+    { label: t('properties.priceUpTo300'), value: [0, 300000000] },
+    { label: t('properties.price300to600'), value: [300000000, 600000000] },
+    { label: t('properties.price600to1B'), value: [600000000, 1000000000] },
+    { label: t('properties.price1Bto2B'), value: [1000000000, 2000000000] },
+    { label: t('properties.price2BPlus'), value: [2000000000, 10000000000] },
   ];
 
   const features = [
@@ -257,14 +274,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
     onPropertySelect?.(propertyId);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const convertProperties = (props: Property[]) => {
     return props.map(prop => ({
@@ -284,13 +294,15 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
   const stats = [
     {
-      label: 'Propiedades',
+      key: 'count',
+      label: t('properties.title'),
       value: properties.length.toString(),
       icon: MapPin,
       color: 'text-blue-600'
     },
     {
-      label: 'Precio Promedio',
+      key: 'average',
+      label: t('properties.averagePrice'),
       value: properties.length > 0
         ? formatPrice(properties.reduce((sum, p) => sum + p.price, 0) / properties.length)
         : '$0',
@@ -298,7 +310,8 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       color: 'text-green-600'
     },
     {
-      label: 'Verificadas',
+      key: 'verified',
+      label: t('properties.verifiedCount'),
       value: properties.filter(p => p.verified).length.toString(),
       icon: Star,
       color: 'text-yellow-600'
@@ -309,7 +322,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
   const selectedPropertyType = propertyTypes.find(type => type.value === searchFilters.propertyType);
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-background">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         {/* Header */}
         <motion.div
@@ -319,11 +332,11 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Explora Propiedades
+          <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            {t('home.sections.exploreTitle')}
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Encuentra la propiedad perfecta con nuestros filtros avanzados y vista de mapa
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            {t('properties.exploreFiltersSubtitle')}
           </p>
         </motion.div>
 
@@ -335,23 +348,23 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {stats.map((stat, index) => {
+          {stats.map((stat) => {
             const Icon = stat.icon;
             return (
               <div
-                key={stat.label}
-                className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm"
+                key={stat.key}
+                className="rounded-xl p-6 border border-border/60 bg-card/50 backdrop-blur-sm shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <div className={`text-3xl font-bold ${stat.color} mb-1`}>
                       {stat.value}
                     </div>
-                    <div className="text-gray-600 font-medium">
+                    <div className="text-muted-foreground font-medium">
                       {stat.label}
                     </div>
                   </div>
-                  <div className={`w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center`}>
+                  <div className="w-12 h-12 bg-secondary/50 rounded-lg flex items-center justify-center border border-border/40">
                     <Icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                 </div>
@@ -362,7 +375,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
         {/* Advanced Search Filters */}
         <motion.div
-          className="bg-white rounded-2xl shadow-lg p-8 mb-12"
+          className="rounded-2xl border border-border/60 bg-card/50 backdrop-blur-sm shadow-sm p-8 mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -372,32 +385,32 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             {/* Location */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center">
+              <label className="text-sm font-medium text-foreground flex items-center">
                 <MapPin className="w-4 h-4 mr-2" />
-                Ubicación
+                {t('properties.location')}
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Ciudad, barrio o dirección"
+                  placeholder={t('properties.searchLocation')}
                   value={searchFilters.location}
                   onChange={(e) => handleFilterChange('location', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
                 />
               </div>
             </div>
 
             {/* Property Type */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center">
+              <label className="text-sm font-medium text-foreground flex items-center">
                 <Home className="w-4 h-4 mr-2" />
-                Tipo de Propiedad
+                {t('properties.propertyType')}
               </label>
               <select
                 value={searchFilters.propertyType}
                 onChange={(e) => handleFilterChange('propertyType', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
               >
                 {propertyTypes.map((type) => {
                   const Icon = type.icon;
@@ -412,9 +425,9 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
             {/* Price Range */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center">
+              <label className="text-sm font-medium text-foreground flex items-center">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                Rango de Precio
+                {t('properties.priceRange')}
               </label>
               <select
                 value={`${searchFilters.priceRange[0]}-${searchFilters.priceRange[1]}`}
@@ -424,7 +437,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                   );
                   if (selected) handleFilterChange('priceRange', selected.value);
                 }}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
               >
                 {priceRanges.map((range, index) => (
                   <option key={index} value={`${range.value[0]}-${range.value[1]}`}>
@@ -436,33 +449,33 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
             {/* Sort */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center">
+              <label className="text-sm font-medium text-foreground flex items-center">
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
-                Ordenar por
+                {t('properties.sortBy')}
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
               >
-                <option value="newest">Más recientes</option>
-                <option value="price-low">Precio: menor a mayor</option>
-                <option value="price-high">Precio: mayor a menor</option>
-                <option value="area">Mayor área</option>
-                <option value="bedrooms">Más habitaciones</option>
+                <option value="newest">{t('properties.sortOptions.newest')}</option>
+                <option value="price-low">{t('properties.sortOptions.priceAsc')}</option>
+                <option value="price-high">{t('properties.sortOptions.priceDesc')}</option>
+                <option value="area">{t('properties.sortOptions.largerArea')}</option>
+                <option value="bedrooms">{t('properties.sortOptions.moreBedrooms')}</option>
               </select>
             </div>
           </div>
 
           {/* Advanced Filters Toggle */}
-          <div className="flex items-center justify-between border-t border-gray-200 pt-6">
+          <div className="flex items-center justify-between border-t border-border pt-6">
             <Button
               variant="outline"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className="flex items-center space-x-2"
             >
               <Filter className="w-4 h-4" />
-              <span>Filtros avanzados</span>
+              <span>{t('common.advancedFilters')}</span>
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="ml-2">
                   {activeFiltersCount}
@@ -475,17 +488,17 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                 <Button
                   variant="ghost"
                   onClick={clearFilters}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <X className="w-4 h-4 mr-2" />
-                  Limpiar filtros
+                  {t('common.clearFilters')}
                 </Button>
               )}
 
               {/* View Mode Controls */}
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700">Vista:</span>
-                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                <span className="text-sm font-medium text-muted-foreground">{t('common.view')}:</span>
+                <div className="flex items-center bg-muted rounded-lg p-1">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'ghost'}
                     size="sm"
@@ -493,7 +506,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                     className="px-3 py-1"
                   >
                     <Grid3X3 className="w-4 h-4 mr-1" />
-                    Cuadrícula
+                    {t('common.grid')}
                   </Button>
                   <Button
                     variant={viewMode === 'list' ? 'default' : 'ghost'}
@@ -502,7 +515,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                     className="px-3 py-1"
                   >
                     <List className="w-4 h-4 mr-1" />
-                    Lista
+                    {t('common.list')}
                   </Button>
                   <Button
                     variant={viewMode === 'map' ? 'default' : 'ghost'}
@@ -511,7 +524,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                     className="px-3 py-1"
                   >
                     <Map className="w-4 h-4 mr-1" />
-                    Mapa
+                    {t('common.map')}
                   </Button>
                 </div>
               </div>
@@ -521,7 +534,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           {/* Advanced Filters Panel */}
           {showAdvancedFilters && (
             <motion.div
-              className="border-t border-gray-200 pt-6 mt-6"
+              className="border-t border-border pt-6 mt-6"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -529,16 +542,16 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 {/* Bedrooms */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <label className="text-sm font-medium text-foreground flex items-center">
                     <Bed className="w-4 h-4 mr-2" />
-                    Habitaciones mínimas
+                    {t('properties.minBedrooms')}
                   </label>
                   <select
                     value={searchFilters.bedrooms || ''}
                     onChange={(e) => handleFilterChange('bedrooms', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
                   >
-                    <option value="">Cualquiera</option>
+                    <option value="">{t('common.any')}</option>
                     <option value="1">1+</option>
                     <option value="2">2+</option>
                     <option value="3">3+</option>
@@ -549,16 +562,16 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
                 {/* Bathrooms */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <label className="text-sm font-medium text-foreground flex items-center">
                     <Bath className="w-4 h-4 mr-2" />
-                    Baños mínimos
+                    {t('properties.minBathrooms')}
                   </label>
                   <select
                     value={searchFilters.bathrooms || ''}
                     onChange={(e) => handleFilterChange('bathrooms', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
                   >
-                    <option value="">Cualquiera</option>
+                    <option value="">{t('common.any')}</option>
                     <option value="1">1+</option>
                     <option value="2">2+</option>
                     <option value="3">3+</option>
@@ -568,16 +581,16 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
                 {/* Parking */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <label className="text-sm font-medium text-foreground flex items-center">
                     <Car className="w-4 h-4 mr-2" />
-                    Parqueaderos mínimos
+                    {t('properties.minParking')}
                   </label>
                   <select
                     value={searchFilters.parking || ''}
                     onChange={(e) => handleFilterChange('parking', e.target.value ? parseInt(e.target.value) : undefined)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
                   >
-                    <option value="">Cualquiera</option>
+                    <option value="">{t('common.any')}</option>
                     <option value="1">1+</option>
                     <option value="2">2+</option>
                     <option value="3">3+</option>
@@ -587,24 +600,24 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
                 {/* Area Range */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 flex items-center">
+                  <label className="text-sm font-medium text-foreground flex items-center">
                     <Ruler className="w-4 h-4 mr-2" />
-                    Área (m²)
+                    {t('properties.areaM2')}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <input
                       type="number"
-                      placeholder="Mín"
+                      placeholder={t('common.min')}
                       value={searchFilters.minArea || ''}
                       onChange={(e) => handleFilterChange('minArea', e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="px-3 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="px-3 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring text-sm"
                     />
                     <input
                       type="number"
-                      placeholder="Máx"
+                      placeholder={t('common.max')}
                       value={searchFilters.maxArea || ''}
                       onChange={(e) => handleFilterChange('maxArea', e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="px-3 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      className="px-3 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring text-sm"
                     />
                   </div>
                 </div>
@@ -612,8 +625,8 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
               {/* Features */}
               <div className="mb-6">
-                <label className="text-sm font-medium text-gray-700 mb-3 block">
-                  Características
+                <label className="text-sm font-medium text-foreground mb-3 block">
+                  {t('properties.featuresLabel')}
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {features.map((feature) => {
@@ -625,12 +638,12 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                         onClick={() => toggleFeature(feature.value)}
                         className={`flex items-center p-3 border rounded-lg text-sm transition-all ${
                           isSelected
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                            ? 'border-primary/40 bg-primary/10 text-primary'
+                            : 'border-border/60 bg-background text-foreground/80 hover:border-border'
                         }`}
                       >
                         <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">{feature.value}</span>
+                        <span className="truncate">{t(FEATURE_I18N_KEY[feature.value] ?? feature.value)}</span>
                       </button>
                     );
                   })}
@@ -644,18 +657,18 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                     type="checkbox"
                     checked={searchFilters.verified || false}
                     onChange={(e) => handleFilterChange('verified', e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    className="rounded border-border text-primary focus:ring-ring mr-2"
                   />
-                  <span className="text-sm text-gray-700">Solo propiedades verificadas</span>
+                  <span className="text-sm text-muted-foreground">{t('properties.verifiedOnly')}</span>
                 </label>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     checked={searchFilters.premium || false}
                     onChange={(e) => handleFilterChange('premium', e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    className="rounded border-border text-primary focus:ring-ring mr-2"
                   />
-                  <span className="text-sm text-gray-700">Solo propiedades premium</span>
+                  <span className="text-sm text-muted-foreground">{t('properties.premiumOnly')}</span>
                 </label>
               </div>
             </motion.div>
@@ -671,18 +684,18 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Propiedades Disponibles
+            <h3 className="text-2xl font-bold text-foreground mb-2">
+              {t('properties.availableProperties')}
               {filteredProperties.length !== properties.length && (
-                <span className="text-lg font-normal text-gray-600 ml-2">
-                  ({filteredProperties.length} de {properties.length})
+                <span className="text-lg font-normal text-muted-foreground ml-2">
+                  {t('properties.filteredOfTotal', { filtered: filteredProperties.length, total: properties.length })}
                 </span>
               )}
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {filteredProperties.length === properties.length
-                ? 'Descubre todas las propiedades disponibles'
-                : 'Resultados filtrados según tus criterios'
+                ? t('properties.discoverAll')
+                : t('properties.filteredResults')
               }
             </p>
           </div>
@@ -691,14 +704,14 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
             {viewMode === 'map' && (
               <Badge variant="secondary" className="px-4 py-2">
                 <Map className="w-4 h-4 mr-2" />
-                Vista de mapa próximamente
+                {t('properties.mapComingSoon')}
               </Badge>
             )}
             <Button
               onClick={onViewAllProperties}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="h-11"
             >
-              Ver Todas
+              {t('properties.viewAll')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -717,19 +730,18 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           />
         ) : (
           <motion.div
-            className="bg-gray-100 rounded-2xl h-96 flex items-center justify-center"
+            className="bg-secondary/40 rounded-2xl border border-border/60 h-96 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
           >
             <div className="text-center">
-              <Map className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Vista de Mapa
+              <Map className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                {t('properties.mapViewTitle')}
               </h3>
-              <p className="text-gray-600 max-w-md">
-                Próximamente podrás explorar propiedades directamente en el mapa
-                para una experiencia más inmersiva.
+              <p className="text-muted-foreground max-w-md">
+                {t('properties.mapComingSoonDesc')}
               </p>
             </div>
           </motion.div>
@@ -747,9 +759,9 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
             <Button
               onClick={onViewAllProperties}
               size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4"
+              className="px-8 py-4"
             >
-              Ver Todas las Propiedades
+              {t('properties.viewAllProperties')}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </motion.div>

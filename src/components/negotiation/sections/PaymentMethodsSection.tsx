@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -47,6 +48,7 @@ export function PaymentMethodsSection({
   negotiationRules,
   className = ''
 }: PaymentMethodsSectionProps) {
+  const { t } = useTranslation();
 
   const getRiskBadgeColor = (risk: string) => {
     switch (risk) {
@@ -64,7 +66,7 @@ export function PaymentMethodsSection({
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <CreditCard className="h-5 w-5 text-blue-600" />
-          Método de Pago Principal
+          {t('negotiations.sections.paymentMethod')}
         </CardTitle>
         {selectedMethodData && (
           <p className="text-sm text-gray-600 mt-1">

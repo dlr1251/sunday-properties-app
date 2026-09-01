@@ -154,7 +154,7 @@ export const useUserNotifications = (userId?: string) => {
 };
 
 // Hook for fetching ALL properties (for logged-in users to browse)
-export const useAllProperties = (currentUserId?: string) => {
+export const useAllProperties = (currentUserId?: string, listingType?: 'sale' | 'rental') => {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,7 +165,7 @@ export const useAllProperties = (currentUserId?: string) => {
       setError(null);
 
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('properties')
           .select(`
             *,
@@ -177,6 +177,12 @@ export const useAllProperties = (currentUserId?: string) => {
           `)
           .eq('status', 'published')
           .order('created_at', { ascending: false });
+
+        if (listingType) {
+          query = query.eq('listing_type', listingType);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
           console.error('❌ useAllProperties: Supabase error:', error);
@@ -200,7 +206,7 @@ export const useAllProperties = (currentUserId?: string) => {
     };
 
     fetchAllProperties();
-  }, [currentUserId]);
+  }, [currentUserId, listingType]);
 
   return { properties, loading, error };
 };

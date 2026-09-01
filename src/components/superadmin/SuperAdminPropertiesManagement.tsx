@@ -6,12 +6,13 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Home, Plus, Search, Edit, Trash2, Eye, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatDate } from '../../utils/format';
 import { useNavigate } from 'react-router-dom';
 import { ResourceDetailDialog } from './ResourceDetailDialog';
 
 export function SuperAdminPropertiesManagement() {
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,14 +38,14 @@ export function SuperAdminPropertiesManagement() {
       if (error) throw error;
       setProperties(data || []);
     } catch (error: any) {
-      toast.error('Error al cargar propiedades: ' + error.message);
+      toast.error(t('admin.loadPropertiesErrorMessage', { message: error.message }));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteProperty = async (propertyId: string) => {
-    if (!confirm('¿Está seguro de eliminar esta propiedad?')) return;
+    if (!confirm(t('admin.confirmDeleteProperty'))) return;
 
     try {
       const { error } = await supabase
@@ -53,28 +54,20 @@ export function SuperAdminPropertiesManagement() {
         .eq('id', propertyId);
 
       if (error) throw error;
-      toast.success('Propiedad eliminada exitosamente');
+      toast.success(t('admin.propertyDeleted'));
       fetchProperties();
     } catch (error: any) {
-      toast.error('Error al eliminar propiedad: ' + error.message);
+      toast.error(t('admin.deletePropertyError', { message: error.message }));
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      published: { label: 'Publicada', variant: 'default' as const },
-      pending: { label: 'Pendiente', variant: 'secondary' as const },
-      draft: { label: 'Borrador', variant: 'outline' as const },
-      sold: { label: 'Vendida', variant: 'default' as const },
-      archived: { label: 'Archivada', variant: 'outline' as const }
+      published: { label: t('admin.status.published'), variant: 'default' as const },
+      pending: { label: t('admin.status.pending'), variant: 'secondary' as const },
+      draft: { label: t('admin.status.draft'), variant: 'outline' as const },
+      sold: { label: t('admin.status.sold'), variant: 'default' as const },
+      archived: { label: t('admin.status.archived'), variant: 'outline' as const }
     };
     const config = variants[status] || { label: status, variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -90,14 +83,14 @@ export function SuperAdminPropertiesManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Gestión de Propiedades</h2>
+          <h2 className="text-2xl font-bold">{t('admin.managePropertiesTitle')}</h2>
           <p className="text-muted-foreground">
-            Crear, editar y gestionar todas las propiedades del sistema
+            {t('admin.managePropertiesDescription')}
           </p>
         </div>
         <Button onClick={() => navigate('/properties/upload')}>
           <Plus className="h-4 w-4 mr-2" />
-          Crear Propiedad
+          {t('admin.createProperty')}
         </Button>
       </div>
 
@@ -106,7 +99,7 @@ export function SuperAdminPropertiesManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar propiedades..."
+              placeholder={t('admin.searchProperties')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -117,8 +110,8 @@ export function SuperAdminPropertiesManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Propiedades ({filteredProperties.length})</CardTitle>
-          <CardDescription>Todas las propiedades del sistema</CardDescription>
+          <CardTitle>{t('admin.propertiesCountLabel', { count: filteredProperties.length })}</CardTitle>
+          <CardDescription>{t('admin.propertiesAllDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -128,19 +121,19 @@ export function SuperAdminPropertiesManagement() {
           ) : filteredProperties.length === 0 ? (
             <div className="text-center py-12">
               <Home className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron propiedades</p>
+              <p className="text-muted-foreground">{t('properties.noProperties')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4">Propiedad</th>
-                    <th className="text-left p-4">Propietario</th>
-                    <th className="text-left p-4">Precio</th>
-                    <th className="text-left p-4">Estado</th>
-                    <th className="text-left p-4">Creada</th>
-                    <th className="text-right p-4">Acciones</th>
+                    <th className="text-left p-4">{t('negotiations.propertyLabel')}</th>
+                    <th className="text-left p-4">{t('negotiations.roles.owner')}</th>
+                    <th className="text-left p-4">{t('properties.price')}</th>
+                    <th className="text-left p-4">{t('properties.status')}</th>
+                    <th className="text-left p-4">{t('common.created')}</th>
+                    <th className="text-right p-4">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -157,7 +150,7 @@ export function SuperAdminPropertiesManagement() {
                       <td className="p-4 font-medium">{formatCurrency(prop.price || 0)}</td>
                       <td className="p-4">{getStatusBadge(prop.status)}</td>
                       <td className="p-4 text-sm text-muted-foreground">
-                        {prop.created_at ? format(new Date(prop.created_at), 'dd/MM/yyyy', { locale: es }) : '-'}
+                        {prop.created_at ? formatDate(prop.created_at) : '-'}
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-end gap-2">

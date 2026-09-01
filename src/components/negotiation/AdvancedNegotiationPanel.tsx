@@ -127,8 +127,8 @@ export const AdvancedNegotiationPanel: React.FC<AdvancedNegotiationPanelProps> =
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error al cargar ofertas</h3>
-          <p className="text-gray-500 mb-4">{error}</p>
+          <h3 className="text-lg font-medium text-foreground mb-2">Error al cargar ofertas</h3>
+          <p className="text-muted-foreground mb-4">{error}</p>
           <button
             onClick={refetch}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -144,7 +144,7 @@ export const AdvancedNegotiationPanel: React.FC<AdvancedNegotiationPanelProps> =
     <div className="space-y-6">
       {/* Advisory Panel Toggle */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Panel de Negociación Avanzado</h2>
+        <h2 className="text-2xl font-bold text-foreground">Panel de Negociación Avanzado</h2>
         <button
           onClick={() => setShowAdvisory(!showAdvisory)}
           className="text-sm text-blue-600 hover:text-blue-700"

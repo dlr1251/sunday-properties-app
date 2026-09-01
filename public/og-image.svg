@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="hero" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a2441"/>
+      <stop offset="0.5" stop-color="#164a7b"/>
+      <stop offset="1" stop-color="#2f8ac0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#hero)"/>
+  <path d="M120 420 C360 180, 840 180, 1080 420" stroke="#f0a80d" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <path d="M180 460 C400 280, 800 280, 1020 460" stroke="#f5d15a" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <text x="600" y="320" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="64" font-weight="600">Sunday Properties</text>
+  <text x="600" y="380" text-anchor="middle" fill="#f5d15a" font-family="system-ui, sans-serif" font-size="28">Medellín, Colombia</text>
+</svg>

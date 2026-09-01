@@ -1,33 +1,22 @@
 import React from 'react';
 import { Crown, Shield, Users, User, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import i18n from '../i18n/config';
 
 export type AppRole = 'user' | 'agent' | 'admin' | 'super_admin';
 
 export const getRoleLabel = (role: AppRole | string): string => {
-  const labels: Record<string, string> = {
-    user: 'Usuario',
-    agent: 'Agente',
-    admin: 'Administrador',
-    super_admin: 'Super Administrador'
-  };
-  return labels[role] || role;
+  return i18n.t(`profile.roles.${role}`, { defaultValue: role });
 };
 
 export const getRoleDescription = (role: AppRole | string): string => {
-  const descriptions: Record<string, string> = {
-    user: 'Usuario regular con acceso limitado',
-    agent: 'Agente inmobiliario con permisos adicionales',
-    admin: 'Administrador con control moderado',
-    super_admin: 'Super administrador con control total'
-  };
-  return descriptions[role] || '';
+  return i18n.t(`admin.roleDescriptions.${role}`, { defaultValue: '' });
 };
 
 export const getAvailableRoles = () => [
-  { value: 'user', label: 'Usuario', description: 'Usuario regular' },
-  { value: 'agent', label: 'Agente', description: 'Agente inmobiliario' },
-  { value: 'admin', label: 'Administrador', description: 'Administrador del sistema' },
-  { value: 'super_admin', label: 'Super Administrador', description: 'Control total del sistema' }
+  { value: 'user', label: i18n.t('profile.roles.user'), description: i18n.t('admin.roleDescriptionsShort.user') },
+  { value: 'agent', label: i18n.t('profile.roles.agent'), description: i18n.t('admin.roleDescriptionsShort.agent') },
+  { value: 'admin', label: i18n.t('profile.roles.admin'), description: i18n.t('admin.roleDescriptionsShort.admin') },
+  { value: 'super_admin', label: i18n.t('profile.roles.super_admin'), description: i18n.t('admin.roleDescriptionsShort.super_admin') }
 ];
 
 export const getRoleIcon = (role: AppRole | string): React.ReactNode => {

@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -113,7 +114,7 @@ export const NegotiationPanelView: React.FC<NegotiationPanelViewProps> = ({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -127,7 +128,7 @@ export const NegotiationPanelView: React.FC<NegotiationPanelViewProps> = ({
       case 'rejected': return 'bg-red-100 text-red-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'countered': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-muted text-foreground';
     }
   };
 
@@ -343,7 +344,7 @@ export const NegotiationPanelView: React.FC<NegotiationPanelViewProps> = ({
             {offers.slice(0, 5).map((offer) => (
               <div
                 key={offer.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 cursor-pointer"
                 onClick={() => setSelectedOfferId(offer.id)}
               >
                 <div className="flex items-center space-x-4">

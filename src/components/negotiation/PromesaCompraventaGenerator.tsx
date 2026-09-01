@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { LegalDocumentGenerationService } from '../../services/legalDocumentGeneration';
@@ -23,6 +24,7 @@ import {
   Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AiLegalDisclaimer } from '@/components/ai/AiLegalDisclaimer';
 
 interface Negotiation {
   id: string;
@@ -424,7 +426,7 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
         <DialogContent className="max-w-2xl">
           <div className="text-center py-8">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600">Cargando información de la negociación...</p>
+            <p className="text-muted-foreground">Cargando información de la negociación...</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -437,7 +439,7 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
         <DialogContent className="max-w-2xl">
           <div className="text-center py-8">
             <AlertCircle className="w-8 h-8 mx-auto mb-4 text-red-600" />
-            <p className="text-gray-600">No se pudo cargar la negociación</p>
+            <p className="text-muted-foreground">No se pudo cargar la negociación</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -463,14 +465,14 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Propiedad</p>
+                  <p className="text-sm text-muted-foreground">Propiedad</p>
                   <p className="font-medium">{negotiation.property.title}</p>
-                  <p className="text-sm text-gray-500">{negotiation.property.address}</p>
+                  <p className="text-sm text-muted-foreground">{negotiation.property.address}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Precio Acordado</p>
+                  <p className="text-sm text-muted-foreground">Precio Acordado</p>
                   <p className="font-semibold text-lg">
-                    {new Intl.NumberFormat('es-CO', {
+                    {new Intl.NumberFormat(getIntlLocale(), {
                       style: 'currency',
                       currency: 'COP',
                       minimumFractionDigits: 0,
@@ -478,14 +480,14 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Comprador</p>
+                  <p className="text-sm text-muted-foreground">Comprador</p>
                   <p className="font-medium">{negotiation.buyer.full_name}</p>
-                  <p className="text-sm text-gray-500">{negotiation.buyer.email}</p>
+                  <p className="text-sm text-muted-foreground">{negotiation.buyer.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Vendedor</p>
+                  <p className="text-sm text-muted-foreground">Vendedor</p>
                   <p className="font-medium">{negotiation.seller.full_name}</p>
-                  <p className="text-sm text-gray-500">{negotiation.seller.email}</p>
+                  <p className="text-sm text-muted-foreground">{negotiation.seller.email}</p>
                 </div>
               </div>
             </CardContent>
@@ -493,8 +495,9 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
 
           {/* Document Actions */}
           {!documentContent ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">
+            <div className="text-center py-8 space-y-4">
+              <AiLegalDisclaimer className="text-left" />
+              <p className="text-muted-foreground mb-4">
                 Genera la promesa de compraventa usando inteligencia artificial (Grok)
               </p>
               <Button
@@ -518,6 +521,7 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
             </div>
           ) : (
             <div className="space-y-4">
+              <AiLegalDisclaimer />
               <div className="flex items-center justify-between">
                 <Badge variant="default" className="bg-green-100 text-green-800">
                   <CheckCircle className="w-3 h-3 mr-1" />
@@ -542,7 +546,7 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
                   </CardHeader>
                   <CardContent>
                     <div className="prose max-w-none">
-                      <pre className="whitespace-pre-wrap text-sm font-mono bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+                      <pre className="whitespace-pre-wrap text-sm font-mono bg-muted/30 p-4 rounded-lg max-h-96 overflow-y-auto">
                         {documentContent}
                       </pre>
                     </div>

@@ -23,9 +23,11 @@ import {
   Briefcase
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../../i18n/useDateFnsLocale';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
+import { formatCurrency } from '../../../utils/format';
 import { Skeleton } from '../../ui/skeleton';
 
 interface NegotiationDetailViewProps {
@@ -34,6 +36,8 @@ interface NegotiationDetailViewProps {
 }
 
 export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDetailViewProps) {
+  const { t } = useTranslation();
+  const dateFnsLocale = useDateFnsLocale();
   const { data, loading, error, update, refresh } = useResourceDetail({
     resourceType: 'negotiation',
     resourceId: negotiationId,
@@ -96,18 +100,10 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
       setActions(actionsData || []);
     } catch (err: any) {
       console.error('Error fetching related data:', err);
-      toast.error('Error al cargar datos relacionados');
+      toast.error(t('admin.loadRelatedError'));
     } finally {
       setLoadingRelated(false);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   const handleSave = async () => {
@@ -133,10 +129,10 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
       active: { label: 'Activa', variant: 'default' as const },
-      pending_lawyer: { label: 'Pendiente Abogado', variant: 'secondary' as const },
-      pending_documents: { label: 'Pendiente Documentos', variant: 'secondary' as const },
-      completed: { label: 'Completada', variant: 'default' as const },
-      cancelled: { label: 'Cancelada', variant: 'destructive' as const },
+      pending_lawyer: { label: t('admin.status.pendingLawyer'), variant: 'secondary' as const },
+      pending_documents: { label: t('admin.status.pendingDocuments'), variant: 'secondary' as const },
+      completed: { label: t('admin.status.completed'), variant: 'default' as const },
+      cancelled: { label: t('admin.status.cancelled'), variant: 'destructive' as const },
       expired: { label: 'Expirada', variant: 'outline' as const },
     };
     const config = variants[status] || { label: status, variant: 'outline' as const };
@@ -157,7 +153,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
     return (
       <div className="text-center py-8">
         <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-        <p className="text-destructive">{error || 'Negociación no encontrada'}</p>
+        <p className="text-destructive">{error || t('admin.negotiationNotFound')}</p>
       </div>
     );
   }
@@ -171,7 +167,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
       {/* Header with Edit Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Detalles de la Negociación</h3>
+          <h3 className="text-lg font-semibold">{t('admin.negotiationDetails')}</h3>
           <p className="text-sm text-muted-foreground">
             Propiedad: {property?.title || 'N/A'}
           </p>
@@ -179,17 +175,17 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
         {!isEditing ? (
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="h-4 w-4 mr-2" />
-            Editar
+            {t('common.edit')}
           </Button>
         ) : (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleCancel}>
               <X className="h-4 w-4 mr-2" />
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button size="sm" onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
-              Guardar
+              {t('common.save')}
             </Button>
           </div>
         )}
@@ -197,7 +193,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
 
       <Tabs defaultValue="info" className="w-full">
         <TabsList>
-          <TabsTrigger value="info">Información</TabsTrigger>
+          <TabsTrigger value="info">{t('admin.information')}</TabsTrigger>
           <TabsTrigger value="participants">Participantes ({participants.length})</TabsTrigger>
           <TabsTrigger value="offers">Ofertas ({offers.length})</TabsTrigger>
           <TabsTrigger value="documents">Documentos ({legalDocs.length})</TabsTrigger>
@@ -208,24 +204,24 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
         <TabsContent value="info" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Información General</CardTitle>
+              <CardTitle>{t('admin.generalInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Estado</Label>
+                  <Label>{t('properties.status')}</Label>
                   {isEditing ? (
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     >
-                      <option value="active">Activa</option>
-                      <option value="pending_lawyer">Pendiente Abogado</option>
-                      <option value="pending_documents">Pendiente Documentos</option>
-                      <option value="completed">Completada</option>
-                      <option value="cancelled">Cancelada</option>
-                      <option value="expired">Expirada</option>
+                      <option value="active">{t('admin.status.active')}</option>
+                      <option value="pending_lawyer">{t('admin.status.pendingLawyer')}</option>
+                      <option value="pending_documents">{t('admin.status.pendingDocuments')}</option>
+                      <option value="completed">{t('admin.status.completed')}</option>
+                      <option value="cancelled">{t('admin.status.cancelled')}</option>
+                      <option value="expired">{t('admin.status.expired')}</option>
                     </select>
                   ) : (
                     <div>{getStatusBadge(negotiation.status)}</div>
@@ -233,7 +229,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Progreso de Negociación</Label>
+                  <Label>{t('admin.negotiationProgress')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -256,7 +252,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Propiedad</Label>
+                  <Label>{t('negotiations.propertyLabel')}</Label>
                   {property ? (
                     <div className="flex items-center gap-2">
                       <Home className="h-4 w-4" />
@@ -266,29 +262,29 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No asignada</p>
+                    <p className="text-sm text-muted-foreground">{t('common.notSpecified')}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Precio Original</Label>
+                  <Label>{t('admin.originalPrice')}</Label>
                   <p className="text-sm font-medium">{formatCurrency(negotiation.original_price || 0)}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Precio Actual</Label>
+                  <Label>{t('admin.currentPrice')}</Label>
                   <p className="text-sm font-medium">{formatCurrency(negotiation.current_price || 0)}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Diferencia de Precio</Label>
+                  <Label>{t('admin.priceDifference')}</Label>
                   <p className={`text-sm font-medium ${negotiation.price_difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {negotiation.price_difference ? formatCurrency(negotiation.price_difference) : '-'}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Cambio de Precio (%)</Label>
+                  <Label>{t('admin.priceChangePct')}</Label>
                   <p className={`text-sm font-medium ${negotiation.price_change_percentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {negotiation.price_change_percentage !== null && negotiation.price_change_percentage !== undefined
                       ? `${negotiation.price_change_percentage.toFixed(2)}%`
@@ -297,47 +293,47 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Número de Ofertas</Label>
+                  <Label>{t('admin.offerCount')}</Label>
                   <p className="text-sm font-medium">{negotiation.offer_count || 0}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Contraofertas</Label>
+                  <Label>{t('admin.counters')}</Label>
                   <p className="text-sm font-medium">{negotiation.counter_offer_count || 0}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Fecha de Creación</Label>
+                  <Label>{t('admin.createdAt')}</Label>
                   <p className="text-sm font-medium">
                     {negotiation.created_at
-                      ? format(new Date(negotiation.created_at), 'dd/MM/yyyy HH:mm', { locale: es })
+                      ? format(new Date(negotiation.created_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })
                       : '-'}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Última Actualización</Label>
+                  <Label>{t('admin.updatedAt')}</Label>
                   <p className="text-sm font-medium">
                     {negotiation.updated_at
-                      ? format(new Date(negotiation.updated_at), 'dd/MM/yyyy HH:mm', { locale: es })
+                      ? format(new Date(negotiation.updated_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })
                       : '-'}
                   </p>
                 </div>
 
                 {negotiation.completed_at && (
                   <div className="space-y-2">
-                    <Label>Fecha de Finalización</Label>
+                    <Label>{t('admin.completedAt')}</Label>
                     <p className="text-sm font-medium">
-                      {format(new Date(negotiation.completed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                      {format(new Date(negotiation.completed_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })}
                     </p>
                   </div>
                 )}
 
                 {negotiation.expires_at && (
                   <div className="space-y-2">
-                    <Label>Fecha de Expiración</Label>
+                    <Label>{t('admin.expiresAt')}</Label>
                     <p className="text-sm font-medium">
-                      {format(new Date(negotiation.expires_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                      {format(new Date(negotiation.expires_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })}
                     </p>
                   </div>
                 )}
@@ -345,13 +341,13 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
 
               {negotiation.milestones_completed && Object.keys(negotiation.milestones_completed).length > 0 && (
                 <div className="mt-4 space-y-2">
-                  <Label>Hitos Completados</Label>
+                  <Label>{t('admin.completedMilestones')}</Label>
                   <div className="space-y-1">
                     {Object.entries(negotiation.milestones_completed).map(([key, value]: [string, any]) => (
                       <div key={key} className="flex items-center gap-2 text-sm">
                         <Badge variant="outline">{key}</Badge>
                         <span className="text-muted-foreground">
-                          {value.completed_at ? format(new Date(value.completed_at), 'dd/MM/yyyy', { locale: es }) : 'Pendiente'}
+                          {value.completed_at ? format(new Date(value.completed_at), 'dd/MM/yyyy', { locale: dateFnsLocale }) : t('admin.status.pending')}
                         </span>
                       </div>
                     ))}
@@ -366,7 +362,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
         <TabsContent value="participants" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Participantes</CardTitle>
+              <CardTitle>{t('admin.participants')}</CardTitle>
             </CardHeader>
             <CardContent>
               {loadingRelated ? (
@@ -376,7 +372,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                   ))}
                 </div>
               ) : participants.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay participantes registrados</p>
+                <p className="text-sm text-muted-foreground">{t('negotiations.noParticipants')}</p>
               ) : (
                 <div className="space-y-2">
                   {participants.map((participant: any) => (
@@ -391,10 +387,10 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                       </div>
                       <div className="flex items-center gap-2">
                         {participant.can_sign_documents && (
-                          <Badge variant="secondary">Puede Firmar</Badge>
+                          <Badge variant="secondary">{t('common.yes')}</Badge>
                         )}
                         {participant.can_view_financials && (
-                          <Badge variant="secondary">Ver Financiero</Badge>
+                          <Badge variant="secondary">{t('common.view')}</Badge>
                         )}
                         <Badge variant={participant.is_active ? 'default' : 'outline'}>
                           {participant.is_active ? 'Activo' : 'Inactivo'}
@@ -412,7 +408,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
         <TabsContent value="offers" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Ofertas</CardTitle>
+              <CardTitle>{t('admin.offersSection')}</CardTitle>
             </CardHeader>
             <CardContent>
               {loadingRelated ? (
@@ -422,7 +418,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                   ))}
                 </div>
               ) : offers.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay ofertas registradas</p>
+                <p className="text-sm text-muted-foreground">{t('admin.noOffersFound')}</p>
               ) : (
                 <div className="space-y-2">
                   {offers.map((offer: any) => (
@@ -432,7 +428,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                         <div>
                           <p className="font-medium">{formatCurrency(offer.offer_price || 0)}</p>
                           <p className="text-sm text-muted-foreground">
-                            {offer.created_at ? format(new Date(offer.created_at), 'dd/MM/yyyy HH:mm', { locale: es }) : '-'}
+                            {offer.created_at ? format(new Date(offer.created_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale }) : '-'}
                           </p>
                         </div>
                       </div>
@@ -449,7 +445,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
         <TabsContent value="documents" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Documentos Legales</CardTitle>
+              <CardTitle>{t('admin.legalDocuments')}</CardTitle>
             </CardHeader>
             <CardContent>
               {loadingRelated ? (
@@ -459,7 +455,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                   ))}
                 </div>
               ) : legalDocs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay documentos asociados</p>
+                <p className="text-sm text-muted-foreground">{t('admin.noDocumentsFound')}</p>
               ) : (
                 <div className="space-y-2">
                   {legalDocs.map((doc: any) => (
@@ -467,9 +463,9 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-blue-600" />
                         <div>
-                          <p className="font-medium">{doc.document_type || 'Documento'}</p>
+                          <p className="font-medium">{doc.document_type || t('admin.documentFallback')}</p>
                           <p className="text-sm text-muted-foreground">
-                            {doc.created_at ? format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: es }) : '-'}
+                            {doc.created_at ? format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: dateFnsLocale }) : '-'}
                           </p>
                         </div>
                       </div>
@@ -488,7 +484,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
         <TabsContent value="actions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Acciones y Actuaciones</CardTitle>
+              <CardTitle>{t('admin.actionsAndRecords')}</CardTitle>
             </CardHeader>
             <CardContent>
               {loadingRelated ? (
@@ -498,7 +494,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                   ))}
                 </div>
               ) : actions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay acciones registradas</p>
+                <p className="text-sm text-muted-foreground">{t('common.noRecords')}</p>
               ) : (
                 <div className="space-y-2">
                   {actions.map((action: any) => (
@@ -509,7 +505,7 @@ export function NegotiationDetailView({ negotiationId, onUpdate }: NegotiationDe
                           <p className="font-medium">{action.title}</p>
                           <p className="text-sm text-muted-foreground">{action.description || '-'}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {action.created_at ? format(new Date(action.created_at), 'dd/MM/yyyy HH:mm', { locale: es }) : '-'}
+                            {action.created_at ? format(new Date(action.created_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale }) : '-'}
                           </p>
                         </div>
                       </div>

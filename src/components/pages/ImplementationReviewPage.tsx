@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import {
   BookOpen,
   List,
@@ -17,286 +19,15 @@ import {
   Code,
   Zap,
   Shield,
-  Smartphone,
-  Globe
+  Sparkles,
+  DollarSign,
+  Target,
+  Calendar,
+  Mail
 } from 'lucide-react';
 
-const implementationReviewContent = {
-  title: "📊 Revisión de Implementación - Funcionalidades Completadas vs Planificadas",
-  lastUpdated: "Octubre 2025",
-  summary: {
-    overallStatus: "EXCELENTE",
-    coverage: "85%",
-    quality: "Alto",
-    productionReady: true
-  },
-  sections: [
-    {
-      id: "executive-summary",
-      title: "🎯 Resumen Ejecutivo",
-      icon: <TrendingUp className="w-5 h-5" />,
-      content: `
-### ✅ **Estado General: EXCELENTE**
-- **Cobertura Funcional:** ~85% de las funcionalidades críticas implementadas
-- **Calidad del Código:** Alta - Componentes reutilizables, hooks personalizados, arquitectura sólida
-- **Base de Datos:** Completa - 25+ tablas con RLS, triggers y funciones avanzadas
-- **UX/UI:** Excelente - Animaciones fluidas, diseño responsive, componentes consistentes
-
-### 📈 **Métricas Clave**
-- **Componentes Implementados:** 80+ componentes React
-- **Tablas de BD:** 25+ con relaciones complejas
-- **Funciones SQL:** 20+ funciones personalizadas
-- **Hooks Personalizados:** 8 hooks reutilizables
-- **Líneas de Código:** ~15,000+ líneas organizadas
-      `
-    },
-    {
-      id: "detailed-analysis",
-      title: "🔍 Análisis Detallado por Categoría",
-      icon: <FileText className="w-5 h-5" />,
-      subsections: [
-        {
-          title: "1. 🎯 Sistema de Autenticación y Usuarios",
-          status: "completed",
-          score: "5/5",
-          content: `
-| Funcionalidad | Estado | Detalles | Calidad |
-|---------------|--------|----------|---------|
-| **Login/Registro** | ✅ **COMPLETADO** | Email + contraseña, verificación | Excelente |
-| **Roles Multiples** | ✅ **COMPLETADO** | 5 roles: user, agent, lawyer, admin, super_admin | Excelente |
-| **Perfiles Extendidos** | ✅ **COMPLETADO** | Información adicional por rol | Excelente |
-| **Protección de Rutas** | ✅ **COMPLETADO** | ProtectedRoute con validación de roles | Excelente |
-| **Gestión de Sesiones** | ✅ **COMPLETADO** | Auto-refresh, logout automático | Excelente |
-
-**Puntuación: 5/5 ⭐⭐⭐⭐⭐**
-          `
-        },
-        {
-          title: "2. 🏠 Gestión de Propiedades",
-          status: "completed",
-          score: "4.5/5",
-          content: `
-| Funcionalidad | Estado | Detalles | Calidad |
-|---------------|--------|----------|---------|
-| **Wizard de Subida** | ✅ **COMPLETADO** | 8 pasos con validación | Excelente |
-| **Tipos de Propiedad** | ✅ **COMPLETADO** | apartment, house, townhouse, office, commercial | Excelente |
-| **Multimedia Avanzado** | ✅ **COMPLETADO** | Imágenes múltiples, videos, tours virtuales | Excelente |
-| **Sistema de Verificación** | ✅ **COMPLETADO** | Estados: draft, pending, published, sold | Excelente |
-| **Búsqueda y Filtros** | ✅ **COMPLETADO** | DiscoveryView con filtros avanzados | Excelente |
-| **Disponibilidad por Horarios** | ❌ **PENDIENTE** | Solo por días, no por horas específicas | - |
-
-**Puntuación: 4.5/5 ⭐⭐⭐⭐⭐** (Falta disponibilidad horaria)
-          `
-        },
-        {
-          title: "3. 🤖 Sistema de Negociación Avanzada",
-          status: "completed",
-          score: "5/5",
-          content: `
-| Funcionalidad | Estado | Detalles | Calidad |
-|---------------|--------|----------|---------|
-| **Smart Offer Form** | ✅ **COMPLETADO** | IA integrada, validación en tiempo real | Excelente |
-| **Sistema de Contraofertas** | ✅ **COMPLETADO** | Diálogos modales, historial completo | Excelente |
-| **Visualizaciones Avanzadas** | ✅ **COMPLETADO** | Radar chart, timeline, progreso | Excelente |
-| **Reglas de Negociación** | ✅ **COMPLETADO** | Auto-reject, validación automática | Excelente |
-| **Cartas de Intención** | ✅ **COMPLETADO** | Editor WYSIWYG, templates | Excelente |
-| **Asesoría IA** | ✅ **COMPLETADO** | 3 niveles: básico, intermedio, avanzado | Excelente |
-| **Validación Automática** | ✅ **COMPLETADO** | Triggers SQL, reglas configurables | Excelente |
-
-**Puntuación: 5/5 ⭐⭐⭐⭐⭐**
-          `
-        },
-        {
-          title: "4. 👥 Dashboards y Roles",
-          status: "completed",
-          score: "5/5",
-          content: `
-| Funcionalidad | Estado | Detalles | Calidad |
-|---------------|--------|----------|---------|
-| **Dashboard Usuario** | ✅ **COMPLETADO** | Propiedades favoritas, ofertas activas | Excelente |
-| **Dashboard Agente** | ✅ **COMPLETADO** | Gestión de propiedades, clientes | Excelente |
-| **Dashboard Abogado** | ✅ **COMPLETADO** | Casos legales, contratos | Excelente |
-| **Dashboard Admin** | ✅ **COMPLETADO** | Gestión de usuarios, propiedades | Excelente |
-| **Dashboard Super Admin** | ✅ **COMPLETADO** | Configuración global, auditoría | Excelente |
-| **Métricas en Tiempo Real** | ✅ **COMPLETADO** | Estadísticas por rol | Excelente |
-
-**Puntuación: 5/5 ⭐⭐⭐⭐⭐**
-          `
-        }
-      ]
-    },
-    {
-      id: "missing-features",
-      title: "🔴 Funcionalidades Críticas Faltantes",
-      icon: <XCircle className="w-5 h-5" />,
-      content: `
-### 🔴 **Prioridad Alta** (Deberían estar implementadas)
-
-1. **Disponibilidad Horaria de Propiedades**
-   - Estado: ❌ No implementado
-   - Impacto: Alto (afecta agendamiento de visitas)
-   - Dificultad: Media
-
-2. **Exportación de Datos**
-   - Estado: ❌ No implementado
-   - Impacto: Medio (necesario para reportes)
-   - Dificultad: Baja
-
-3. **Backup Automático**
-   - Estado: ❌ No implementado
-   - Impacto: Alto (seguridad de datos)
-   - Dificultad: Media
-
-### 🟡 **Prioridad Media** (Mejoras importantes)
-
-4. **Valoración Automática de Propiedades**
-   - Estado: ❌ No implementado
-   - Impacto: Medio
-   - Dificultad: Alta
-
-5. **Modo Oscuro**
-   - Estado: ❌ No implementado
-   - Impacto: Bajo
-   - Dificultad: Baja
-
-6. **Integración WhatsApp**
-   - Estado: ❌ No implementado
-   - Impacto: Medio
-   - Dificultad: Media
-      `
-    },
-    {
-      id: "architecture-quality",
-      title: "🏗️ Arquitectura y Calidad del Código",
-      icon: <Code className="w-5 h-5" />,
-      subsections: [
-        {
-          title: "Puntos Fuertes",
-          content: `
-### ✅ **Puntos Fuertes**
-
-1. **Separación de Concerns**
-   - Componentes bien organizados por feature
-   - Hooks personalizados reutilizables
-   - Servicios separados por funcionalidad
-
-2. **Base de Datos Robusta**
-   - 25+ tablas bien relacionadas
-   - RLS implementado correctamente
-   - Funciones SQL optimizadas
-   - Triggers para automatización
-
-3. **TypeScript Consistente**
-   - Tipos bien definidos
-   - Interfaces completas
-   - Type safety en toda la aplicación
-
-4. **Componentes Reutilizables**
-   - Shadcn/ui como base sólida
-   - Animaciones consistentes
-   - Responsive design unificado
-          `
-        },
-        {
-          title: "Áreas de Mejora",
-          content: `
-### ⚠️ **Áreas de Mejora**
-
-1. **Test Coverage**
-   - Muy limitado (solo algunos tests básicos)
-   - Necesita suite completa de tests E2E
-
-2. **Documentación de Código**
-   - Comentarios limitados en funciones complejas
-   - Falta JSDoc en hooks personalizados
-
-3. **Performance**
-   - No hay lazy loading de componentes
-   - Falta code splitting
-          `
-        }
-      ]
-    },
-    {
-      id: "implementation-metrics",
-      title: "📊 Métricas de Implementación",
-      icon: <TrendingUp className="w-5 h-5" />,
-      content: `
-### **Cobertura Funcional por Módulo**
-
-\`\`\`
-Autenticación:     ████████░░ 80%
-Propiedades:       ███████░░░ 70%
-Negociación:       ██████████ 100%
-Dashboards:        ██████████ 100%
-Comunicación:      ██████████ 100%
-Reportes:          ████████░░ 80%
-Administración:    ████████░░ 80%
-UI/UX:            ████████░░ 80%
-\`\`\`
-
-### **Calidad del Código**
-- **Mantenibilidad:** ⭐⭐⭐⭐⭐
-- **Escalabilidad:** ⭐⭐⭐⭐⭐
-- **Performance:** ⭐⭐⭐⭐
-- **Seguridad:** ⭐⭐⭐⭐⭐
-- **Usabilidad:** ⭐⭐⭐⭐⭐
-      `
-    },
-    {
-      id: "next-steps",
-      title: "🎯 Recomendaciones para Próximas Fases",
-      icon: <CheckCircle className="w-5 h-5" />,
-      content: `
-### **Fase 3.1: Perfeccionamiento (1-2 semanas)**
-1. ✅ Implementar funcionalidades críticas faltantes
-2. ✅ Mejorar test coverage
-3. ✅ Optimizar performance
-4. ✅ Preparar para despliegue beta
-
-### **Fase 3.2: Nuevas Features (2-3 semanas)**
-1. 🔄 Valoración automática con IA
-2. 🔄 Integración con bancos
-3. 🔄 Video llamadas para visitas
-4. 🔄 Modo oscuro
-
-### **Fase 3.3: Scale & Optimization (1-2 semanas)**
-1. 🔄 Lazy loading y code splitting
-2. 🔄 CDN para imágenes
-3. 🔄 Cache distribuido
-4. 🔄 Monitoring y analytics avanzados
-      `
-    },
-    {
-      id: "conclusion",
-      title: "🏆 Conclusión y Estado Actual",
-      icon: <CheckCircle className="w-5 h-5" />,
-      content: `
-### ✅ **Éxitos Destacados**
-- **Sistema de Negociación:** 100% funcional con IA avanzada
-- **Arquitectura:** Robusta y escalable
-- **UX/UI:** Excelente experiencia de usuario
-- **Base de Datos:** Completa y optimizada
-- **Roles Multiples:** Perfectamente implementados
-
-### 🎯 **Estado General: LISTO PARA PRODUCCIÓN**
-El sistema está **85% completo** con todas las funcionalidades críticas implementadas. Es **totalmente funcional** para un MVP avanzado y está listo para despliegue en producción con mejoras incrementales.
-
-### 🚀 **Próximos Pasos Recomendados**
-1. **Completar funcionalidades críticas faltantes** (1 semana)
-2. **Implementar tests automatizados** (1 semana)
-3. **Despliegue a producción** con monitoring
-4. **Iterar basado en feedback** de usuarios reales
-
----
-
-**Resultado Final: 🎉 PROYECTO EXITOSAMENTE IMPLEMENTADO**
-      `
-    }
-  ]
-};
-
 export const ImplementationReviewPage: React.FC = () => {
+  const { t } = useTranslation();
   const [activeSection, setActiveSection] = useState<string>('executive-summary');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -308,254 +39,501 @@ export const ImplementationReviewPage: React.FC = () => {
     }
   };
 
-  const renderMarkdown = (content: string) => {
-    const lines = content.split('\n');
-    const elements: JSX.Element[] = [];
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      if (line.startsWith('### ')) {
-        elements.push(
-          <h3 key={i} className="text-lg font-semibold text-gray-800 mt-6 mb-3">
-            {line.replace('### ', '')}
-          </h3>
-        );
-      } else if (line.startsWith('#### ')) {
-        elements.push(
-          <h4 key={i} className="text-md font-medium text-gray-700 mt-4 mb-2">
-            {line.replace('#### ', '')}
-          </h4>
-        );
-      } else if (line.startsWith('|')) {
-        // Table row
-        const tableRows: JSX.Element[] = [];
-        let tableStart = i;
-
-        // Collect all table rows
-        while (i < lines.length && lines[i].startsWith('|')) {
-          tableRows.push(
-            <tr key={i} className="border-b border-gray-200">
-              {lines[i].split('|').slice(1, -1).map((cell, cellIndex) => (
-                <td key={cellIndex} className="px-4 py-2 text-sm text-gray-700 border-r border-gray-200 last:border-r-0">
-                  {cell.trim()}
-                </td>
-              ))}
-            </tr>
-          );
-          i++;
-        }
-
-        elements.push(
-          <div key={tableStart} className="overflow-x-auto my-4">
-            <table className="min-w-full border border-gray-300 rounded-lg">
-              <tbody>
-                {tableRows}
-              </tbody>
-            </table>
-          </div>
-        );
-        i--; // Adjust for the outer loop increment
-      } else if (line.startsWith('- ')) {
-        elements.push(
-          <li key={i} className="text-gray-600 ml-4 mb-1">
-            {line.replace('- ', '')}
-          </li>
-        );
-      } else if (line.trim() === '') {
-        elements.push(<br key={i} />);
-      } else if (line.startsWith('**') && line.endsWith('**')) {
-        elements.push(
-          <p key={i} className="text-gray-600 leading-relaxed font-semibold">
-            {line.replace(/\*\*/g, '')}
-          </p>
-        );
-      } else if (line.startsWith('*') && line.endsWith('*')) {
-        elements.push(
-          <p key={i} className="text-gray-600 leading-relaxed italic">
-            {line.replace(/\*/g, '')}
-          </p>
-        );
-      } else if (line.startsWith('```')) {
-        const codeLines: string[] = [];
-        i++; // Skip the opening ```
-        while (i < lines.length && !lines[i].startsWith('```')) {
-          codeLines.push(lines[i]);
-          i++;
-        }
-        elements.push(
-          <pre key={i} className="bg-gray-100 p-4 rounded-lg text-sm overflow-x-auto my-4">
-            <code>{codeLines.join('\n')}</code>
-          </pre>
-        );
-      } else {
-        elements.push(
-          <p key={i} className="text-gray-600 leading-relaxed">
-            {line}
-          </p>
-        );
-      }
-    }
-
-    return elements;
-  };
+  const navItems = [
+    { id: 'executive-summary', icon: TrendingUp, key: 'sections.executive' },
+    { id: 'detailed-analysis', icon: FileText, key: 'sections.analysis' },
+    { id: 'missing-features', icon: XCircle, key: 'sections.missing' },
+    { id: 'architecture-quality', icon: Code, key: 'sections.architecture' },
+    { id: 'implementation-metrics', icon: TrendingUp, key: 'sections.metrics' },
+    { id: 'next-steps', icon: CheckCircle, key: 'sections.nextSteps' },
+    { id: 'conclusion', icon: CheckCircle, key: 'sections.conclusion' },
+    { id: 'seed-funding', icon: DollarSign, key: 'sections.seedFunding' }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 mt-20">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-slate-950/50 mt-16">
       <div className="flex">
         {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-80' : 'w-16'} transition-all duration-300 bg-white shadow-lg border-r border-gray-200`}>
-          <div className="p-4 border-b border-gray-200">
+        <aside
+          className={`${
+            sidebarOpen ? 'w-72' : 'w-20'
+          } transition-all duration-300 shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-sm`}
+        >
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-                {sidebarOpen && <h2 className="text-lg font-semibold text-gray-800">Implementation Review</h2>}
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                {sidebarOpen && (
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">
+                    {t('pages.implementationReview.navTitle')}
+                  </span>
+                )}
               </div>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-1"
+                className="h-8 w-8 shrink-0"
               >
-                <List className="w-4 h-4" />
+                <List className="h-4 w-4" />
               </Button>
             </div>
           </div>
-
-          <ScrollArea className="h-[calc(100vh-80px)]">
-            <div className="p-4 space-y-2">
-              {implementationReviewContent.sections.map((section) => (
-                <div key={section.id}>
-                  <Button
-                    variant={activeSection === section.id ? "secondary" : "ghost"}
-                    className="w-full justify-start text-left"
-                    onClick={() => scrollToSection(section.id)}
-                  >
-                    {section.icon}
-                    {sidebarOpen && (
-                      <>
-                        <span className="ml-2 truncate">{section.title}</span>
-                        {activeSection === section.id && <ChevronRight className="w-4 h-4 ml-auto" />}
-                      </>
-                    )}
-                  </Button>
-
-                  {sidebarOpen && section.subsections && (
-                    <div className="ml-6 mt-1 space-y-1">
-                      {section.subsections.map((subsection, index) => (
-                        <Button
-                          key={index}
-                          variant="ghost"
-                          size="sm"
-                          className="w-full justify-start text-left text-sm text-gray-600 hover:text-gray-800"
-                          onClick={() => scrollToSection(`${section.id}-${index}`)}
-                        >
-                          {subsection.title}
-                        </Button>
-                      ))}
-                    </div>
+          <ScrollArea className="h-[calc(100vh-120px)]">
+            <nav className="p-3 space-y-1">
+              {navItems.map(({ id, icon: Icon, key }) => (
+                <button
+                  key={id}
+                  onClick={() => scrollToSection(id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm font-medium transition-all ${
+                    activeSection === id
+                      ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {sidebarOpen && (
+                    <>
+                      <span className="truncate">{t(`pages.implementationReview.${key}`)}</span>
+                      {activeSection === id && <ChevronRight className="h-4 w-4 ml-auto shrink-0" />}
+                    </>
                   )}
-                </div>
+                </button>
               ))}
-            </div>
+            </nav>
           </ScrollArea>
-        </div>
+        </aside>
 
         {/* Main Content */}
-        <div className="flex-1">
-          <div className="sticky top-0 bg-white shadow-sm border-b border-gray-200 p-4 z-10">
-            <div className="flex items-center justify-between">
+        <main className="flex-1 min-w-0">
+          {/* Header */}
+          <header className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 px-6 py-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{implementationReviewContent.title}</h1>
-                <p className="text-sm text-gray-600">Última actualización: {implementationReviewContent.lastUpdated}</p>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                  {t('pages.implementationReview.title')}
+                </h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  {t('pages.implementationReview.subtitle')} · {t('pages.implementationReview.lastUpdated')}: Enero 2026
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  {implementationReviewContent.summary.coverage} Complete
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="gap-1.5 px-3 py-1 font-medium">
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                  {t('pages.implementationReview.coverage')} {t('pages.implementationReview.complete')}
                 </Badge>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  {implementationReviewContent.summary.overallStatus}
+                <Badge variant="outline" className="gap-1.5 px-3 py-1 font-medium">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  {t('pages.implementationReview.overallStatus')}
                 </Badge>
               </div>
             </div>
-          </div>
+          </header>
 
-          <ScrollArea className="h-[calc(100vh-80px)]">
-            <div className="p-8 max-w-6xl mx-auto">
-              {implementationReviewContent.sections.map((section) => (
-                <div key={section.id} id={section.id} className="mb-12">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-3 text-xl">
-                        {section.icon}
-                        {section.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="prose prose-gray max-w-none">
-                      {section.content && renderMarkdown(section.content)}
-
-                      {section.subsections && (
-                        <div className="space-y-6 mt-6">
-                          {section.subsections.map((subsection, index) => (
-                            <div key={index} id={`${section.id}-${index}`}>
-                              <Separator className="mb-4" />
-                              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                {subsection.title}
-                                {subsection.status === 'completed' && <CheckCircle className="w-5 h-5 text-green-600" />}
-                                {subsection.status === 'pending' && <AlertTriangle className="w-5 h-5 text-yellow-600" />}
-                                {subsection.score && (
-                                  <Badge variant="outline" className="ml-2">
-                                    {subsection.score}
-                                  </Badge>
-                                )}
-                              </h3>
-                              <div className="text-gray-600 leading-relaxed">
-                                {renderMarkdown(subsection.content)}
-                              </div>
-                            </div>
-                          ))}
+          <ScrollArea className="h-[calc(100vh-180px)]">
+            <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-8">
+              {/* Executive Summary */}
+              <section id="executive-summary" className="scroll-mt-24">
+                <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-b border-slate-100 dark:border-slate-800">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                        <TrendingUp className="h-5 w-5" />
+                      </div>
+                      {t('pages.implementationReview.sections.executive')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <p className="font-semibold text-emerald-700 dark:text-emerald-400 mb-4">
+                      {t('pages.implementationReview.executive.status')}
+                    </p>
+                    <ul className="space-y-3 text-slate-600 dark:text-slate-400">
+                      <li className="flex gap-3">
+                        <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>
+                          <strong className="text-slate-700 dark:text-slate-300">
+                            {t('pages.implementationReview.executive.coverageLabel')}:{' '}
+                          </strong>
+                          {t('pages.implementationReview.executive.coverageValue')}
+                        </span>
+                      </li>
+                      <li className="flex gap-3">
+                        <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>
+                          <strong className="text-slate-700 dark:text-slate-300">
+                            {t('pages.implementationReview.executive.qualityLabel')}:{' '}
+                          </strong>
+                          {t('pages.implementationReview.executive.qualityValue')}
+                        </span>
+                      </li>
+                      <li className="flex gap-3">
+                        <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>
+                          <strong className="text-slate-700 dark:text-slate-300">
+                            {t('pages.implementationReview.executive.dbLabel')}:{' '}
+                          </strong>
+                          {t('pages.implementationReview.executive.dbValue')}
+                        </span>
+                      </li>
+                      <li className="flex gap-3">
+                        <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>
+                          <strong className="text-slate-700 dark:text-slate-300">
+                            {t('pages.implementationReview.executive.uxLabel')}:{' '}
+                          </strong>
+                          {t('pages.implementationReview.executive.uxValue')}
+                        </span>
+                      </li>
+                    </ul>
+                    <Separator className="my-5" />
+                    <p className="font-medium text-slate-700 dark:text-slate-300 mb-3">
+                      {t('pages.implementationReview.executive.metricsTitle')}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { key: 'components', icon: Code },
+                        { key: 'tables', icon: Database },
+                        { key: 'functions', icon: FileText },
+                        { key: 'hooks', icon: Zap }
+                      ].map(({ key, icon: Icon }) => (
+                        <div
+                          key={key}
+                          className="flex items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2"
+                        >
+                          <Icon className="h-4 w-4 text-slate-500 shrink-0" />
+                          <span className="text-sm text-slate-600 dark:text-slate-400">
+                            {t(`pages.implementationReview.executive.${key}`)}
+                          </span>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
 
-              {/* Footer */}
-              <Card className="mt-12">
+              {/* Detailed Analysis */}
+              <section id="detailed-analysis" className="scroll-mt-24">
+                <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      {t('pages.implementationReview.sections.analysis')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {[
+                      { key: 'auth', score: '5/5', status: 'completed', icon: Shield },
+                      { key: 'properties', score: '4.5/5', status: 'completed', icon: Database },
+                      { key: 'negotiation', score: '5/5', status: 'completed', icon: Zap },
+                      { key: 'dashboards', score: '5/5', status: 'completed', icon: TrendingUp }
+                    ].map(({ key, score, status, icon: Icon }) => (
+                      <div
+                        key={key}
+                        className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold text-slate-800 dark:text-slate-200">
+                              {t(`pages.implementationReview.categories.${key}`)}
+                            </h3>
+                            <Badge variant="outline" className="text-xs">
+                              {score}
+                            </Badge>
+                            {status === 'completed' && (
+                              <CheckCircle className="h-4 w-4 text-emerald-500" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Missing Features */}
+              <section id="missing-features" className="scroll-mt-24">
+                <Card className="overflow-hidden border-amber-200 dark:border-amber-900/50 shadow-sm">
+                  <CardHeader className="bg-amber-50/50 dark:bg-amber-950/20">
+                    <CardTitle className="flex items-center gap-3 text-amber-800 dark:text-amber-200">
+                      <XCircle className="h-5 w-5" />
+                      {t('pages.implementationReview.sections.missing')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2">
+                          {t('pages.implementationReview.missing.title')}
+                        </h4>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                          {t('pages.implementationReview.missing.subtitle')}
+                        </p>
+                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                          <li className="flex gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            Disponibilidad horaria de propiedades
+                          </li>
+                          <li className="flex gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            Exportación de datos y reportes
+                          </li>
+                          <li className="flex gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            Backup automático
+                          </li>
+                        </ul>
+                      </div>
+                      <Separator />
+                      <div>
+                        <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          {t('pages.implementationReview.missing.mediumTitle')}
+                        </h4>
+                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                          <li>· Valoración automática con IA</li>
+                          <li>· Modo oscuro</li>
+                          <li>· Integración WhatsApp</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Architecture & Quality */}
+              <section id="architecture-quality" className="scroll-mt-24">
+                <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <Code className="h-5 w-5 text-violet-600" />
+                      {t('pages.implementationReview.sections.architecture')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/30 dark:bg-emerald-950/20 p-4">
+                        <h4 className="font-medium text-emerald-800 dark:text-emerald-200 mb-3">
+                          {t('pages.implementationReview.architecture.strengths')}
+                        </h4>
+                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                          <li>· Separación de concerns, hooks reutilizables</li>
+                          <li>· Base de datos robusta con RLS</li>
+                          <li>· TypeScript consistente</li>
+                          <li>· Shadcn/ui como base sólida</li>
+                        </ul>
+                      </div>
+                      <div className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20 p-4">
+                        <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-3">
+                          {t('pages.implementationReview.architecture.improvements')}
+                        </h4>
+                        <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                          <li>· Test coverage (E2E)</li>
+                          <li>· Documentación de código</li>
+                          <li>· Lazy loading, code splitting</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Implementation Metrics */}
+              <section id="implementation-metrics" className="scroll-mt-24">
+                <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <TrendingUp className="h-5 w-5 text-blue-600" />
+                      {t('pages.implementationReview.sections.metrics')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {[
+                        { label: 'Autenticación', value: 80 },
+                        { label: 'Propiedades', value: 70 },
+                        { label: 'Negociación', value: 100 },
+                        { label: 'Dashboards', value: 100 },
+                        { label: 'UI/UX', value: 80 }
+                      ].map(({ label, value }) => (
+                        <div key={label}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-slate-600 dark:text-slate-400">{label}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                              {value}%
+                            </span>
+                          </div>
+                          <Progress value={value} className="h-2" />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Next Steps */}
+              <section id="next-steps" className="scroll-mt-24">
+                <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-emerald-600" />
+                      {t('pages.implementationReview.sections.nextSteps')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid sm:grid-cols-3 gap-4">
+                      {[
+                        {
+                          phase: t('pages.implementationReview.phases.phase1'),
+                          title: t('pages.implementationReview.phases.perfection'),
+                          items: ['Funcionalidades críticas', 'Test coverage', 'Optimización']
+                        },
+                        {
+                          phase: t('pages.implementationReview.phases.phase2'),
+                          title: t('pages.implementationReview.phases.newFeatures'),
+                          items: ['Valoración IA', 'Integración bancos', 'Modo oscuro']
+                        },
+                        {
+                          phase: t('pages.implementationReview.phases.phase3'),
+                          title: t('pages.implementationReview.phases.scale'),
+                          items: ['Lazy loading', 'CDN', 'Monitoring']
+                        }
+                      ].map(({ phase, title, items }) => (
+                        <div
+                          key={phase}
+                          className="rounded-xl border border-slate-200 dark:border-slate-700 p-4"
+                        >
+                          <Badge variant="outline" className="mb-2">{phase}</Badge>
+                          <h4 className="font-medium text-slate-800 dark:text-slate-200 mb-2">
+                            {title}
+                          </h4>
+                          <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                            {items.map((item) => (
+                              <li key={item}>· {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Conclusion */}
+              <section id="conclusion" className="scroll-mt-24">
+                <Card className="overflow-hidden border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-3 text-emerald-800 dark:text-emerald-200">
+                      <CheckCircle className="h-5 w-5" />
+                      {t('pages.implementationReview.sections.conclusion')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-slate-600 dark:text-slate-400 mb-4">
+                      {t('pages.implementationReview.conclusion.paragraph')}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-emerald-600 hover:bg-emerald-700">
+                        {t('pages.implementationReview.conclusion.badge')}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Seed Funding Section - NEW */}
+              <section id="seed-funding" className="scroll-mt-24">
+                <Card className="overflow-hidden border-violet-200 dark:border-violet-900/50 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-950/40 dark:to-indigo-950/40 border-b border-violet-100 dark:border-violet-900/50">
+                    <CardTitle className="flex items-center gap-3 text-violet-800 dark:text-violet-200">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/20 text-violet-600 dark:text-violet-400">
+                        <DollarSign className="h-5 w-5" />
+                      </div>
+                      {t('pages.implementationReview.sections.seedFunding')}
+                    </CardTitle>
+                    <p className="text-sm text-violet-600/80 dark:text-violet-400/80 mt-1">
+                      {t('pages.implementationReview.seedFunding.subtitle')}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid sm:grid-cols-3 gap-4 mb-6">
+                      {[
+                        { key: 'preSeed', icon: Target },
+                        { key: 'seedRound', icon: DollarSign },
+                        { key: 'seriesA', icon: Calendar }
+                      ].map(({ key, icon: Icon }) => (
+                        <div
+                          key={key}
+                          className="rounded-xl border-2 border-violet-200 dark:border-violet-800/50 bg-white dark:bg-slate-900/50 p-5 hover:border-violet-400 dark:hover:border-violet-600 transition-colors"
+                        >
+                          <Icon className="h-8 w-8 text-violet-500 mb-3" />
+                          <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                            {t(`pages.implementationReview.seedFunding.${key}.title`)}
+                          </h4>
+                          <p className="text-lg font-bold text-violet-600 dark:text-violet-400 mb-2">
+                            {t(`pages.implementationReview.seedFunding.${key}.amount`)}
+                          </p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {t(`pages.implementationReview.seedFunding.${key}.desc`)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <Separator className="my-6" />
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-4 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-900/50">
+                      <div>
+                        <p className="font-medium text-violet-800 dark:text-violet-200">
+                          {t('pages.implementationReview.seedFunding.contact')}
+                        </p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+                          {t('pages.implementationReview.seedFunding.contactSubtitle')}
+                        </p>
+                      </div>
+                      <Button className="gap-2 bg-violet-600 hover:bg-violet-700">
+                        <Mail className="h-4 w-4" />
+                        {t('pages.implementationReview.seedFunding.contactCta')}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Footer CTA */}
+              <Card className="overflow-hidden border-slate-200 dark:border-slate-800">
                 <CardContent className="p-8 text-center">
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                    <Database className="w-6 h-6 text-blue-600" />
-                    <Code className="w-6 h-6 text-purple-600" />
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <CheckCircle className="h-6 w-6 text-emerald-600" />
+                    <Database className="h-6 w-6 text-blue-600" />
+                    <Code className="h-6 w-6 text-violet-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                    Sistema Completamente Funcional y Listo para Producción
+                  <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">
+                    {t('pages.implementationReview.footer.title')}
                   </h3>
-                  <p className="text-gray-600">
-                    Sunday Properties está preparado para revolucionar el mercado inmobiliario en Medellín
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-xl mx-auto">
+                    {t('pages.implementationReview.footer.subtitle')}
                   </p>
-                  <div className="flex items-center justify-center gap-4 mt-6">
-                    <Button variant="outline" size="sm">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Ver Documentación
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      {t('pages.implementationReview.footer.viewDocs')}
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Database className="w-4 h-4 mr-2" />
-                      Ver Esquema BD
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Database className="h-4 w-4" />
+                      {t('pages.implementationReview.footer.viewSchema')}
                     </Button>
-                    <Button size="sm">
-                      <Zap className="w-4 h-4 mr-2" />
-                      Empezar Testing
+                    <Button size="sm" className="gap-2">
+                      <Zap className="h-4 w-4" />
+                      {t('pages.implementationReview.footer.startTesting')}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             </div>
           </ScrollArea>
-        </div>
+        </main>
       </div>
     </div>
   );

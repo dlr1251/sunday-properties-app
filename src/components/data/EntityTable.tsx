@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type TableColumn<T> = {
   id: string;
@@ -28,11 +29,12 @@ export type EntityTableProps<T> = {
 
 export function EntityTable<T>(props: EntityTableProps<T>) {
   const { columns, data, isLoading, emptyState, rowKey, rowActions, className } = props;
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
       <div className={className}>
-        <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">Loading…</div>
+        <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">{t('common.loading')}</div>
       </div>
     );
   }
@@ -42,7 +44,7 @@ export function EntityTable<T>(props: EntityTableProps<T>) {
       <div className={className}>
         <div className="border rounded-md">
           <div className="p-6 text-center text-sm text-muted-foreground">
-            {emptyState ?? 'No records found.'}
+            {emptyState ?? t('common.noRecords')}
           </div>
         </div>
       </div>

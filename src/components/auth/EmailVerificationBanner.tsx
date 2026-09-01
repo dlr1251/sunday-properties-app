@@ -1,38 +1,8 @@
-import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '../../contexts/AuthContext';
-
-const EmailVerificationBanner: React.FC = () => {
-  const { user, resendVerificationEmail } = useAuth();
-  const isVerified = Boolean((user as any)?.email_confirmed_at);
-
-  if (!user || isVerified) return null;
-
-  const handleResend = async () => {
-    await resendVerificationEmail();
-  };
-
-  return (
-    <Alert className="bg-yellow-50 border-yellow-200 text-yellow-900">
-      <AlertDescription>
-        Tu email aún no está verificado. Algunas acciones estarán restringidas (publicar propiedades, agendar visitas, realizar ofertas).
-        <div className="mt-3">
-          <Button size="sm" variant="outline" onClick={handleResend}>
-            Reenviar correo de verificación
-          </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
-  );
-};
-
-export default EmailVerificationBanner;
-
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { X, Mail, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -41,25 +11,24 @@ interface EmailVerificationBannerProps {
   showDismiss?: boolean;
 }
 
-export const EmailVerificationBanner: React.FC<EmailVerificationBannerProps> = ({ 
-  onDismiss, 
-  showDismiss = true 
+export const EmailVerificationBanner: React.FC<EmailVerificationBannerProps> = ({
+  onDismiss,
+  showDismiss = true,
 }) => {
+  const { t } = useTranslation();
   const { user, resendVerificationEmail } = useAuth();
   const [resending, setResending] = useState(false);
+  const isVerified = Boolean((user as any)?.email_confirmed_at || (user as any)?.email_verified);
 
-  // Don't show banner if user is not logged in or email is verified
-  if (!user || user.email_verified) {
-    return null;
-  }
+  if (!user || isVerified) return null;
 
   const handleResendVerification = async () => {
     try {
       setResending(true);
       await resendVerificationEmail();
-      toast.success('Correo de verificación enviado. Revisa tu bandeja de entrada.');
+      toast.success(t('auth.verificationSent'));
     } catch (error: any) {
-      toast.error(error.message || 'Error al enviar el correo de verificación');
+      toast.error(error.message || t('auth.resetEmailFailed'));
     } finally {
       setResending(false);
     }
@@ -70,12 +39,7 @@ export const EmailVerificationBanner: React.FC<EmailVerificationBannerProps> = (
       <AlertCircle className="h-4 w-4" />
       <AlertDescription className="flex items-center justify-between w-full">
         <div className="flex-1">
-          <div className="font-medium mb-1">Verifica tu correo electrónico</div>
-          <div className="text-sm">
-            Para acceder a todas las funcionalidades, necesitas verificar tu correo electrónico.
-            <br />
-            <strong>Restricciones actuales:</strong> No puedes publicar propiedades, agendar visitas o enviar ofertas.
-          </div>
+          <div className="text-sm">{t('auth.emailNotVerified')}</div>
         </div>
         <div className="flex items-center space-x-2 ml-4">
           <Button
@@ -86,7 +50,7 @@ export const EmailVerificationBanner: React.FC<EmailVerificationBannerProps> = (
             className="border-yellow-300 text-yellow-800 hover:bg-yellow-100"
           >
             <Mail className="mr-2 h-4 w-4" />
-            {resending ? 'Enviando...' : 'Reenviar correo'}
+            {resending ? t('common.sending') : t('auth.resendVerification')}
           </Button>
           {showDismiss && onDismiss && (
             <Button

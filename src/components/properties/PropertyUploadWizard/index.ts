@@ -10,7 +10,6 @@ export { Step2PropertyDetails } from './Step2PropertyDetails';
 export { Step3Images } from './Step3Images';
 export { Step4Documents } from './Step4Documents';
 export { Step5SellingConditions } from './Step5SellingConditions';
-export { Step6NegotiationRules } from './Step6NegotiationRules';
 export { Step7FinalReview } from './Step7FinalReview';
 
 // Re-export types
@@ -21,6 +20,5 @@ export type {
   Step3ImagesProps,
   Step4DocumentsProps,
   Step5SellingConditionsProps,
-  Step6NegotiationRulesProps,
   Step7FinalReviewProps
 } from './types';

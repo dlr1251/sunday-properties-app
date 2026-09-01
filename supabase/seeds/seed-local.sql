@@ -83,88 +83,181 @@ BEGIN
             title, description, address, neighborhood, city, coordinates,
             bedrooms, bathrooms, area, parking, property_type, strata,
             price, minimum_offer_price, monthly_costs, owner_id, agent_id,
-            status, verified, images, features, created_at, updated_at, published_at
+            status, verified, images, features, created_at, updated_at, published_at,
+            listing_type, rent_monthly, lease_term_months, deposit, admin_fee, utilities_included, pets_policy
         ) VALUES
-        -- Property 1 - Bogotá
-        (
-            'Apartamento Ejecutivo Chapinero',
-            'Hermoso apartamento completamente remodelado en el corazón de Chapinero',
-            'Calle 67 #12-34', 'Chapinero', 'Bogotá',
-            '{"lat": 4.6483, "lng": -74.0636}'::jsonb,
-            3, 2, 120, 1, 'apartment', 4,
-            650000000, 600000000, 180000,
-            regular_user_ids[1],
-            CASE WHEN agent_count > 0 THEN agent_ids[1] ELSE NULL END,
-            'published', true,
-            ARRAY['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800'],
-            ARRAY['Piscina', 'Gimnasio'],
-            NOW() - INTERVAL '30 days', NOW(), NOW() - INTERVAL '25 days'
-        ),
-        -- Property 2 - Bogotá
-        (
-            'Penthouse Zona G',
-            'Exclusivo penthouse con terraza privada y vista panorámica',
-            'Carrera 7 #85-20', 'Zona G', 'Bogotá',
-            '{"lat": 4.6583, "lng": -74.0676}'::jsonb,
-            4, 3, 200, 2, 'apartment', 5,
-            1200000000, 1100000000, 350000,
-            regular_user_ids[1 % user_count + 1],
-            CASE WHEN agent_count > 0 THEN agent_ids[2 % agent_count + 1] ELSE NULL END,
-            'published', true,
-            ARRAY['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'],
-            ARRAY['Terraza privada', 'Vista panorámica'],
-            NOW() - INTERVAL '45 days', NOW(), NOW() - INTERVAL '40 days'
-        ),
-        -- Property 3 - Bogotá
-        (
-            'Casa Moderna Usaquén',
-            'Casa contemporánea con jardín y piscina',
-            'Calle 120 #15-45', 'Usaquén', 'Bogotá',
-            '{"lat": 4.6783, "lng": -74.0336}'::jsonb,
-            4, 4, 350, 2, 'house', NULL,
-            1800000000, 1700000000, 450000,
-            regular_user_ids[2 % user_count + 1],
-            CASE WHEN agent_count > 0 THEN agent_ids[3 % agent_count + 1] ELSE NULL END,
-            'published', true,
-            ARRAY['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800'],
-            ARRAY['Jardín', 'Piscina'],
-            NOW() - INTERVAL '60 days', NOW(), NOW() - INTERVAL '55 days'
-        ),
-        -- Property 4 - Medellín
+        -- MINIMAL TEST PROPERTIES (reduced for real data focus)
+        -- Keep only 2 minimal demo properties for testing flows (negotiation, visits, etc.)
         (
             'Apartamento Moderno en El Poblado',
-            'Hermoso apartamento moderno de 3 habitaciones con vista panorámica al Parque Lleras. Acabados de lujo, cocina integral, zona de lavandería, closets empotrados.',
+            'Hermoso apartamento moderno de 3 habitaciones con vista panorámica al Parque Lleras. Acabados de lujo, cocina integral, zona de lavandería, closets empotrados. (Demo de prueba)',
             'Carrera 43A #15-25, Apto 1202', 'El Poblado', 'Medellín',
             '{"lat": 6.2091, "lng": -75.5678}'::jsonb,
             3, 2, 85, 1, 'apartment', 4,
             450000000, 420000000, 280000,
-            regular_user_ids[3 % user_count + 1],
-            CASE WHEN agent_count > 0 THEN agent_ids[4 % agent_count + 1] ELSE NULL END,
+            regular_user_ids[1],
+            CASE WHEN agent_count > 0 THEN agent_ids[1] ELSE NULL END,
             'published', true,
             ARRAY['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'],
             ARRAY['Gimnasio', 'Piscina', 'Portería 24/7', 'Ascensor'],
-            NOW() - INTERVAL '20 days', NOW(), NOW() - INTERVAL '15 days'
+            NOW() - INTERVAL '20 days', NOW(), NOW() - INTERVAL '15 days',
+            'sale', NULL, NULL, NULL, NULL, ARRAY[]::text[], NULL
         ),
-        -- Property 5 - Medellín
         (
-            'Casa Campestre en Envigado',
-            'Casa campestre de 4 habitaciones con jardín privado de 200m², piscina, zona de parrilla y garaje doble.',
-            'Calle 25 Sur #45-67', 'Envigado', 'Envigado',
-            '{"lat": 6.1759, "lng": -75.5622}'::jsonb,
-            4, 3, 280, 2, 'house', NULL,
-            650000000, 600000000, 150000,
-            regular_user_ids[4 % user_count + 1],
-            CASE WHEN agent_count > 0 THEN agent_ids[1 % agent_count + 1] ELSE NULL END,
+            'Casa Demo Arriendo - Prueba',
+            'Propiedad de prueba para flujos de arriendo. (Demo mínima)',
+            'Calle 70 #45-20', 'Laureles', 'Medellín',
+            '{"lat": 6.2458, "lng": -75.5942}'::jsonb,
+            3, 2, 120, 1, 'house', 3,
+            NULL, NULL, 150000,
+            regular_user_ids[2 % user_count + 1],
+            CASE WHEN agent_count > 0 THEN agent_ids[2 % agent_count + 1] ELSE NULL END,
             'published', true,
             ARRAY['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800'],
-            ARRAY['Jardín privado', 'Piscina', 'Zona de parrilla'],
-            NOW() - INTERVAL '35 days', NOW(), NOW() - INTERVAL '30 days'
+            ARRAY['Jardín', 'Zona BBQ'],
+            NOW() - INTERVAL '10 days', NOW(), NOW() - INTERVAL '8 days',
+            'rental', 2800000, 12, 5600000, 280000, ARRAY['Administración']::text[], 'Mascotas pequeñas permitidas'
         );
         
         GET DIAGNOSTICS property_count = ROW_COUNT;
-        RAISE NOTICE 'Inserted % properties', property_count;
+        RAISE NOTICE 'Inserted % minimal test properties', property_count;
     ELSE
         RAISE NOTICE 'Properties already exist. Skipping property insertion.';
+    END IF;
+END $$;
+
+-- ============================================
+-- REAL PROPERTIES (Lauret / Campo Nuevo rentals + Peter Pitchler sale)
+-- ============================================
+-- These are the production/real properties the user wants to promote.
+-- They use listing_type correctly and reference real legal docs from ai_food/.
+-- Idempotent: skips if title already exists.
+-- Runs always (even if other properties exist), assigned to first available regular users.
+
+DO $$
+DECLARE
+    v_owner_id UUID;
+    v_agent_id UUID;
+    v_real_count INTEGER := 0;
+BEGIN
+    -- Pick first regular user as owner for real props (in real use, you can reassign via UI or specific seed)
+    SELECT id INTO v_owner_id FROM profiles WHERE role = 'user' AND status = 'active' ORDER BY created_at LIMIT 1;
+    SELECT id INTO v_agent_id FROM profiles WHERE role = 'agent' AND status = 'active' ORDER BY created_at LIMIT 1;
+
+    IF v_owner_id IS NULL THEN
+        RAISE NOTICE 'No regular user found. Skipping real properties seed.';
+        RETURN;
+    END IF;
+
+    -- 1. Rental - Lauret / Laureles
+    IF NOT EXISTS (SELECT 1 FROM properties WHERE title = 'Casa Lauret - Arriendo en Laureles') THEN
+        INSERT INTO public.properties (
+            title, description, address, neighborhood, city, coordinates,
+            bedrooms, bathrooms, area, parking, property_type, strata,
+            price, owner_id, agent_id, status, verified, premium,
+            images, legal_documents, features,
+            listing_type, rent_monthly, lease_term_months, deposit, admin_fee, utilities_included, pets_policy,
+            visit_price, created_at, updated_at, published_at
+        ) VALUES (
+            'Casa Lauret - Arriendo en Laureles',
+            'Hermosa casa en el corazón de Laureles, ideal para familias o ejecutivos que buscan comodidad y excelente ubicación. Incluye jardín privado, zona de parrilla y fácil acceso a parques, restaurantes y transporte público. Documentos legales completos disponibles (CLYT, Paz y Salvo, etc.). Contrato de arrendamiento estándar con opción de renovación.',
+            'Calle 70 # 45-20, Laureles', 'Laureles', 'Medellín',
+            '{"lat": 6.2458, "lng": -75.5942}'::jsonb,
+            4, 3, 220, 2, 'house', 4,
+            NULL, v_owner_id, v_agent_id, 'published', true, true,
+            ARRAY['/ai_food/jpeg/vista_1.jpeg', '/ai_food/jpeg/vista_2.jpeg', '/ai_food/jpeg/vista_3.jpeg'],
+            ARRAY['/ai_food/CLYT_CASA_BQLLA_DOÑA_ELCY.pdf', '/ai_food/PAZ_Y_SALVO_ADMINISTRACION_ZOCALO_APTO_31_JAN_2025.jpeg'],
+            ARRAY['Jardín', 'Zona BBQ', 'Parqueadero', 'Seguridad'],
+            'rental', 5200000, 12, 10400000, 520000, ARRAY['Administración']::text[], 'Se permiten mascotas pequeñas con depósito adicional',
+            49000,
+            NOW() - INTERVAL '5 days', NOW(), NOW() - INTERVAL '4 days'
+        );
+        v_real_count := v_real_count + 1;
+        RAISE NOTICE 'Inserted real rental: Casa Lauret - Arriendo en Laureles';
+    END IF;
+
+    -- 2. Rental - Campo Nuevo
+    IF NOT EXISTS (SELECT 1 FROM properties WHERE title = 'Apartamento Campo Nuevo - Arriendo') THEN
+        INSERT INTO public.properties (
+            title, description, address, neighborhood, city, coordinates,
+            bedrooms, bathrooms, area, parking, property_type, strata,
+            price, owner_id, agent_id, status, verified, premium,
+            images, legal_documents, features,
+            listing_type, rent_monthly, lease_term_months, deposit, admin_fee, utilities_included, pets_policy,
+            visit_price, created_at, updated_at, published_at
+        ) VALUES (
+            'Apartamento Campo Nuevo - Arriendo',
+            'Moderno apartamento en Campo Nuevo con excelente iluminación natural y acabados de primera. Ideal para parejas o profesionales que buscan un espacio funcional, seguro y bien conectado. Incluye parqueadero, depósito y acceso controlado. Se entrega con contrato de arrendamiento claro y respaldo legal completo (CLYT actualizado).',
+            'Carrera 80 # 32-15, Campo Nuevo', 'Campo Nuevo', 'Medellín',
+            '{"lat": 6.175, "lng": -75.58}'::jsonb,
+            2, 2, 78, 1, 'apartment', 3,
+            NULL, v_owner_id, v_agent_id, 'published', true, false,
+            ARRAY['/ai_food/jpeg/vista_10.jpeg', '/ai_food/jpeg/vista_11.jpeg'],
+            ARRAY['/ai_food/CLYT_APTO_POBLADO_MI_001-1429919_17_OCT_2025_ANGELA_LAMBARRI.pdf'],
+            ARRAY['Ascensor', 'Portería 24h', 'Parqueadero'],
+            'rental', 2450000, 12, 4900000, 245000, ARRAY[]::text[], 'No se permiten mascotas',
+            49000,
+            NOW() - INTERVAL '3 days', NOW(), NOW() - INTERVAL '2 days'
+        );
+        v_real_count := v_real_count + 1;
+        RAISE NOTICE 'Inserted real rental: Apartamento Campo Nuevo - Arriendo';
+    END IF;
+
+    -- 3. Sale - Peter Pitchler
+    IF NOT EXISTS (SELECT 1 FROM properties WHERE title = 'Propiedad Peter Pitchler - Venta') THEN
+        INSERT INTO public.properties (
+            title, description, address, neighborhood, city, coordinates,
+            bedrooms, bathrooms, area, parking, property_type, strata,
+            price, minimum_offer_price, owner_id, agent_id, status, verified, premium,
+            images, legal_documents, features,
+            listing_type, visit_price, accepts_crypto, financing,
+            created_at, updated_at, published_at
+        ) VALUES (
+            'Propiedad Peter Pitchler - Venta',
+            'Excelente oportunidad de inversión o vivienda propia. Propiedad bien ubicada con alto potencial de valorización. Documentación en regla (CLYT, escrituras, paz y salvos). Ideal para compradores que buscan transparencia y un proceso ágil con acompañamiento legal. Precio negociable para compradores serios.',
+            'Calle 10A # 43-55, El Poblado', 'El Poblado', 'Medellín',
+            '{"lat": 6.2091, "lng": -75.5678}'::jsonb,
+            3, 2, 95, 1, 'apartment', 5,
+            720000000, 680000000, v_owner_id, v_agent_id, 'published', true, true,
+            ARRAY['/ai_food/jpeg/vista_20.jpeg', '/ai_food/jpeg/vista_21.jpeg', '/ai_food/jpeg/vista_22.jpeg'],
+            ARRAY['/ai_food/CLTYD_APTO_ED_ZOCALO_04_FEB_2025_DOLF_ANDRINGA.pdf', '/ai_food/EP_COMPRAVENTA_ZOCALO_04_FEB_2013_DOLF_ANDRINGA.pdf'],
+            ARRAY['Piscina', 'Gimnasio', 'Vista', 'Seguridad 24h'],
+            'sale', 49000, false, true,
+            NOW() - INTERVAL '7 days', NOW(), NOW() - INTERVAL '6 days'
+        );
+        v_real_count := v_real_count + 1;
+        RAISE NOTICE 'Inserted real sale: Propiedad Peter Pitchler - Venta';
+    END IF;
+
+    RAISE NOTICE 'Real properties seeded: % new', v_real_count;
+END $$;
+
+-- Minimal availability for the real rental properties (so visits can be scheduled in demo)
+DO $$
+DECLARE
+    lauret_id UUID;
+    campo_id UUID;
+BEGIN
+    SELECT id INTO lauret_id FROM properties WHERE title = 'Casa Lauret - Arriendo en Laureles' LIMIT 1;
+    SELECT id INTO campo_id FROM properties WHERE title = 'Apartamento Campo Nuevo - Arriendo' LIMIT 1;
+
+    IF lauret_id IS NOT NULL THEN
+        INSERT INTO property_availability (property_id, day_of_week, start_time, end_time, is_available)
+        VALUES 
+            (lauret_id, 1, '09:00', '12:00', true),
+            (lauret_id, 1, '14:00', '18:00', true),
+            (lauret_id, 3, '09:00', '12:00', true),
+            (lauret_id, 5, '14:00', '18:00', true)
+        ON CONFLICT DO NOTHING;
+    END IF;
+
+    IF campo_id IS NOT NULL THEN
+        INSERT INTO property_availability (property_id, day_of_week, start_time, end_time, is_available)
+        VALUES 
+            (campo_id, 2, '10:00', '13:00', true),
+            (campo_id, 4, '15:00', '19:00', true),
+            (campo_id, 6, '09:00', '12:00', true)
+        ON CONFLICT DO NOTHING;
     END IF;
 END $$;
 

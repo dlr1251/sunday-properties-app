@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avatar';
+import { getAvatarUrl } from '../../../utils/avatar';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { User, Mail, Phone, MapPin, Calendar, Shield, Heart as HeartIcon, Home as HomeIcon, CheckCircle2, ArrowRight } from 'lucide-react';
+import { formatDate } from '../../../utils/format';
 
 export const UserOverview: React.FC = () => {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
@@ -73,14 +77,14 @@ export const UserOverview: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    Cuenta Verificada
+                    {t('dashboard.accountVerified')}
                     <Badge className="bg-green-600 text-white border-0 shadow-sm font-semibold">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Verificado
+                      {t('profile.verified')}
                     </Badge>
                   </h3>
                   <p className="text-sm text-gray-700 mt-1 font-medium">
-                    Tu cuenta ha sido verificada exitosamente. Disfruta de todas las funcionalidades disponibles.
+                    {t('dashboard.verifiedSuccess')}
                   </p>
                 </div>
               </div>
@@ -99,16 +103,16 @@ export const UserOverview: React.FC = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    Verifica tu cuenta
+                    {t('dashboard.verifyAccount')}
                   </h3>
                   <p className="text-sm text-gray-700 mb-3 font-medium">
-                    Completa el proceso de verificación para acceder a todas las funcionalidades y aumentar tu credibilidad en la plataforma.
+                    {t('dashboard.verifyAccountDescription')}
                   </p>
                   <Button 
                     onClick={() => navigate('/verification')}
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
                   >
-                    Iniciar Verificación
+                    {t('dashboard.startVerification')}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -122,27 +126,27 @@ export const UserOverview: React.FC = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Perfil</CardTitle>
+            <CardTitle>{t('profile.title')}</CardTitle>
             {isVerified ? (
               <Badge className="bg-green-600 text-white border-0 shadow-sm font-semibold">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                Verificado
+                {t('profile.verified')}
               </Badge>
             ) : (
-              <Badge variant="secondary" className="font-semibold text-gray-700">No Verificado</Badge>
+              <Badge variant="secondary" className="font-semibold text-gray-700">{t('profile.notVerified')}</Badge>
             )}
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16">
-              <AvatarImage src={profile?.avatar_url} alt={profile?.full_name || user?.email} />
+              <AvatarImage src={getAvatarUrl(profile)} alt={profile?.full_name || user?.email} />
               <AvatarFallback>
                 {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900">{profile?.full_name || 'Usuario'}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{profile?.full_name || t('user')}</h3>
               <div className="flex flex-col gap-1 mt-1 text-sm text-gray-700">
                 <div className="flex items-center gap-2 font-medium">
                   <Mail className="w-4 h-4 text-gray-600" />
@@ -163,11 +167,7 @@ export const UserOverview: React.FC = () => {
                 {profile?.date_of_birth && (
                   <div className="flex items-center gap-2 font-medium">
                     <Calendar className="w-4 h-4 text-gray-600" />
-                    {new Date(profile.date_of_birth).toLocaleDateString('es-CO', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                    {formatDate(profile.date_of_birth)}
                   </div>
                 )}
               </div>
@@ -185,45 +185,45 @@ export const UserOverview: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-800">Propiedades</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-800">{t('dashboard.propertiesCount')}</CardTitle>
             <HomeIcon className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{stats.properties}</div>
-            <p className="text-xs text-gray-700 font-medium">Propiedades publicadas</p>
+            <p className="text-xs text-gray-700 font-medium">{t('dashboard.propertiesPublished')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-800">Favoritos</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-800">{t('dashboard.favoritesCount')}</CardTitle>
             <HeartIcon className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{stats.favorites}</div>
-            <p className="text-xs text-gray-700 font-medium">Propiedades guardadas</p>
+            <p className="text-xs text-gray-700 font-medium">{t('dashboard.propertiesSaved')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-800">Visitas</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-800">{t('dashboard.visitsCount')}</CardTitle>
             <Calendar className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{stats.visits}</div>
-            <p className="text-xs text-gray-700 font-medium">Visitas agendadas</p>
+            <p className="text-xs text-gray-700 font-medium">{t('dashboard.visitsScheduled')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-800">Ofertas</CardTitle>
+            <CardTitle className="text-sm font-semibold text-gray-800">{t('dashboard.offersCount')}</CardTitle>
             <Shield className="h-4 w-4 text-gray-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{stats.offers}</div>
-            <p className="text-xs text-gray-700 font-medium">Ofertas enviadas</p>
+            <p className="text-xs text-gray-700 font-medium">{t('dashboard.offersSent')}</p>
           </CardContent>
         </Card>
       </div>

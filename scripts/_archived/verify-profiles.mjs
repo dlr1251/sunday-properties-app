@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables
-const envPath = join(__dirname, '..', 'env.example');
+const envPath = join(__dirname, '..', '..', '.env.example');
 const envContent = readFileSync(envPath, 'utf8');
 const envVars = {};
 envContent.split('\n').forEach(line => {

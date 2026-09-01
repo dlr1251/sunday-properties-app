@@ -24,7 +24,7 @@ import {
   Search
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getIntlLocale } from '../../i18n';
 import { toast } from 'sonner';
 
 interface Negotiation {
@@ -193,7 +193,7 @@ export const AdminNegotiationAssignment: React.FC<AdminNegotiationAssignmentProp
   });
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -206,7 +206,7 @@ export const AdminNegotiationAssignment: React.FC<AdminNegotiationAssignmentProp
         <CardContent className="p-6">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Cargando negociaciones...</p>
+            <p className="text-muted-foreground">Cargando negociaciones...</p>
           </div>
         </CardContent>
       </Card>
@@ -227,13 +227,13 @@ export const AdminNegotiationAssignment: React.FC<AdminNegotiationAssignmentProp
       <CardContent className="space-y-4">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
           <input
             type="text"
             placeholder="Buscar por propiedad, comprador o vendedor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md"
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-md"
           />
         </div>
 
@@ -254,7 +254,7 @@ export const AdminNegotiationAssignment: React.FC<AdminNegotiationAssignmentProp
             <TableBody>
               {filteredNegotiations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No hay negociaciones pendientes de asignación
                   </TableCell>
                 </TableRow>
@@ -263,22 +263,22 @@ export const AdminNegotiationAssignment: React.FC<AdminNegotiationAssignmentProp
                   <TableRow key={negotiation.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-gray-400" />
+                        <Building2 className="w-4 h-4 text-muted-foreground/70" />
                         <div>
                           <p className="font-medium">{negotiation.property?.title}</p>
-                          <p className="text-sm text-gray-500">{negotiation.property?.address}</p>
+                          <p className="text-sm text-muted-foreground">{negotiation.property?.address}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-400" />
+                        <User className="w-4 h-4 text-muted-foreground/70" />
                         {negotiation.buyer?.full_name || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-400" />
+                        <User className="w-4 h-4 text-muted-foreground/70" />
                         {negotiation.seller?.full_name || 'N/A'}
                       </div>
                     </TableCell>
@@ -294,7 +294,7 @@ export const AdminNegotiationAssignment: React.FC<AdminNegotiationAssignmentProp
                       {negotiation.lawyer ? (
                         <span className="text-sm">{negotiation.lawyer.full_name}</span>
                       ) : (
-                        <span className="text-sm text-gray-400">Sin asignar</span>
+                        <span className="text-sm text-muted-foreground/70">Sin asignar</span>
                       )}
                     </TableCell>
                     <TableCell>

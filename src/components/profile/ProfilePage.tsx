@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAvatarUrl } from '@/utils/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,8 +17,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, MapPin, DollarSign, Building2, User, Phone, Mail, Shield, Edit3, Save, X, LogOut, AlertCircle, CheckCircle } from 'lucide-react';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatDate } from '../../utils/format';
 
 interface ProfileFormData {
   full_name: string;
@@ -39,6 +41,7 @@ interface PreferencesData {
 }
 
 export const ProfilePage: React.FC = () => {
+  const { t } = useTranslation();
   const { user, profile, loading, refreshProfile, signOut } = useAuth();
   const { verificationStatus } = useVerification();
   const { signOutAndRedirect } = useSignOutWithRedirect();
@@ -117,14 +120,14 @@ export const ProfilePage: React.FC = () => {
   // Show error state if profile failed to load
   if (showProfileError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="text-red-500 mb-4">
             <AlertCircle className="h-16 w-16 mx-auto" />
           </div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">Profile Load Error</h2>
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">{t('profile.loadErrorTitle')}</h2>
           <p className="text-slate-600 mb-4">
-            We couldn't load your profile information. This might be a temporary issue.
+            {t('profile.loadErrorDescription')}
           </p>
           <div className="space-y-2">
             <Button
@@ -135,14 +138,14 @@ export const ProfilePage: React.FC = () => {
               }}
               className="w-full"
             >
-              Try Again
+              {t('common.tryAgain')}
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate('/testing-users')}
               className="w-full"
             >
-              Back to User Selection
+              {t('profile.backToUserSelection')}
             </Button>
           </div>
         </div>
@@ -153,20 +156,22 @@ export const ProfilePage: React.FC = () => {
   // Show loading state while auth is loading or profile is not yet loaded
   if (loading || !user || !profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-slate-600">
-            {loading ? 'Authenticating...' : !user ? 'Loading user...' : 'Loading profile...'}
+            {loading ? t('profile.authenticating') : !user ? t('profile.loadingUser') : t('profile.loading')}
           </p>
           <p className="mt-2 text-sm text-slate-500">
-            {loading ? 'Please wait while we verify your login' :
-             !user ? 'Setting up your session' :
-             `Fetching your profile information${profileLoadAttempts > 0 ? ` (attempt ${profileLoadAttempts})` : ''}`}
+{loading ? t('profile.authenticatingHint') :
+             !user ? t('profile.settingUpSession') :
+             profileLoadAttempts > 0
+               ? t('profile.fetchingProfileAttempt', { count: profileLoadAttempts })
+               : t('profile.fetchingProfile')}
           </p>
           {profileLoadAttempts > 1 && (
             <p className="mt-2 text-xs text-orange-600">
-              Taking longer than expected... Please wait.
+              {t('profile.takingLonger')}
             </p>
           )}
         </div>
@@ -177,9 +182,9 @@ export const ProfilePage: React.FC = () => {
   // Show login prompt if no user
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-600">Please log in to view your profile</p>
+          <p className="text-slate-600">{t('profile.pleaseLogIn')}</p>
         </div>
       </div>
     );
@@ -226,7 +231,7 @@ export const ProfilePage: React.FC = () => {
 
       if (error) {
         console.error('❌ ProfilePage: Error updating profile:', error);
-        toast.error('Failed to update profile', {
+        toast.error(t('profile.toasts.profileUpdateError'), {
           description: error.message,
           duration: 5000,
         });
@@ -238,11 +243,11 @@ export const ProfilePage: React.FC = () => {
 
       setIsEditing(false);
 
-      toast.success('Profile updated successfully!', {
-        description: 'Your profile information has been saved.',
+      toast.success(t('profile.toasts.profileUpdatedSuccess'), {
+        description: t('profile.toasts.profileUpdatedHint'),
         duration: 4000,
         action: {
-          label: 'View Changes',
+          label: t('profile.toasts.viewChanges'),
           onClick: () => {
             // Could scroll to profile section or highlight changes
           },
@@ -251,8 +256,8 @@ export const ProfilePage: React.FC = () => {
 
     } catch (err) {
       console.error('❌ ProfilePage: Exception updating profile:', err);
-      toast.error('Unexpected error occurred', {
-        description: 'Please try again or contact support if the issue persists.',
+      toast.error(t('profile.toasts.unexpectedError'), {
+        description: t('profile.toasts.unexpectedErrorHint'),
         duration: 5000,
       });
     }
@@ -277,7 +282,7 @@ export const ProfilePage: React.FC = () => {
 
       if (error) {
         console.error('❌ ProfilePage: Error updating preferences:', error);
-        toast.error('Failed to update preferences', {
+        toast.error(t('profile.toasts.preferencesUpdateError'), {
           description: error.message,
           duration: 5000,
         });
@@ -287,15 +292,15 @@ export const ProfilePage: React.FC = () => {
       // Refresh the profile data in the context
       await refreshProfile();
 
-      toast.success('Preferences updated successfully!', {
-        description: 'Your preferences have been saved.',
+      toast.success(t('profile.toasts.preferencesUpdated'), {
+        description: t('profile.toasts.preferencesSavedHint'),
         duration: 4000,
       });
 
     } catch (err) {
       console.error('❌ ProfilePage: Exception updating preferences:', err);
-      toast.error('Unexpected error occurred', {
-        description: 'Please try again or contact support if the issue persists.',
+      toast.error(t('profile.toasts.unexpectedError'), {
+        description: t('profile.toasts.unexpectedErrorHint'),
         duration: 5000,
       });
     }
@@ -317,7 +322,7 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-white to-slate-50 rounded-xl shadow-lg border border-slate-200 p-6 mb-8">
@@ -325,7 +330,7 @@ export const ProfilePage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Avatar className="h-20 w-20 ring-4 ring-slate-200 shadow-lg">
-                  <AvatarImage src={displayProfile.avatar_url} />
+                  <AvatarImage src={getAvatarUrl(displayProfile)} />
                   <AvatarFallback className="text-2xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700">
                     {displayProfile.full_name.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -343,10 +348,10 @@ export const ProfilePage: React.FC = () => {
                 <p className="text-slate-600">{displayProfile.email}</p>
                 <div className="flex items-center space-x-2 mt-2">
                   <Badge variant={displayProfile.role === 'admin' ? 'default' : 'secondary'}>
-                    {displayProfile.role}
+                    {t(`profile.roles.${displayProfile.role}`, { defaultValue: displayProfile.role })}
                   </Badge>
                   <Badge variant={displayProfile.verification_status === 'verified' ? 'default' : 'outline'}>
-                    {displayProfile.verification_status || 'unverified'}
+                    {t(`profile.verificationLabels.${displayProfile.verification_status || 'unverified'}`, { defaultValue: displayProfile.verification_status || t('profile.notVerified') })}
                   </Badge>
                 </div>
               </div>
@@ -356,18 +361,18 @@ export const ProfilePage: React.FC = () => {
                 <>
                   <Button onClick={handleSave} size="sm">
                     <Save className="h-4 w-4 mr-2" />
-                    Save
+                    {t('common.save')}
                   </Button>
                   <Button onClick={handleCancel} variant="outline" size="sm">
                     <X className="h-4 w-4 mr-2" />
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                 </>
               ) : (
                 <>
                   <Button onClick={() => setIsEditing(true)} size="sm">
                     <Edit3 className="h-4 w-4 mr-2" />
-                    Edit Profile
+                    {t('profile.editProfile')}
                   </Button>
                   <Button 
                     onClick={() => signOutAndRedirect(signOut, '/testing-users')} 
@@ -376,7 +381,7 @@ export const ProfilePage: React.FC = () => {
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                    {t('nav.signOut')}
                   </Button>
                 </>
               )}
@@ -387,10 +392,10 @@ export const ProfilePage: React.FC = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="overview">{t('profile.tabOverview')}</TabsTrigger>
+            <TabsTrigger value="properties">{t('profile.tabProperties')}</TabsTrigger>
+            <TabsTrigger value="activity">{t('profile.tabActivity')}</TabsTrigger>
+            <TabsTrigger value="settings">{t('profile.tabSettings')}</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -402,16 +407,16 @@ export const ProfilePage: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <User className="h-5 w-5 mr-2" />
-                      Profile Information
+                      {t('profile.profileInformation')}
                     </CardTitle>
                     <CardDescription>
-                      Your personal information and contact details
+                      {t('profile.profileInformationHint')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="full_name">Full Name</Label>
+                        <Label htmlFor="full_name">{t('profile.fullName')}</Label>
                         {isEditing ? (
                           <Input
                             id="full_name"
@@ -419,15 +424,15 @@ export const ProfilePage: React.FC = () => {
                             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                           />
                         ) : (
-                          <p className="text-sm text-gray-900 mt-1">{displayProfile.full_name}</p>
+                          <p className="text-sm text-foreground mt-1">{displayProfile.full_name}</p>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="email">Email</Label>
-                        <p className="text-sm text-gray-900 mt-1">{displayProfile.email}</p>
+                        <Label htmlFor="email">{t('profile.email')}</Label>
+                        <p className="text-sm text-foreground mt-1">{displayProfile.email}</p>
                       </div>
                       <div>
-                        <Label htmlFor="phone">Phone</Label>
+                        <Label htmlFor="phone">{t('profile.phone')}</Label>
                         {isEditing ? (
                           <Input
                             id="phone"
@@ -435,28 +440,28 @@ export const ProfilePage: React.FC = () => {
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           />
                         ) : (
-                          <p className="text-sm text-gray-900 mt-1">{displayProfile.phone || 'Not provided'}</p>
+                          <p className="text-sm text-foreground mt-1">{displayProfile.phone || t('profile.notProvided')}</p>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="location">Location</Label>
+                        <Label htmlFor="location">{t('profile.location')}</Label>
                         {isEditing ? (
                           <Input
                             id="location"
                             value={formData.location}
                             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            placeholder="City, Country"
+                            placeholder={t('profile.placeholders.location')}
                           />
                         ) : (
-                          <p className="text-sm text-gray-900 mt-1">{displayProfile.location || 'Not provided'}</p>
+                          <p className="text-sm text-foreground mt-1">{displayProfile.location || t('profile.notProvided')}</p>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="role">Role</Label>
-                        <p className="text-sm text-gray-900 mt-1 capitalize">{displayProfile.role}</p>
+                        <Label htmlFor="role">{t('profile.role')}</Label>
+                        <p className="text-sm text-foreground mt-1">{t(`profile.roles.${displayProfile.role}`, { defaultValue: displayProfile.role })}</p>
                       </div>
                       <div>
-                        <Label htmlFor="date_of_birth">Date of Birth</Label>
+                        <Label htmlFor="date_of_birth">{t('profile.dateOfBirth')}</Label>
                         {isEditing ? (
                           <Input
                             id="date_of_birth"
@@ -465,60 +470,60 @@ export const ProfilePage: React.FC = () => {
                             onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                           />
                         ) : (
-                          <p className="text-sm text-gray-900 mt-1">
+                          <p className="text-sm text-foreground mt-1">
                             {displayProfile.date_of_birth ?
-                              format(new Date(displayProfile.date_of_birth), 'MMMM d, yyyy') :
-                              'Not provided'
+                              formatDate(displayProfile.date_of_birth) :
+                              t('profile.notProvided')
                             }
                           </p>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="nationality">Nationality</Label>
+                        <Label htmlFor="nationality">{t('profile.nationality')}</Label>
                         {isEditing ? (
                           <Input
                             id="nationality"
                             value={formData.nationality}
                             onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
-                            placeholder="e.g., Colombian"
+                            placeholder={t('profile.placeholders.nationality')}
                           />
                         ) : (
-                          <p className="text-sm text-gray-900 mt-1">{displayProfile.nationality || 'Not provided'}</p>
+                          <p className="text-sm text-foreground mt-1">{displayProfile.nationality || t('profile.notProvided')}</p>
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="website">Website</Label>
+                        <Label htmlFor="website">{t('profile.website')}</Label>
                         {isEditing ? (
                           <Input
                             id="website"
                             value={formData.website}
                             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                            placeholder="https://yourwebsite.com"
+                            placeholder={t('profile.placeholders.website')}
                           />
                         ) : (
-                          <p className="text-sm text-gray-900 mt-1">
+                          <p className="text-sm text-foreground mt-1">
                             {displayProfile.website ?
                               <a href={displayProfile.website} target="_blank" rel="noopener noreferrer"
                                  className="text-blue-600 hover:text-blue-800 underline">
                                 {displayProfile.website}
                               </a> :
-                              'Not provided'
+                              t('profile.notProvided')
                             }
                           </p>
                         )}
                       </div>
                       <div>
-                        <Label>Verification Status</Label>
+                        <Label>{t('profile.verificationStatus')}</Label>
                         <div className="flex items-center gap-2 mt-1">
                           {verificationStatus === 'verified' ? (
                             <>
                               <Shield className="h-4 w-4 text-green-600" />
                               <Badge variant="secondary" className="bg-green-100 text-green-800">
-                                Verified
+                                {t('profile.verified')}
                               </Badge>
                               {profile?.verified_at && (
-                                <span className="text-xs text-gray-500">
-                                  Verified on {format(new Date(profile.verified_at), 'MMM dd, yyyy')}
+                                <span className="text-xs text-muted-foreground">
+                                  {t('profile.verifiedOn', { date: formatDate(profile.verified_at) })}
                                 </span>
                               )}
                             </>
@@ -526,17 +531,17 @@ export const ProfilePage: React.FC = () => {
                             <>
                               <AlertCircle className="h-4 w-4 text-yellow-600" />
                               <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                Pending Review
+                                {t('profile.pendingReview')}
                               </Badge>
-                              <span className="text-xs text-gray-500">
-                                Submitted for review
+                              <span className="text-xs text-muted-foreground">
+                                {t('profile.submittedForReview')}
                               </span>
                             </>
                           ) : verificationStatus === 'rejected' ? (
                             <>
                               <X className="h-4 w-4 text-red-600" />
                               <Badge variant="destructive">
-                                Rejected
+                                {t('profile.rejected')}
                               </Badge>
                               <Button
                                 size="sm"
@@ -544,14 +549,14 @@ export const ProfilePage: React.FC = () => {
                                 onClick={() => navigate('/verify-profile')}
                                 className="ml-2 text-xs"
                               >
-                                Edit & Re-submit
+                                {t('profile.editAndResubmit')}
                               </Button>
                             </>
                           ) : (
                             <>
                               <AlertCircle className="h-4 w-4 text-slate-600" />
                               <Badge variant="outline">
-                                Not Verified
+                                {t('profile.notVerified')}
                               </Badge>
                             </>
                           )}
@@ -560,7 +565,7 @@ export const ProfilePage: React.FC = () => {
                     </div>
                     
                     <div>
-                      <Label htmlFor="bio">Bio</Label>
+                      <Label htmlFor="bio">{t('profile.bio')}</Label>
                       {isEditing ? (
                         <Textarea
                           id="bio"
@@ -569,7 +574,7 @@ export const ProfilePage: React.FC = () => {
                           rows={3}
                         />
                       ) : (
-                        <p className="text-sm text-gray-900 mt-1">{displayProfile.bio || 'No bio provided'}</p>
+                        <p className="text-sm text-foreground mt-1">{displayProfile.bio || t('profile.noBio')}</p>
                       )}
                     </div>
                   </CardContent>
@@ -580,31 +585,31 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <Card className="bg-white">
                   <CardHeader>
-                    <CardTitle>Quick Stats</CardTitle>
-                    <CardDescription>Your activity summary</CardDescription>
+                    <CardTitle>{t('profile.quickStats')}</CardTitle>
+                    <CardDescription>{t('profile.activitySummary')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">Properties</span>
+                        <span className="text-sm text-slate-600">{t('nav.properties')}</span>
                         <span className="text-lg font-semibold">
                           {propertiesLoading ? '...' : properties.length}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">Visits</span>
+                        <span className="text-sm text-slate-600">{t('nav.visits')}</span>
                         <span className="text-lg font-semibold">
                           {visitsLoading ? '...' : visits.length}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">Offers</span>
+                        <span className="text-sm text-slate-600">{t('negotiations.offers')}</span>
                         <span className="text-lg font-semibold">
                           {offersLoading ? '...' : offers.length}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">Notifications</span>
+                        <span className="text-sm text-slate-600">{t('dashboard.notifications')}</span>
                         <span className="text-lg font-semibold">
                           {notificationsLoading ? '...' : notifications.filter(n => !n.read).length}
                         </span>
@@ -618,8 +623,8 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <Card className="bg-white">
                   <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                    <CardDescription>Manage your account and properties</CardDescription>
+                    <CardTitle>{t('profile.quickActions')}</CardTitle>
+                    <CardDescription>{t('profile.manageAccountAndProperties')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {verificationStatus !== 'verified' && (
@@ -629,9 +634,9 @@ export const ProfilePage: React.FC = () => {
                         variant="outline"
                       >
                         <Shield className="h-4 w-4 mr-2" />
-                        {verificationStatus === 'pending' ? 'Verification in Progress' :
-                         verificationStatus === 'rejected' ? 'Re-submit Verification' :
-                         'Verify Identity'}
+                        {verificationStatus === 'pending' ? t('profile.verificationInProgress') :
+                         verificationStatus === 'rejected' ? t('profile.resubmitVerification') :
+                         t('profile.verifyIdentity')}
                       </Button>
                     )}
 
@@ -641,7 +646,7 @@ export const ProfilePage: React.FC = () => {
                         className="w-full justify-start bg-blue-600 hover:bg-blue-700"
                       >
                         <Building2 className="h-4 w-4 mr-2" />
-                        Upload Property
+                        {t('profile.uploadProperty')}
                       </Button>
                     )}
 
@@ -651,7 +656,7 @@ export const ProfilePage: React.FC = () => {
                       className="w-full justify-start"
                     >
                       <DollarSign className="h-4 w-4 mr-2" />
-                      View Dashboard
+                      {t('profile.viewDashboard')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -663,24 +668,24 @@ export const ProfilePage: React.FC = () => {
           <TabsContent value="properties">
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-slate-900">Your Properties</CardTitle>
-                <CardDescription>Properties you own or manage</CardDescription>
+                <CardTitle className="text-slate-900">{t('profile.yourProperties')}</CardTitle>
+                <CardDescription>{t('profile.propertiesYouOwn')}</CardDescription>
               </CardHeader>
               <CardContent>
                 {propertiesLoading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-slate-600">Loading properties...</p>
+                    <p className="mt-4 text-slate-600">{t('profile.loadingProperties')}</p>
                   </div>
                 ) : propertiesError ? (
                   <div className="text-center py-8">
-                    <p className="text-red-600">Error loading properties: {propertiesError}</p>
+                    <p className="text-red-600">{t('profile.errorLoadingProperties', { error: propertiesError })}</p>
                   </div>
                 ) : properties.length === 0 ? (
                   <div className="text-center py-8">
                     <Building2 className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <p className="text-slate-600">No properties found</p>
-                    <p className="text-sm text-slate-500 mt-2">You haven't listed any properties yet.</p>
+                    <p className="text-slate-600">{t('profile.noPropertiesFound')}</p>
+                    <p className="text-sm text-slate-500 mt-2">{t('profile.noPropertiesHint')}</p>
                   </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -697,7 +702,7 @@ export const ProfilePage: React.FC = () => {
                               {property.property_type}
                             </Badge>
                             <span className="font-bold text-lg text-slate-900">
-                              ${property.price?.toLocaleString()}
+                              {property.price != null ? formatCurrency(property.price) : t('profile.notProvided')}
                             </span>
                           </div>
                           <div className="flex items-center mt-2 text-sm text-slate-600">
@@ -717,13 +722,13 @@ export const ProfilePage: React.FC = () => {
           <TabsContent value="activity">
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-slate-900">Recent Activity</CardTitle>
-                <CardDescription>Your recent actions and updates</CardDescription>
+                <CardTitle className="text-slate-900">{t('profile.recentActivity')}</CardTitle>
+                <CardDescription>{t('profile.recentActions')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
                   <Calendar className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600">No recent activity</p>
+                  <p className="text-slate-600">{t('profile.noRecentActivity')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -734,23 +739,23 @@ export const ProfilePage: React.FC = () => {
             {/* Account Information */}
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-slate-900">Account Information</CardTitle>
-                <CardDescription>Your account details and status</CardDescription>
+                <CardTitle className="text-slate-900">{t('profile.accountInfo')}</CardTitle>
+                <CardDescription>{t('profile.accountDetails')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <Label>Account Status</Label>
-                    <p className="text-sm text-slate-900 mt-1 capitalize">{displayProfile.status}</p>
+                    <Label>{t('profile.accountStatus')}</Label>
+                    <p className="text-sm text-slate-900 mt-1">{t(`profile.accountStatuses.${displayProfile.status}`, { defaultValue: displayProfile.status })}</p>
                   </div>
                   <div>
-                    <Label>Verification Status</Label>
-                    <p className="text-sm text-slate-900 mt-1 capitalize">{displayProfile.verification_status || 'unverified'}</p>
+                    <Label>{t('profile.verificationStatus')}</Label>
+                    <p className="text-sm text-slate-900 mt-1">{t(`profile.verificationLabels.${displayProfile.verification_status || 'unverified'}`, { defaultValue: displayProfile.verification_status || t('profile.notVerified') })}</p>
                   </div>
                   <div>
-                    <Label>Member Since</Label>
+                    <Label>{t('profile.memberSince')}</Label>
                     <p className="text-sm text-slate-900 mt-1">
-                      {format(new Date(displayProfile.created_at), 'MMMM d, yyyy')}
+                      {formatDate(displayProfile.created_at)}
                     </p>
                   </div>
                 </div>
@@ -760,21 +765,21 @@ export const ProfilePage: React.FC = () => {
             {/* Preferences */}
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-slate-900">Preferences</CardTitle>
-                <CardDescription>Customize your experience and notifications</CardDescription>
+                <CardTitle className="text-slate-900">{t('profile.preferences')}</CardTitle>
+                <CardDescription>{t('profile.customizeExperience')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   {/* Language and Region */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="language">Language</Label>
+                      <Label htmlFor="language">{t('profile.language')}</Label>
                       <Select
                         value={preferencesData.language}
                         onValueChange={(value) => setPreferencesData({ ...preferencesData, language: value })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select language" />
+                          <SelectValue placeholder={t('settings.selectLanguage')} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="es">Español</SelectItem>
@@ -784,35 +789,35 @@ export const ProfilePage: React.FC = () => {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="currency">Currency</Label>
+                      <Label htmlFor="currency">{t('profile.currency')}</Label>
                       <Select
                         value={preferencesData.currency}
                         onValueChange={(value) => setPreferencesData({ ...preferencesData, currency: value })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
+                          <SelectValue placeholder={t('profile.selectCurrency')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="COP">COP - Colombian Peso</SelectItem>
-                          <SelectItem value="USD">USD - US Dollar</SelectItem>
-                          <SelectItem value="EUR">EUR - Euro</SelectItem>
+                          <SelectItem value="COP">{t('profile.currencies.COP')}</SelectItem>
+                          <SelectItem value="USD">{t('profile.currencies.USD')}</SelectItem>
+                          <SelectItem value="EUR">{t('profile.currencies.EUR')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="timezone">Timezone</Label>
+                      <Label htmlFor="timezone">{t('profile.timezone')}</Label>
                       <Select
                         value={preferencesData.timezone}
                         onValueChange={(value) => setPreferencesData({ ...preferencesData, timezone: value })}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select timezone" />
+                          <SelectValue placeholder={t('profile.selectTimezone')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="America/Bogota">Bogotá (GMT-5)</SelectItem>
-                          <SelectItem value="America/New_York">New York (GMT-5)</SelectItem>
-                          <SelectItem value="Europe/Madrid">Madrid (GMT+1)</SelectItem>
-                          <SelectItem value="America/Mexico_City">Mexico City (GMT-6)</SelectItem>
+                          <SelectItem value="America/Bogota">{t('profile.timezones.bogota')}</SelectItem>
+                          <SelectItem value="America/New_York">{t('profile.timezones.newYork')}</SelectItem>
+                          <SelectItem value="Europe/Madrid">{t('profile.timezones.madrid')}</SelectItem>
+                          <SelectItem value="America/Mexico_City">{t('profile.timezones.mexicoCity')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -820,7 +825,7 @@ export const ProfilePage: React.FC = () => {
 
                   {/* Notification Settings */}
                   <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-slate-900">Notification Settings</h4>
+                    <h4 className="text-sm font-medium text-slate-900">{t('profile.notificationSettings')}</h4>
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -831,7 +836,7 @@ export const ProfilePage: React.FC = () => {
                           }
                         />
                         <Label htmlFor="email_notifications" className="text-sm">
-                          Email notifications for important updates
+                          {t('profile.emailNotificationsImportant')}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -843,7 +848,7 @@ export const ProfilePage: React.FC = () => {
                           }
                         />
                         <Label htmlFor="push_notifications" className="text-sm">
-                          Push notifications for new messages
+                          {t('profile.pushNotificationsMessages')}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -855,7 +860,7 @@ export const ProfilePage: React.FC = () => {
                           }
                         />
                         <Label htmlFor="marketing_emails" className="text-sm">
-                          Marketing emails and promotional content
+                          {t('profile.marketingEmailsPromo')}
                         </Label>
                       </div>
                     </div>
@@ -865,7 +870,7 @@ export const ProfilePage: React.FC = () => {
                   <div className="pt-4">
                     <Button onClick={handleSavePreferences} className="w-full md:w-auto">
                       <Save className="h-4 w-4 mr-2" />
-                      Save Preferences
+                      {t('profile.savePreferences')}
                     </Button>
                   </div>
                 </div>

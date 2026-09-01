@@ -40,6 +40,7 @@
             "pdf2pic": "^3.2.0",
             "pdfjs-dist": "^5.4.296",
             "pizzip": "^3.1.7",
+            "pngjs": "^7.0.0",
             "react": "^18.3.1",
             "react-day-picker": "^8.10.1",
             "react-dom": "^18.3.1",
@@ -60,9 +61,11 @@
             "zod": "^4.1.12"
       },
       "devDependencies": {
+            "@notionhq/client": "^5.22.0",
             "@testing-library/jest-dom": "^6.9.1",
             "@testing-library/react": "^16.3.0",
             "@testing-library/user-event": "^14.6.1",
+            "@tryfabric/martian": "^1.2.4",
             "@types/node": "^20.10.0",
             "@vitejs/plugin-react-swc": "^3.10.2",
             "autoprefixer": "^10.4.21",
@@ -72,20 +75,33 @@
             "vitest": "^3.2.4"
       },
       "scripts": {
+            "copy-docs": "node scripts/copy-docs-to-public.mjs",
+            "sync:docs-notion": "node scripts/sync-docs-to-notion.mjs",
+            "sync:docs-notion:batches": "node scripts/run-notion-sync-batches.mjs",
+            "sync:docs-notion:finish": "node scripts/finish-notion-sync.mjs",
+            "prebuild": "npm run copy-docs && node scripts/copy-ai-food-to-public.mjs",
+            "predev": "npm run copy-docs && node scripts/copy-ai-food-to-public.mjs",
             "dev": "vite",
             "yjs:server": "npx y-websocket-server --port 1234",
-            "build": "vite build",
+            "build": "npm run copy-docs && vite build",
             "postinstall": "cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/",
             "seed:auth": "node scripts/seed-auth-users.mjs",
             "seed:complete": "./scripts/seed-complete.sh",
             "seed:negotiations": "psql postgresql://postgres:postgres@127.0.0.1:54326/postgres -f supabase/seeds/seed-negotiation-test-data.sql",
             "seed:realistic": "node scripts/seed-realistic-users.mjs",
+            "seed:real-properties": "node scripts/seed-real-properties.mjs",
+            "prune:test-properties": "node scripts/prune-test-properties.mjs",
+            "copy:ai-food": "node scripts/copy-ai-food-to-public.mjs",
             "seed:sql": "echo 'Run with supabase local: psql -h localhost -p 54322 -U postgres -d postgres -f supabase/seed-local.sql'",
             "db:reset-seed": "./scripts/reset-and-seed.sh",
             "db:verify": "./scripts/verify-data-preservation.sh",
             "test": "vitest",
             "test:ui": "vitest --ui",
             "test:run": "vitest run",
-            "test:coverage": "vitest run --coverage"
+            "test:coverage": "vitest run --coverage",
+            "vercel:env-push": "node scripts/vercel-env-push.mjs .env.local production",
+            "setup": "./scripts/setup/setup.sh",
+            "setup:local-supabase": "./scripts/setup/setup-local-supabase.sh",
+            "setup:complete": "./scripts/setup/setup-complete.sh"
       }
 }

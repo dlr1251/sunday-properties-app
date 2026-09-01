@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -9,6 +10,7 @@ import { Checkbox } from './ui/checkbox';
 import { Calendar } from './ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getPropertyImage } from '../utils/imageUtils';
+import { formatCurrency } from '../../utils/format';
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -110,6 +112,7 @@ const mockVisits: Visit[] = [
 ];
 
 export const VisitManagementView: React.FC = () => {
+  const { t } = useTranslation();
   const [visits, setVisits] = useState<Visit[]>(mockVisits);
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -117,22 +120,13 @@ export const VisitManagementView: React.FC = () => {
   const [feedback, setFeedback] = useState('');
   const [rating, setRating] = useState(0);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   const getStatusBadge = (status: Visit['status']) => {
     const statusConfig = {
-      pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pendiente' },
-      confirmed: { color: 'bg-blue-100 text-blue-800', label: 'Confirmada' },
-      completed: { color: 'bg-green-100 text-green-800', label: 'Completada' },
-      cancelled: { color: 'bg-red-100 text-red-800', label: 'Cancelada' },
-      rescheduled: { color: 'bg-orange-100 text-orange-800', label: 'Reprogramada' }
+      pending: { color: 'bg-yellow-100 text-yellow-800', label: t('visits.pending') },
+      confirmed: { color: 'bg-blue-100 text-blue-800', label: t('visits.confirmed') },
+      completed: { color: 'bg-green-100 text-green-800', label: t('visits.completed') },
+      cancelled: { color: 'bg-red-100 text-red-800', label: t('visits.cancelled') },
+      rescheduled: { color: 'bg-orange-100 text-orange-800', label: t('visits.rescheduled') }
     };
     
     const config = statusConfig[status];
@@ -178,12 +172,12 @@ export const VisitManagementView: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-sm text-muted-foreground">Visitante</p>
+              <p className="text-sm text-muted-foreground">{t('visits.visitor')}</p>
               <p className="font-medium">{visit.visitorName}</p>
               <p className="text-sm text-muted-foreground">{visit.visitorPhone}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Fecha y Hora</p>
+              <p className="text-sm text-muted-foreground">{t('visits.management.dateAndTime')}</p>
               <p className="font-medium">{visit.scheduledDate}</p>
               <p className="text-sm text-muted-foreground">{visit.scheduledTime}</p>
             </div>
@@ -194,13 +188,13 @@ export const VisitManagementView: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
                 <span className={`text-sm ${visit.paid ? 'text-green-600' : 'text-red-600'}`}>
-                  {visit.paid ? 'Pagado' : 'Pendiente'}
+                  {visit.paid ? t('visits.management.paid') : t('visits.management.unpaid')}
                 </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-muted-foreground" />
                 <span className={`text-sm ${visit.ndaAccepted ? 'text-green-600' : 'text-red-600'}`}>
-                  {visit.ndaAccepted ? 'NDA Aceptado' : 'NDA Pendiente'}
+                  {visit.ndaAccepted ? t('visits.management.ndaAccepted') : t('visits.management.ndaPending')}
                 </span>
               </div>
             </div>
@@ -213,7 +207,7 @@ export const VisitManagementView: React.FC = () => {
                     onClick={() => handleStatusChange(visit.id, 'confirmed')}
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
-                    Confirmar
+                    {t('visits.management.confirm')}
                   </Button>
                   <Button
                     variant="outline"
@@ -221,7 +215,7 @@ export const VisitManagementView: React.FC = () => {
                     onClick={() => handleStatusChange(visit.id, 'cancelled')}
                   >
                     <XCircle className="h-4 w-4 mr-1" />
-                    Cancelar
+                    {t('common.cancel')}
                   </Button>
                 </>
               )}
@@ -235,14 +229,14 @@ export const VisitManagementView: React.FC = () => {
                   }}
                 >
                   <Star className="h-4 w-4 mr-1" />
-                  Completar Visita
+                  {t('visits.management.completeVisit')}
                 </Button>
               )}
 
               {visit.status === 'completed' && visit.documentsUnlocked && (
                 <Button variant="outline" size="sm">
                   <FileText className="h-4 w-4 mr-1" />
-                  Ver Documentos
+                  {t('visits.management.viewDocuments')}
                 </Button>
               )}
 
@@ -269,10 +263,10 @@ export const VisitManagementView: React.FC = () => {
   const CalendarView = () => (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Calendario de Visitas</h2>
+        <h2 className="text-xl font-semibold">{t('visits.management.calendarTitle')}</h2>
         <Button variant="outline">
           <CalendarIcon className="h-4 w-4 mr-2" />
-          Nueva Visita
+          {t('visits.management.newVisit')}
         </Button>
       </div>
       
@@ -286,7 +280,7 @@ export const VisitManagementView: React.FC = () => {
         </div>
         
         <div className="space-y-4">
-          <h3 className="font-semibold">Visitas Programadas</h3>
+          <h3 className="font-semibold">{t('visits.management.scheduledVisits')}</h3>
           {visits.filter(v => v.status === 'confirmed').map(visit => (
             <div key={visit.id} className="p-3 border rounded-lg">
               <p className="font-medium text-sm">{visit.propertyTitle}</p>
@@ -302,11 +296,11 @@ export const VisitManagementView: React.FC = () => {
   const FeedbackModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <Card className="w-full max-w-md p-6">
-        <h3 className="text-lg font-semibold mb-4">Completar Visita</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('visits.management.completeVisit')}</h3>
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="rating">Calificación</Label>
+            <Label htmlFor="rating">{t('visits.management.rating')}</Label>
             <div className="flex space-x-1 mt-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -323,10 +317,10 @@ export const VisitManagementView: React.FC = () => {
           </div>
 
           <div>
-            <Label htmlFor="feedback">Comentarios</Label>
+            <Label htmlFor="feedback">{t('visits.management.comments')}</Label>
             <Textarea
               id="feedback"
-              placeholder="¿Cómo fue la visita? ¿Algún comentario especial?"
+              placeholder={t('visits.management.commentsPlaceholder')}
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               rows={4}
@@ -339,7 +333,7 @@ export const VisitManagementView: React.FC = () => {
               checked={true}
             />
             <Label htmlFor="unlock-docs" className="text-sm">
-              Desbloquear documentos privados para el visitante
+              {t('visits.management.unlockDocs')}
             </Label>
           </div>
         </div>
@@ -350,13 +344,13 @@ export const VisitManagementView: React.FC = () => {
             onClick={() => setShowFeedbackModal(false)}
             className="flex-1"
           >
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleFeedbackSubmit}
             className="flex-1"
           >
-            Completar Visita
+            {t('visits.management.completeVisit')}
           </Button>
         </div>
       </Card>
@@ -377,9 +371,9 @@ export const VisitManagementView: React.FC = () => {
       <div className="bg-white border-b border-border px-4 py-4 lg:px-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold">Gestión de Visitas</h1>
+            <h1 className="text-xl font-semibold">{t('visits.management.title')}</h1>
             <p className="text-muted-foreground">
-              Administra las visitas programadas a tus propiedades
+              {t('visits.management.subtitle')}
             </p>
           </div>
           
@@ -389,11 +383,11 @@ export const VisitManagementView: React.FC = () => {
               onClick={() => setShowCalendar(!showCalendar)}
             >
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Calendario
+              {t('visits.management.calendar')}
             </Button>
             <Button>
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Nueva Visita
+              {t('visits.management.newVisit')}
             </Button>
           </div>
         </div>
@@ -404,25 +398,25 @@ export const VisitManagementView: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold text-primary">{stats.total}</div>
-            <div className="text-sm text-muted-foreground">Total Visitas</div>
+            <div className="text-sm text-muted-foreground">{t('visits.management.totalVisits')}</div>
           </Card>
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            <div className="text-sm text-muted-foreground">Pendientes</div>
+            <div className="text-sm text-muted-foreground">{t('visits.management.pendingPlural')}</div>
           </Card>
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold text-blue-600">{stats.confirmed}</div>
-            <div className="text-sm text-muted-foreground">Confirmadas</div>
+            <div className="text-sm text-muted-foreground">{t('visits.management.confirmedPlural')}</div>
           </Card>
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-            <div className="text-sm text-muted-foreground">Completadas</div>
+            <div className="text-sm text-muted-foreground">{t('visits.management.completedPlural')}</div>
           </Card>
           <Card className="p-4 text-center">
             <div className="text-2xl font-bold text-primary">
-              {formatPrice(stats.revenue)}
+              {formatCurrency(stats.revenue)}
             </div>
-            <div className="text-sm text-muted-foreground">Ingresos</div>
+            <div className="text-sm text-muted-foreground">{t('visits.management.revenue')}</div>
           </Card>
         </div>
 
@@ -438,19 +432,19 @@ export const VisitManagementView: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="pending">Pendientes</SelectItem>
-                    <SelectItem value="confirmed">Confirmadas</SelectItem>
-                    <SelectItem value="completed">Completadas</SelectItem>
-                    <SelectItem value="cancelled">Canceladas</SelectItem>
+                    <SelectItem value="all">{t('visits.management.all')}</SelectItem>
+                    <SelectItem value="pending">{t('visits.management.pendingPlural')}</SelectItem>
+                    <SelectItem value="confirmed">{t('visits.management.confirmedPlural')}</SelectItem>
+                    <SelectItem value="completed">{t('visits.management.completedPlural')}</SelectItem>
+                    <SelectItem value="cancelled">{t('visits.cancelled')}</SelectItem>
                   </SelectContent>
                 </Select>
                 
-                <Input placeholder="Buscar por visitante..." className="flex-1 max-w-md" />
+                <Input placeholder={t('visits.management.searchVisitor')} className="flex-1 max-w-md" />
                 
                 <Button variant="outline">
                   <Clock className="h-4 w-4 mr-2" />
-                  Filtrar por Fecha
+                  {t('visits.management.filterByDate')}
                 </Button>
               </div>
             </Card>

@@ -11,13 +11,14 @@ import {
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '../contexts/AuthContext';
+import { getAvatarUrl } from '../utils/avatar';
 import { Link } from 'react-router-dom';
 import { User, Settings, LogOut } from 'lucide-react';
 import { useSignOutWithRedirect } from '../utils/auth';
 
 export const UserMenu: React.FC = () => {
   const { t } = useTranslation();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { signOutAndRedirect } = useSignOutWithRedirect();
 
   const handleSignOut = async () => {
@@ -34,8 +35,8 @@ export const UserMenu: React.FC = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatar_url || ''} alt={user?.name || ''} />
-            <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+            <AvatarImage src={getAvatarUrl(profile ?? user)} alt={profile?.full_name || user?.email || ''} />
+            <AvatarFallback>{(profile?.full_name || user?.email || 'U').charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

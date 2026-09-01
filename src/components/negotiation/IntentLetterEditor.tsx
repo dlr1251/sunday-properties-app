@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import {
 import { IntentLetter, Offer } from '../../types/database';
 import { supabase } from '../../lib/supabase';
 import { useNegotiation } from '../../hooks/useNegotiation';
+import { AiLegalDisclaimer } from '@/components/ai/AiLegalDisclaimer';
 
 interface IntentLetterEditorProps {
   offerId: string;
@@ -106,7 +108,7 @@ export const IntentLetterEditor: React.FC<IntentLetterEditorProps> = ({
 
   const generateLetterContent = (offerData: any) => {
     const formatPrice = (price: number) => {
-      return new Intl.NumberFormat('es-CO', {
+      return new Intl.NumberFormat(getIntlLocale(), {
         style: 'currency',
         currency: 'COP',
         minimumFractionDigits: 0,
@@ -115,7 +117,7 @@ export const IntentLetterEditor: React.FC<IntentLetterEditorProps> = ({
     };
 
     const formatDate = (dateString: string) => {
-      return new Date(dateString).toLocaleDateString('es-CO', {
+      return new Date(dateString).toLocaleDateString(getIntlLocale(), {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -261,7 +263,7 @@ _________________________              _________________________
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-foreground border-border';
       case 'pending_signatures':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'signed':
@@ -269,7 +271,7 @@ _________________________              _________________________
       case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-foreground border-border';
     }
   };
 
@@ -289,7 +291,7 @@ _________________________              _________________________
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -345,6 +347,8 @@ _________________________              _________________________
           </Badge>
         )}
       </div>
+
+      <AiLegalDisclaimer />
 
       {/* Letter Content */}
       <Tabs defaultValue="editor" className="space-y-4">
@@ -481,7 +485,7 @@ _________________________              _________________________
                   <>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="text-sm text-green-700">
-                      Firmada el {new Date(letter.buyer_signed_at).toLocaleDateString('es-CO')}
+                      Firmada el {new Date(letter.buyer_signed_at).toLocaleDateString(getIntlLocale())}
                     </span>
                   </>
                 ) : (
@@ -500,7 +504,7 @@ _________________________              _________________________
                   <>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span className="text-sm text-green-700">
-                      Firmada el {new Date(letter.seller_signed_at).toLocaleDateString('es-CO')}
+                      Firmada el {new Date(letter.seller_signed_at).toLocaleDateString(getIntlLocale())}
                     </span>
                   </>
                 ) : (

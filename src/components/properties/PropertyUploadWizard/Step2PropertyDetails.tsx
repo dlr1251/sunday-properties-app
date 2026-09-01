@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PropertyData, Step2PropertyDetailsProps } from './types';
@@ -9,6 +10,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
   onPropertyTypeChange,
   onStrataChange,
 }) => {
+  const { t } = useTranslation();
   console.log('🏠 Step2PropertyDetails rendering with data:', propertyData);
 
   const handleNumericInputChange = useCallback((field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,7 +22,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <Label htmlFor="bedrooms">Habitaciones *</Label>
+          <Label htmlFor="bedrooms">{t('properties.wizard.details.bedrooms')}</Label>
           <Input
             id="bedrooms"
             type="number"
@@ -30,7 +32,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
           />
         </div>
         <div>
-          <Label htmlFor="bathrooms">Baños *</Label>
+          <Label htmlFor="bathrooms">{t('properties.wizard.details.bathrooms')}</Label>
           <Input
             id="bathrooms"
             type="number"
@@ -40,7 +42,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
           />
         </div>
         <div>
-          <Label htmlFor="area">Área (m²) *</Label>
+          <Label htmlFor="area">{t('properties.wizard.details.area')}</Label>
           <Input
             id="area"
             type="number"
@@ -50,7 +52,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
           />
         </div>
         <div>
-          <Label htmlFor="parking">Parqueaderos</Label>
+          <Label htmlFor="parking">{t('properties.wizard.details.parking')}</Label>
           <Input
             id="parking"
             type="number"
@@ -63,7 +65,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="floor">Piso</Label>
+          <Label htmlFor="floor">{t('properties.wizard.details.floor')}</Label>
           <Input
             id="floor"
             type="number"
@@ -73,7 +75,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
           />
         </div>
         <div>
-          <Label htmlFor="totalFloors">Total Pisos</Label>
+          <Label htmlFor="totalFloors">{t('properties.wizard.details.totalFloors')}</Label>
           <Input
             id="totalFloors"
             type="number"
@@ -83,7 +85,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
           />
         </div>
         <div>
-          <Label htmlFor="yearBuilt">Año Construcción</Label>
+          <Label htmlFor="yearBuilt">{t('properties.wizard.details.yearBuilt')}</Label>
           <Input
             id="yearBuilt"
             type="number"
@@ -97,15 +99,15 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <Label className="text-sm font-medium">Tipo de Propiedad *</Label>
+          <Label className="text-sm font-medium">{t('properties.wizard.details.propertyType')}</Label>
           <div className="grid grid-cols-1 gap-2 mt-2">
             {[
-              { value: "apartment", label: "Apartamento" },
-              { value: "house", label: "Casa" },
-              { value: "office", label: "Oficina" },
-              { value: "commercial", label: "Local Comercial" },
-              { value: "warehouse", label: "Bodega" },
-              { value: "land", label: "Terreno" },
+              { value: "apartment", label: t('properties.types.apartment') },
+              { value: "house", label: t('properties.types.house') },
+              { value: "office", label: t('properties.types.office') },
+              { value: "commercial", label: t('properties.types.commercial') },
+              { value: "warehouse", label: t('properties.types.warehouse') },
+              { value: "land", label: t('properties.types.land') },
             ].map((type) => (
               <label
                 key={type.value}
@@ -130,7 +132,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
         </div>
 
         <div>
-          <Label className="text-sm font-medium">Estrato *</Label>
+          <Label className="text-sm font-medium">{t('properties.wizard.details.strata')}</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">
             {[1, 2, 3, 4, 5, 6].map((strata) => (
               <label

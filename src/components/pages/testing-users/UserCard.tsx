@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, LogIn, Building, Handshake } from 'lucide-react';
 import { UserCardProps } from './types';
 import { formatRelativeTime, getRoleColor, getVerificationBadge, getRoleCardStyles } from './utils';
+import { getAvatarUrl } from '@/utils/avatar';
 
 export const UserCard: React.FC<UserCardProps> = ({
   user,
@@ -27,7 +28,7 @@ export const UserCard: React.FC<UserCardProps> = ({
         <div className="flex items-center space-x-3">
           <div className="relative">
             <Avatar className={`${avatarSize} ring-2 ${styles.avatar}`}>
-              <AvatarImage src={user.avatar_url} />
+              <AvatarImage src={getAvatarUrl(user)} />
               <AvatarFallback className={styles.avatarFallback}>
                 {(user.full_name || user.email).charAt(0)}
               </AvatarFallback>

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../../utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,15 +47,8 @@ export function PaymentScheduleSection({
   selectedPaymentMethod,
   className = ''
 }: PaymentScheduleSectionProps) {
+  const { t } = useTranslation();
   const [showAddDialog, setShowAddDialog] = useState(false);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const addPayment = (payment: Omit<PaymentSchedule, 'id'>) => {
     const newPayment: PaymentSchedule = {
@@ -83,7 +78,7 @@ export function PaymentScheduleSection({
         <CardTitle className="text-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-blue-600" />
-            Cronograma de Pagos
+            {t('negotiations.sections.paymentSchedule')}
           </div>
           <Button
             size="sm"
@@ -279,14 +274,6 @@ function AddPaymentDialog({
       contingencies: []
     });
     onClose();
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   return (

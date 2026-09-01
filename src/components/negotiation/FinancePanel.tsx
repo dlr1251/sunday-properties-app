@@ -28,46 +28,46 @@ export const FinancePanel: React.FC<FinancePanelProps> = ({ negotiationId, class
   const principal = Math.max(inputs.price - inputs.downPayment, 0);
 
   return (
-    <section className={`bg-white border border-gray-200 rounded-xl shadow-sm p-4 lg:p-6 ${className ?? ''}`}>
+    <section className={`bg-card border border-border rounded-xl shadow-sm p-4 lg:p-6 ${className ?? ''}`}>
       <header className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Análisis financiero</h2>
-        <p className="text-sm text-gray-600">Negociación: {negotiationId}</p>
+        <h2 className="text-lg font-semibold text-foreground">Análisis financiero</h2>
+        <p className="text-sm text-muted-foreground">Negociación: {negotiationId}</p>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Precio</label>
+          <label className="block text-sm font-medium text-muted-foreground">Precio</label>
           <input
             type="number"
-            className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border focus:border-blue-500 focus:ring-blue-500"
             value={inputs.price}
             onChange={(e) => setInputs((s) => ({ ...s, price: Number(e.target.value || 0) }))}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Cuota inicial</label>
+          <label className="block text-sm font-medium text-muted-foreground">Cuota inicial</label>
           <input
             type="number"
-            className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border focus:border-blue-500 focus:ring-blue-500"
             value={inputs.downPayment}
             onChange={(e) => setInputs((s) => ({ ...s, downPayment: Number(e.target.value || 0) }))}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Tasa anual</label>
+          <label className="block text-sm font-medium text-muted-foreground">Tasa anual</label>
           <input
             type="number"
             step="0.01"
-            className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border focus:border-blue-500 focus:ring-blue-500"
             value={inputs.annualRate}
             onChange={(e) => setInputs((s) => ({ ...s, annualRate: Number(e.target.value || 0) }))}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Plazo (meses)</label>
+          <label className="block text-sm font-medium text-muted-foreground">Plazo (meses)</label>
           <input
             type="number"
-            className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-border focus:border-blue-500 focus:ring-blue-500"
             value={inputs.termMonths}
             onChange={(e) => setInputs((s) => ({ ...s, termMonths: Number(e.target.value || 0) }))}
           />
@@ -75,17 +75,17 @@ export const FinancePanel: React.FC<FinancePanelProps> = ({ negotiationId, class
       </div>
 
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <div className="text-sm text-gray-600">Principal</div>
-          <div className="text-xl font-semibold text-gray-900">{principal.toLocaleString('es-CO')}</div>
+        <div className="bg-muted/30 rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">Principal</div>
+          <div className="text-xl font-semibold text-foreground">{principal.toLocaleString('es-CO')}</div>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <div className="text-sm text-gray-600">Cuota mensual</div>
-          <div className="text-xl font-semibold text-gray-900">{Math.round(monthlyPayment).toLocaleString('es-CO')}</div>
+        <div className="bg-muted/30 rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">Cuota mensual</div>
+          <div className="text-xl font-semibold text-foreground">{Math.round(monthlyPayment).toLocaleString('es-CO')}</div>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <div className="text-sm text-gray-600">Tasa anual</div>
-          <div className="text-xl font-semibold text-gray-900">{(inputs.annualRate * 100).toFixed(2)}%</div>
+        <div className="bg-muted/30 rounded-lg p-4 border border-border">
+          <div className="text-sm text-muted-foreground">Tasa anual</div>
+          <div className="text-xl font-semibold text-foreground">{(inputs.annualRate * 100).toFixed(2)}%</div>
         </div>
       </div>
     </section>

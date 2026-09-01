@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Grid3X3, List, Filter, SortAsc } from 'lucide-react';
@@ -18,14 +19,16 @@ export const GridControls: React.FC<GridControlsProps> = ({
   sortBy = 'newest',
   onSortChange,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h2 className="text-2xl font-bold">
-          Propiedades Destacadas
+          {t('properties.featuredProperties')}
         </h2>
         <p className="text-muted-foreground">
-          {propertiesCount} propiedades encontradas
+          {t('properties.found', { count: propertiesCount })}
         </p>
       </div>
       
@@ -51,7 +54,7 @@ export const GridControls: React.FC<GridControlsProps> = ({
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
               <SortAsc className="h-4 w-4 mr-2" />
-              Ordenar por
+              {t('properties.sortBy')}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -59,32 +62,32 @@ export const GridControls: React.FC<GridControlsProps> = ({
               onClick={() => onSortChange?.('newest')}
               className={sortBy === 'newest' ? 'bg-accent' : ''}
             >
-              Fecha: Más recientes
+              {t('properties.sortOptions.newest')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onSortChange?.('price-low')}
               className={sortBy === 'price-low' ? 'bg-accent' : ''}
             >
-              Precio: Más bajo a más alto
+              {t('properties.sortOptions.priceAsc')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onSortChange?.('price-high')}
               className={sortBy === 'price-high' ? 'bg-accent' : ''}
             >
-              Precio: Más alto a más bajo
+              {t('properties.sortOptions.priceDesc')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onSortChange?.('area')}
               className={sortBy === 'area' ? 'bg-accent' : ''}
             >
-              Área: Más grande primero
+              {t('properties.sortOptions.largerArea')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
         <Button variant="outline">
           <Filter className="h-4 w-4 mr-2" />
-          Filtros
+          {t('properties.filters')}
         </Button>
       </div>
     </div>

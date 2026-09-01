@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -56,7 +57,7 @@ export const PropertyComparison: React.FC<PropertyComparisonProps> = ({
   const [favoriteStates, setFavoriteStates] = useState<Record<string, boolean>>({});
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -291,7 +292,7 @@ export const PropertyComparison: React.FC<PropertyComparisonProps> = ({
                     <TableCell key={property.id} className="text-center">
                       <div className="flex items-center justify-center text-sm">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(property.created_at).toLocaleDateString('es-CO')}
+                        {new Date(property.created_at).toLocaleDateString(getIntlLocale())}
                       </div>
                     </TableCell>
                   ))}

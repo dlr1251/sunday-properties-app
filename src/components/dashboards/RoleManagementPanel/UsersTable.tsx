@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
 import { Checkbox } from '../../ui/checkbox';
@@ -5,6 +6,7 @@ import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import { Eye, Edit } from 'lucide-react';
 import { getRoleBadgeColor, getRoleIcon, getVerificationStatusIcon, getRoleLabel } from '../../../utils/userRoles';
+import { formatDate } from '../../../utils/format';
 
 interface UserRowData {
   id: string;
@@ -27,7 +29,9 @@ interface Props {
   onEditRole: (userId: string, currentRole: string) => void;
 }
 
-export const UsersTable: React.FC<Props> = ({ users, selectedUsers, setSelectedUsers, onViewUserDetails, onEditRole }) => {
+export const UsersTable: React.FC<Props> = ({
+  users, selectedUsers, setSelectedUsers, onViewUserDetails, onEditRole }) => {
+    const { t } = useTranslation();
   const allSelected = selectedUsers.length === users.length && users.length > 0;
 
   return (
@@ -46,12 +50,12 @@ export const UsersTable: React.FC<Props> = ({ users, selectedUsers, setSelectedU
               }}
             />
           </TableHead>
-          <TableHead>Usuario</TableHead>
-          <TableHead>Rol Actual</TableHead>
-          <TableHead>Verificación</TableHead>
-          <TableHead>Actividad</TableHead>
-          <TableHead>Registro</TableHead>
-          <TableHead className="text-right">Acciones</TableHead>
+          <TableHead>{t('admin.userColumn')}</TableHead>
+          <TableHead>{t('admin.currentRole')}</TableHead>
+          <TableHead>{t('admin.verificationStatus')}</TableHead>
+          <TableHead>{t('admin.activity')}</TableHead>
+          <TableHead>{t('admin.registered')}</TableHead>
+          <TableHead className="text-right">{t('common.actions')}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -85,24 +89,24 @@ export const UsersTable: React.FC<Props> = ({ users, selectedUsers, setSelectedU
               <div className="flex items-center gap-2">
                 {getVerificationStatusIcon(user.verification_status)}
                 <span className="text-sm">
-                  {user.verification_status === 'verified' ? 'Verificado' :
-                   user.verification_status === 'pending' ? 'Pendiente' :
-                   user.verification_status === 'rejected' ? 'Rechazado' : 'No verificado'}
+                  {user.verification_status === 'verified' ? t('admin.status.verified') :
+                   user.verification_status === 'pending' ? t('admin.status.pending') :
+                   user.verification_status === 'rejected' ? t('admin.rejected') : t('admin.status.unverified')}
                 </span>
               </div>
             </TableCell>
             <TableCell>
               <div className="text-sm space-y-1">
-                <p>Propiedades: {user.properties_count || 0}</p>
-                <p>Visitas: {user.visits_count || 0}</p>
-                <p>Ofertas: {user.offers_count || 0}</p>
+                <p>{t('admin.propertiesColon', { count: user.properties_count || 0 })}</p>
+                <p>{t('admin.visitsColon', { count: user.visits_count || 0 })}</p>
+                <p>{t('admin.offersColon', { count: user.offers_count || 0 })}</p>
               </div>
             </TableCell>
             <TableCell className="text-sm">
-              <p>{new Date(user.created_at).toLocaleDateString('es-CO')}</p>
+              <p>{formatDate(user.created_at)}</p>
               {user.last_sign_in_at && (
                 <p className="text-muted-foreground">
-                  Último acceso: {new Date(user.last_sign_in_at).toLocaleDateString('es-CO')}
+                  {t('admin.lastSignInPrefix', { date: formatDate(user.last_sign_in_at) })}
                 </p>
               )}
             </TableCell>

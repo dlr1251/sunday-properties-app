@@ -5,18 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAvatarUrl } from '@/utils/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Download, RefreshCw, Search, Filter, Users, Home, DollarSign, TrendingUp, Eye, Edit, Trash2 } from 'lucide-react';
 import { useAgents } from '../../hooks/useAgents';
 import { CreateAgentInput } from '../../lib/db/repositories/agents.repo';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../utils/format';
 
 interface AgentsManagementPanelProps {
   isDarkMode?: boolean;
 }
 
 export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ isDarkMode = false }) => {
+  const { t } = useTranslation();
   const {
     agents,
     loading,
@@ -95,8 +99,8 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className={`text-2xl font-bold ${textClasses}`}>Gestión de Agentes Inmobiliarios</h2>
-          <p className={subTextClasses}>Administra agentes, propiedades y rendimiento de ventas</p>
+          <h2 className={`text-2xl font-bold ${textClasses}`}>{t('admin.manageAgentsTitle')}</h2>
+          <p className={subTextClasses}>{t('admin.manageAgentsDescription')}</p>
         </div>
 
         <Button
@@ -104,7 +108,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
           className="bg-green-600 hover:bg-green-700"
         >
           <Home className="h-4 w-4 mr-2" />
-          Agregar Agente
+          {t('admin.addAgent')}
         </Button>
       </div>
 
@@ -114,7 +118,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Total Agentes</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.totalAgents')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>{stats?.total || 0}</p>
               </div>
               <Users className="h-8 w-8 text-blue-500" />
@@ -126,7 +130,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Propiedades Activas</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.activeProperties')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>{stats?.active_properties || 0}</p>
               </div>
               <Home className="h-8 w-8 text-green-500" />
@@ -138,7 +142,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Propiedades Vendidas</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.soldProperties')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>{stats?.sold_properties || 0}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-orange-500" />
@@ -150,9 +154,9 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Valor Total Vendido</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.totalSalesValue')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>
-                  ${stats?.total_sales_value?.toLocaleString() || '0'}
+                  {formatCurrency(stats?.total_sales_value || 0)}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-yellow-500" />
@@ -169,7 +173,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
               <div className="relative">
                 <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${subTextClasses}`} />
                 <Input
-                  placeholder="Buscar por nombre, email o empresa..."
+                  placeholder={t('admin.searchNameEmailCompany')}
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className={`pl-10 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : ''}`}
@@ -183,20 +187,20 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
                 onValueChange={(value) => setFilters({ ...filters, verification_status: value as any })}
               >
                 <SelectTrigger className={`w-40 ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}>
-                  <SelectValue placeholder="Estado" />
+                  <SelectValue placeholder={t('properties.status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="unverified">No verificado</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="verified">Verificado</SelectItem>
-                  <SelectItem value="rejected">Rechazado</SelectItem>
+                  <SelectItem value="all">{t('common.allStatuses')}</SelectItem>
+                  <SelectItem value="unverified">{t('admin.status.unverified')}</SelectItem>
+                  <SelectItem value="pending">{t('admin.status.pending')}</SelectItem>
+                  <SelectItem value="verified">{t('admin.status.verified')}</SelectItem>
+                  <SelectItem value="rejected">{t('admin.status.rejected')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Input
                 type="number"
-                placeholder="Exp. min"
+                placeholder={t('admin.experienceMin')}
                 value={filters.experience_min}
                 onChange={(e) => setFilters({ ...filters, experience_min: e.target.value })}
                 className={`w-24 ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}
@@ -204,7 +208,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
 
               <Input
                 type="number"
-                placeholder="Exp. max"
+                placeholder={t('admin.experienceMax')}
                 value={filters.experience_max}
                 onChange={(e) => setFilters({ ...filters, experience_max: e.target.value })}
                 className={`w-24 ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}
@@ -217,7 +221,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
                 className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Actualizar
+                {t('common.refresh')}
               </Button>
             </div>
           </div>
@@ -231,7 +235,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={agent.avatar_url} />
+                  <AvatarImage src={getAvatarUrl(agent)} />
                   <AvatarFallback className={isDarkMode ? 'bg-gray-600 text-gray-300' : 'bg-gray-200'}>
                     {agent.name?.charAt(0).toUpperCase() || agent.email.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -239,7 +243,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h3 className={`font-semibold ${textClasses}`}>{agent.name || 'Sin nombre'}</h3>
+                    <h3 className={`font-semibold ${textClasses}`}>{agent.name || t('common.unnamed')}</h3>
                     <Badge
                       variant={agent.verification_status === 'verified' ? 'default' : 'secondary'}
                       className={
@@ -250,9 +254,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
                             : 'bg-gray-500'
                       }
                     >
-                      {agent.verification_status === 'verified' ? 'Verificado' :
-                       agent.verification_status === 'pending' ? 'Pendiente' :
-                       agent.verification_status === 'rejected' ? 'Rechazado' : 'No verificado'}
+                      {t(`admin.status.${agent.verification_status === 'verified' ? 'verified' : agent.verification_status === 'pending' ? 'pending' : agent.verification_status === 'rejected' ? 'rejected' : 'unverified'}`)}
                     </Badge>
                   </div>
 
@@ -264,7 +266,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
 
                   {agent.experience_years && (
                     <p className={`text-sm ${subTextClasses} mb-2`}>
-                      {agent.experience_years} años de experiencia
+                      {t('admin.yearsExperience', { count: agent.experience_years })}
                     </p>
                   )}
 
@@ -285,8 +287,8 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
 
                   <div className="flex items-center justify-between mt-4">
                     <div className="text-sm">
-                      <p className={textClasses}>{agent.properties_count || 0} propiedades</p>
-                      <p className={subTextClasses}>{agent.active_properties_count || 0} activas</p>
+                      <p className={textClasses}>{t('admin.propertiesCountShort', { count: agent.properties_count || 0 })}</p>
+                      <p className={subTextClasses}>{t('admin.activeCountShort', { count: agent.active_properties_count || 0 })}</p>
                     </div>
 
                     <div className="flex space-x-1">
@@ -317,7 +319,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className={`max-w-2xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
           <DialogHeader>
-            <DialogTitle className={textClasses}>Agregar Nuevo Agente</DialogTitle>
+            <DialogTitle className={textClasses}>{t('admin.addNewAgent')}</DialogTitle>
             <DialogDescription className={subTextClasses}>
               Crea un nuevo perfil de agente inmobiliario en el sistema
             </DialogDescription>
@@ -326,7 +328,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="agent-name" className={textClasses}>Nombre Completo *</Label>
+                <Label htmlFor="agent-name" className={textClasses}>{t('admin.fullNameRequired')}</Label>
                 <Input
                   id="agent-name"
                   value={createForm.name}
@@ -336,7 +338,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
               </div>
 
               <div>
-                <Label htmlFor="agent-email" className={textClasses}>Email *</Label>
+                <Label htmlFor="agent-email" className={textClasses}>{t('admin.emailRequired')}</Label>
                 <Input
                   id="agent-email"
                   type="email"
@@ -347,7 +349,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
               </div>
 
               <div>
-                <Label htmlFor="agent-phone" className={textClasses}>Teléfono</Label>
+                <Label htmlFor="agent-phone" className={textClasses}>{t('profile.phone')}</Label>
                 <Input
                   id="agent-phone"
                   value={createForm.phone || ''}
@@ -357,7 +359,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
               </div>
 
               <div>
-                <Label htmlFor="agent-company" className={textClasses}>Empresa</Label>
+                <Label htmlFor="agent-company" className={textClasses}>{t('admin.company')}</Label>
                 <Input
                   id="agent-company"
                   value={createForm.company || ''}
@@ -367,7 +369,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
               </div>
 
               <div>
-                <Label htmlFor="agent-license" className={textClasses}>Número de Licencia</Label>
+                <Label htmlFor="agent-license" className={textClasses}>{t('admin.licenseNumber')}</Label>
                 <Input
                   id="agent-license"
                   value={createForm.license_number || ''}
@@ -377,7 +379,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
               </div>
 
               <div>
-                <Label htmlFor="agent-experience" className={textClasses}>Años de Experiencia</Label>
+                <Label htmlFor="agent-experience" className={textClasses}>{t('admin.experienceYears')}</Label>
                 <Input
                   id="agent-experience"
                   type="number"
@@ -389,7 +391,7 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
             </div>
 
             <div>
-              <Label htmlFor="agent-bio" className={textClasses}>Biografía</Label>
+              <Label htmlFor="agent-bio" className={textClasses}>{t('admin.bio')}</Label>
               <Textarea
                 id="agent-bio"
                 value={createForm.bio || ''}
@@ -404,13 +406,13 @@ export const AgentsManagementPanel: React.FC<AgentsManagementPanelProps> = ({ is
                 onClick={() => setShowCreateDialog(false)}
                 className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
               >
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleCreateAgent}
                 className="bg-green-600 hover:bg-green-700"
               >
-                Crear Agente
+                {t('admin.createAgent')}
               </Button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -153,7 +154,7 @@ export const OfferComparisonPanel: React.FC<OfferComparisonPanelProps> = ({
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -170,7 +171,7 @@ export const OfferComparisonPanel: React.FC<OfferComparisonPanelProps> = ({
       case 'crypto':
         return <Star className="h-4 w-4 text-yellow-500" />;
       default:
-        return <CreditCard className="h-4 w-4 text-gray-500" />;
+        return <CreditCard className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -323,7 +324,7 @@ export const OfferComparisonPanel: React.FC<OfferComparisonPanelProps> = ({
                         <div>
                           <div className="font-medium">{offer.buyer?.name || 'Comprador'}</div>
                           <div className="text-sm text-muted-foreground">
-                            {new Date(offer.createdAt).toLocaleDateString('es-CO')}
+                            {new Date(offer.createdAt).toLocaleDateString(getIntlLocale())}
                           </div>
                         </div>
                       </div>

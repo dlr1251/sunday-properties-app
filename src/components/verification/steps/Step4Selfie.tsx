@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../ui/button';
 import { Camera, Upload, X } from 'lucide-react';
 import { useCamera } from '../../../hooks/useCamera';
 import { useVerificationForm } from '../VerificationFormContext';
 
 export const Step4Selfie: React.FC = () => {
+  const { t } = useTranslation();
   const {
     videoRef,
     canvasRef,
@@ -31,8 +33,8 @@ export const Step4Selfie: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <Camera className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold">Foto de Rostro</h3>
-        <p className="text-muted-foreground">Tomaremos una foto de tu rostro para verificar tu identidad</p>
+        <h3 className="text-lg font-semibold">{t('verification.selfie.title')}</h3>
+        <p className="text-muted-foreground">{t('verification.selfie.subtitle')}</p>
       </div>
 
       {!capturedSelfie ? (
@@ -41,16 +43,16 @@ export const Step4Selfie: React.FC = () => {
             <div className="text-center">
               <Button onClick={startCamera} className="mb-4" disabled={cameraLoading}>
                 <Camera className="h-4 w-4 mr-2" />
-                {cameraLoading ? 'Activando Cámara...' : 'Activar Cámara'}
+                {cameraLoading ? t('verification.selfie.activatingCamera') : t('verification.selfie.activateCamera')}
               </Button>
               {cameraLoading && (
                 <div className="mb-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="text-sm text-muted-foreground mt-2">Cargando cámara...</p>
+                  <p className="text-sm text-muted-foreground mt-2">{t('verification.selfie.loadingCamera')}</p>
                 </div>
               )}
               <p className="text-sm text-muted-foreground">
-                O sube una foto existente desde tu dispositivo
+                {t('verification.selfie.orUpload')}
               </p>
             </div>
           ) : (
@@ -76,10 +78,10 @@ export const Step4Selfie: React.FC = () => {
               <div className="flex gap-2 justify-center">
                 <Button onClick={captureSelfie} className="bg-green-600 hover:bg-green-700">
                   <Camera className="h-4 w-4 mr-2" />
-                  Capturar Foto
+                  {t('verification.selfie.capture')}
                 </Button>
                 <Button variant="outline" onClick={stopCamera}>
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
               </div>
             </div>
@@ -88,7 +90,7 @@ export const Step4Selfie: React.FC = () => {
           <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
             <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground mb-4">
-              También puedes subir una foto existente
+              {t('verification.selfie.alsoUpload')}
             </p>
             <input
               type="file"
@@ -105,7 +107,7 @@ export const Step4Selfie: React.FC = () => {
             <Button asChild>
               <label htmlFor="selfie-upload" className="cursor-pointer">
                 <Upload className="h-4 w-4 mr-2" />
-                Subir Foto
+                {t('verification.selfie.uploadPhoto')}
               </label>
             </Button>
           </div>
@@ -115,7 +117,7 @@ export const Step4Selfie: React.FC = () => {
           <div className="max-w-md mx-auto">
             <img
               src={capturedSelfie}
-              alt="Selfie capturada"
+              alt={t('verification.selfie.capturedAlt')}
               className="w-full rounded-lg border"
             />
           </div>
@@ -123,7 +125,7 @@ export const Step4Selfie: React.FC = () => {
           <div className="flex gap-2 justify-center">
             <Button onClick={() => setCapturedSelfie(null)}>
               <X className="h-4 w-4 mr-2" />
-              Tomar Otra Foto
+              {t('verification.selfie.retake')}
             </Button>
           </div>
         </div>

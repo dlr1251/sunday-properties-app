@@ -34,7 +34,7 @@ import {
   Clock
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getIntlLocale } from '../../i18n';
 
 import {
   ColombianPaymentMethod,
@@ -123,7 +123,7 @@ export function PaymentForm({
   }, [payment]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -202,7 +202,7 @@ export function PaymentForm({
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'high': return 'bg-orange-100 text-orange-800';
       case 'critical': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-muted text-foreground';
     }
   };
 
@@ -230,7 +230,7 @@ export function PaymentForm({
                 <div className="space-y-2">
                   <Label htmlFor="totalAmount">Monto total *</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="totalAmount"
                       type="number"
@@ -288,17 +288,17 @@ export function PaymentForm({
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-border hover:border-border'
                       }`}
                       onClick={() => setPayment(prev => ({ ...prev, method: method.value }))}
                     >
                       <div className="flex items-start gap-3">
                         <IconComponent className={`h-5 w-5 mt-0.5 ${
-                          isSelected ? 'text-blue-600' : 'text-gray-600'
+                          isSelected ? 'text-blue-600' : 'text-muted-foreground'
                         }`} />
                         <div className="flex-1">
                           <h3 className="font-medium text-sm">{method.label}</h3>
-                          <p className="text-xs text-gray-600 mt-1">{method.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{method.description}</p>
                           <div className="flex items-center gap-2 mt-2">
                             <Badge variant="outline" className="text-xs">
                               Riesgo {method.risk === 'low' ? 'Bajo' :
@@ -504,7 +504,7 @@ export function PaymentForm({
             </CardHeader>
             <CardContent>
               {payment.paymentSchedule.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-muted-foreground">
                   <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>No hay pagos programados</p>
                   <p className="text-sm">Agregue pagos para completar el cronograma</p>
@@ -516,19 +516,19 @@ export function PaymentForm({
                       <div className="flex-1">
                         <div className="grid grid-cols-4 gap-4 text-sm">
                           <div>
-                            <Label className="text-xs text-gray-600">Fecha</Label>
-                            <p className="font-medium">{new Date(item.date).toLocaleDateString('es-CO')}</p>
+                            <Label className="text-xs text-muted-foreground">Fecha</Label>
+                            <p className="font-medium">{new Date(item.date).toLocaleDateString(getIntlLocale())}</p>
                           </div>
                           <div>
-                            <Label className="text-xs text-gray-600">Monto</Label>
+                            <Label className="text-xs text-muted-foreground">Monto</Label>
                             <p className="font-medium">{formatCurrency(item.amount)}</p>
                           </div>
                           <div>
-                            <Label className="text-xs text-gray-600">Método</Label>
+                            <Label className="text-xs text-muted-foreground">Método</Label>
                             <p className="font-medium capitalize">{item.paymentMethod.replace('_', ' ')}</p>
                           </div>
                           <div>
-                            <Label className="text-xs text-gray-600">Descripción</Label>
+                            <Label className="text-xs text-muted-foreground">Descripción</Label>
                             <p className="font-medium text-xs">{item.description}</p>
                           </div>
                         </div>
@@ -551,7 +551,7 @@ export function PaymentForm({
                         {formatCurrency(payment.paymentSchedule.reduce((sum, item) => sum + item.amount, 0))}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center text-sm text-gray-600">
+                    <div className="flex justify-between items-center text-sm text-muted-foreground">
                       <span>Diferencia con total:</span>
                       <span className={payment.paymentSchedule.reduce((sum, item) => sum + item.amount, 0) === payment.totalAmount ? 'text-green-600' : 'text-red-600'}>
                         {formatCurrency(payment.paymentSchedule.reduce((sum, item) => sum + item.amount, 0) - payment.totalAmount)}

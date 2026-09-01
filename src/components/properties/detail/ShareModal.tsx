@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -30,13 +31,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   propertyTitle,
   propertyId,
 }) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const emailLink = typeof window !== 'undefined' ? window.location.href : '';
   const propertyUrl = emailLink;
 
-  const shareTitle = `Echa un vistazo a: ${propertyTitle}`;
-  const shareDescription = `Esta propiedad podría interesarte: ${propertyTitle}`;
+  const shareTitle = t('properties.detail.share.lookAt', { title: propertyTitle });
+  const shareDescription = t('properties.detail.share.mightInterest', { title: propertyTitle });
 
   useEffect(() => {
     if (isOpen) {
@@ -53,10 +55,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     try {
       await navigator.clipboard.writeText(propertyUrl);
       setCopied(true);
-      toast.success('Link copiado al portapapeles');
+      toast.success(t('properties.detail.share.copied'));
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast.error('Error al copiar el link');
+      toast.error(t('properties.detail.share.copyError'));
     }
   };
 
@@ -83,13 +85,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const shareViaEmail = () => {
     const subject = encodeURIComponent(shareTitle);
     const body = encodeURIComponent(
-      `Hola,\n\n${shareDescription}\n\nVer más detalles: ${propertyUrl}`
+      t('properties.detail.share.emailBody', { description: shareDescription, url: propertyUrl })
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   const downloadPDF = () => {
-    toast.info('Función de descarga PDF próximamente disponible');
+    toast.info(t('properties.detail.share.pdfComingSoon'));
     // You can integrate PDF generation library here
   };
 
@@ -106,14 +108,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
-            Compartir Propiedad
+            {t('properties.detail.share.title')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
           {/* Social Media Shares */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Compartir en redes sociales</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">{t('properties.detail.share.socialTitle')}</h3>
             <div className="grid grid-cols-2 gap-3">
               {socialButtons.map(({ icon: Icon, label, onClick, color }) => (
                 <Button
@@ -131,7 +133,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
           {/* Copy Link */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Copiar link</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">{t('properties.detail.share.copyLink')}</h3>
             <div className="flex gap-2">
               <Input
                 value={propertyUrl}
@@ -154,14 +156,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
           {/* QR Code */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Compartir vía QR</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-3">{t('properties.detail.share.qrTitle')}</h3>
             <div className="flex items-center justify-center p-4 border rounded-lg">
               {qrCodeUrl && (
                 <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />
               )}
             </div>
             <p className="text-xs text-gray-500 text-center mt-2">
-              Escanea este código para ver la propiedad en tu móvil
+              {t('properties.detail.share.qrHint')}
             </p>
           </div>
 
@@ -173,7 +175,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               className="h-16 flex-col gap-2"
             >
               <Mail className="h-5 w-5" />
-              <span className="text-sm">Email</span>
+              <span className="text-sm">{t('properties.detail.contact.email')}</span>
             </Button>
             <Button
               variant="outline"
@@ -181,14 +183,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
               className="h-16 flex-col gap-2"
             >
               <FileText className="h-5 w-5" />
-              <span className="text-sm">Descargar PDF</span>
+              <span className="text-sm">{t('properties.detail.share.downloadPdf')}</span>
             </Button>
           </div>
         </div>
 
         <div className="flex justify-end pt-4">
           <Button variant="outline" onClick={onClose}>
-            Cerrar
+            {t('common.close')}
           </Button>
         </div>
       </DialogContent>

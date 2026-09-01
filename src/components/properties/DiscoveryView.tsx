@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PropertyGrid } from './home/PropertyGrid';
 import { supabase } from '../../lib/supabase';
 import { Property } from '../types/entities';
 import { SearchBar } from '@/components/ui/search-bar';
+import { formatCurrency } from '../../utils/format';
 
 interface SearchFilters {
   location: string;
@@ -16,6 +18,7 @@ interface SearchFilters {
 }
 
 export const DiscoveryView: React.FC = () => {
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,14 +155,7 @@ export const DiscoveryView: React.FC = () => {
     // Implement favorite logic here
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (price: number) => formatCurrency(price);
 
   const convertProperties = (props: Property[]) => {
     return props.map(prop => ({
@@ -184,14 +180,14 @@ export const DiscoveryView: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-gray-900 mb-6">
-              Encuentra tu
+              {t('properties.findYour')}
               <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                {" "}propiedad ideal
+                {" "}{t('properties.idealProperty')}
               </span>
             </h1>
 
             <p className="text-xl lg:text-2xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Descubre las mejores propiedades en Colombia con filtros avanzados
+              {t('properties.discoverySubtitle')}
             </p>
 
             {/* Search Section */}
@@ -202,14 +198,14 @@ export const DiscoveryView: React.FC = () => {
             {/* Quick Categories */}
             <div className="flex flex-wrap justify-center gap-4">
               {[
-                { label: 'Apartamentos', count: properties.filter(p => p.property_type === 'apartment').length },
-                { label: 'Casas', count: properties.filter(p => p.property_type === 'house').length },
-                { label: 'Oficinas', count: properties.filter(p => p.property_type === 'office').length },
-                { label: 'Locales', count: properties.filter(p => p.property_type === 'commercial').length }
+                { key: 'apartment', label: t('properties.apartments'), count: properties.filter(p => p.property_type === 'apartment').length },
+                { key: 'house', label: t('properties.houses'), count: properties.filter(p => p.property_type === 'house').length },
+                { key: 'office', label: t('properties.offices'), count: properties.filter(p => p.property_type === 'office').length },
+                { key: 'commercial', label: t('properties.shops'), count: properties.filter(p => p.property_type === 'commercial').length }
               ].map((category) => (
-                <div key={category.label} className="bg-white rounded-lg px-6 py-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
+                <div key={category.key} className="bg-white rounded-lg px-6 py-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="text-sm font-medium text-gray-900">{category.label}</div>
-                  <div className="text-xs text-gray-500">{category.count}+ disponibles</div>
+                  <div className="text-xs text-gray-500">{t('properties.availableCount', { count: category.count })}</div>
                 </div>
               ))}
             </div>
@@ -221,17 +217,17 @@ export const DiscoveryView: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Propiedades Disponibles
+            {t('properties.availableProperties')}
             {filteredProperties.length !== properties.length && (
               <span className="text-lg font-normal text-gray-600 ml-2">
-                ({filteredProperties.length} de {properties.length})
+                {t('properties.filteredOfTotal', { filtered: filteredProperties.length, total: properties.length })}
               </span>
             )}
           </h2>
           <p className="text-lg text-gray-600">
             {filteredProperties.length === properties.length
-              ? 'Descubre todas las propiedades disponibles'
-              : 'Resultados filtrados según tus criterios'
+              ? t('properties.discoverAll')
+              : t('properties.filteredResults')
             }
           </p>
         </div>
