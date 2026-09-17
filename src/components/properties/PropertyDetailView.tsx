@@ -16,11 +16,12 @@ import {
   ImageLightbox,
   ContactPanel,
   ShareModal,
-  NeighborhoodInsights,
+  NeighborhoodSection,
   SimilarProperties,
 } from './detail';
-import { PropertyDetailMap } from '../maps/PropertyDetailMap';
 import { useFavorites } from '../../hooks/useFavorites';
+import { isPropertyUuid } from '../../lib/nearbyPlaces';
+import { formatListingPrice, getListingPriceValue } from '../../utils/format';
 import { 
   Heart, 
   Share2, 
@@ -85,10 +86,11 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
   const fetchPropertyData = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('properties')
         .select(`
           *,
+          nearby_places,
           owner:owner_id (
             id,
             full_name,
@@ -96,9 +98,13 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             phone,
             avatar_url
           )
-        `)
-        .eq('id', propertyId)
-        .single();
+        `);
+
+      query = isPropertyUuid(propertyId)
+        ? query.eq('id', propertyId)
+        : query.eq('slug', propertyId);
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
       
@@ -376,7 +382,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Descripción</h3>
-                    <p className="text-muted-foreground">{displayProperty.description}</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{displayProperty.description}</p>
                 </div>
 
                 <div>
@@ -405,37 +411,18 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             </Card>
             </motion.div>
 
-            {/* Neighborhood Insights */}
-            {displayProperty.neighborhood && displayProperty.city && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                <NeighborhoodInsights
-                  city={displayProperty.city}
-                  neighborhood={displayProperty.neighborhood}
-                  address={displayProperty.address}
-                />
-              </motion.div>
-            )}
-
-            {/* Property Map */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <PropertyDetailMap
-                propertyId={propertyId}
+              <NeighborhoodSection
                 title={displayProperty.title}
                 address={displayProperty.address}
                 neighborhood={displayProperty.neighborhood}
                 city={displayProperty.city}
                 coordinates={property?.coordinates}
-                image={images.length > 0 ? images[0] : undefined}
-                height="400px"
-                showHeader={true}
+                nearbyPlaces={property?.nearby_places}
               />
             </motion.div>
 
@@ -446,10 +433,15 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               transition={{ duration: 0.3, delay: 0.4 }}
             >
               <SimilarProperties
-                currentPropertyId={propertyId}
+                currentPropertyId={property.id}
                 neighborhood={displayProperty.neighborhood || ''}
                 city={displayProperty.city || ''}
-                priceRange={{ min: displayProperty.price * 0.7, max: displayProperty.price * 1.3 }}
+                priceRange={(() => {
+                  const listingPrice = getListingPriceValue(displayProperty);
+                  return listingPrice != null
+                    ? { min: listingPrice * 0.7, max: listingPrice * 1.3 }
+                    : undefined;
+                })()}
                 onPropertyClick={(id) => {
                   window.location.href = `/properties/${id}`;
                 }}
@@ -463,7 +455,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             <Card className="p-6">
               <div className="text-center mb-6">
                 <h2 className="text-3xl font-bold text-primary mb-2">
-                  {formatPrice(displayProperty.price)}
+                  {formatListingPrice(displayProperty)}
                 </h2>
                 <p className="text-muted-foreground">
                   Costos mensuales: {displayProperty.monthly_costs ? formatPrice(displayProperty.monthly_costs) : 'N/D'}

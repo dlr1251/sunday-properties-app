@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
+import { formatListingPrice, getListingPriceValue } from '../../utils/format';
 import {
   Map,
   Grid3X3,
@@ -257,15 +258,6 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
     onPropertySelect?.(propertyId);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   const convertProperties = (props: Property[]) => {
     return props.map(prop => ({
       id: prop.id,
@@ -274,7 +266,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       location: `${prop.neighborhood}, ${prop.city}`,
       bedrooms: prop.bedrooms,
       bathrooms: prop.bathrooms,
-      price: formatPrice(prop.price),
+      price: formatListingPrice(prop),
       image: prop.images?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
       rating: 4.2 + Math.random() * 0.8,
       verified: prop.verified,
@@ -292,7 +284,12 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
     {
       label: 'Precio Promedio',
       value: properties.length > 0
-        ? formatPrice(properties.reduce((sum, p) => sum + p.price, 0) / properties.length)
+        ? formatListingPrice({
+            price: properties
+              .map((p) => getListingPriceValue(p))
+              .filter((value): value is number => value != null)
+              .reduce((sum, value, _, list) => sum + value / list.length, 0) || null,
+          })
         : '$0',
       icon: TrendingUp,
       color: 'text-green-600'

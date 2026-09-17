@@ -53,8 +53,13 @@ export function PropertyCard({
 }: PropertyCardProps) {
   const { t } = useTranslation();
 
-  const formatPrice = (price: string) => {
-    const numericPrice = parseInt(price.replace(/[^\d]/g, ''));
+  const formatPrice = (price?: string | number | null) => {
+    if (price == null || price === '') return 'Precio a consultar';
+    if (typeof price === 'string' && /mes|consultar/i.test(price)) return price;
+    const numericPrice = typeof price === 'number'
+      ? price
+      : parseInt(price.replace(/[^\d]/g, ''), 10);
+    if (!Number.isFinite(numericPrice)) return 'Precio a consultar';
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',

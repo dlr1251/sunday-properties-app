@@ -11,7 +11,7 @@
       },
     },
     optimizeDeps: {
-      include: ['react-markdown', 'remark-gfm', 'rehype-raw'],
+      include: ['react-markdown', 'remark-gfm', 'rehype-raw', 'maplibre-gl'],
     },
     server: {
       port: 3000,

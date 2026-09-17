@@ -5,6 +5,7 @@ import { Badge } from '../../ui/badge';
 import { ChevronLeft, ChevronRight, MapPin, Bed, Bath, Square } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatListingPrice } from '../../../utils/format';
 
 interface SimilarPropertiesProps {
   currentPropertyId: string;
@@ -17,7 +18,9 @@ interface SimilarPropertiesProps {
 interface Property {
   id: string;
   title: string;
-  price: number;
+  price?: number | null;
+  rent_monthly?: number | null;
+  listing_type?: string | null;
   address: string;
   neighborhood: string;
   city: string;
@@ -54,6 +57,8 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
           id,
           title,
           price,
+          rent_monthly,
+          listing_type,
           address,
           neighborhood,
           city,
@@ -112,14 +117,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
     );
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (property: Property) => formatListingPrice(property);
 
   const getPropertyImage = (property: Property) => {
     // Use the images array directly since there's no separate property_images table
@@ -224,7 +222,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
 
                     <div className="pt-2 border-t">
                       <p className="text-lg font-bold text-primary">
-                        {formatPrice(property.price)}
+                        {formatPrice(property)}
                       </p>
                     </div>
                   </div>

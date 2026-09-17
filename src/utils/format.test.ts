@@ -4,8 +4,10 @@ import {
   formatDate,
   formatDateTime,
   formatFileSize,
+  formatListingPrice,
   formatPercentage,
   formatNumber,
+  getListingPriceValue,
   capitalize,
   truncateText
 } from './format';
@@ -20,6 +22,34 @@ describe('formatCurrency', () => {
   it('handles decimal values', () => {
     expect(formatCurrency(1500000.50)).toMatch(/\$[\s\u00A0]?1\.500\.000,5/);
     expect(formatCurrency(50000.99)).toMatch(/\$[\s\u00A0]?50\.000,99/);
+  });
+});
+
+describe('formatListingPrice', () => {
+  it('shows monthly rent for rental listings with a null sale price', () => {
+    expect(formatListingPrice({
+      price: null,
+      rent_monthly: 6000000,
+      listing_type: 'rental',
+    })).toMatch(/6\.000\.000.*\/mes/);
+  });
+
+  it('falls back to consult copy when no price is available', () => {
+    expect(formatListingPrice({ price: null })).toBe('Precio a consultar');
+  });
+});
+
+describe('getListingPriceValue', () => {
+  it('uses rent for rental listings', () => {
+    expect(getListingPriceValue({
+      price: null,
+      rent_monthly: 6000000,
+      listing_type: 'rental',
+    })).toBe(6000000);
+  });
+
+  it('returns null when both prices are missing', () => {
+    expect(getListingPriceValue({ price: null, rent_monthly: null })).toBeNull();
   });
 });
 
