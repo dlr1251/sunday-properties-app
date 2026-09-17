@@ -47,7 +47,18 @@ export interface Database {
           description: string;
           address: string;
           city: string;
-          price: number;
+          price: number | null;
+          rent_monthly: number | null;
+          listing_type: string | null;
+          slug: string | null;
+          nearby_places: Array<{
+            id?: string;
+            name: string;
+            category: string;
+            lat: number;
+            lng: number;
+            note?: string;
+          }> | null;
           property_type: string;
           status: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -70,7 +81,18 @@ export interface Database {
           description: string;
           address: string;
           city: string;
-          price: number;
+          price?: number | null;
+          rent_monthly?: number | null;
+          listing_type?: string | null;
+          slug?: string | null;
+          nearby_places?: Array<{
+            id?: string;
+            name: string;
+            category: string;
+            lat: number;
+            lng: number;
+            note?: string;
+          }> | null;
           property_type: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -93,7 +115,18 @@ export interface Database {
           description?: string;
           address?: string;
           city?: string;
-          price?: number;
+          price?: number | null;
+          rent_monthly?: number | null;
+          listing_type?: string | null;
+          slug?: string | null;
+          nearby_places?: Array<{
+            id?: string;
+            name: string;
+            category: string;
+            lat: number;
+            lng: number;
+            note?: string;
+          }> | null;
           property_type?: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area?: number;

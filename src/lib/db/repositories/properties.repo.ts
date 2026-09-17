@@ -11,7 +11,18 @@ export interface Property {
   description: string;
   address: string;
   city: string;
-  price: number;
+  price: number | null;
+  rent_monthly?: number | null;
+  listing_type?: string | null;
+  slug?: string | null;
+  nearby_places?: Array<{
+    id?: string;
+    name: string;
+    category: string;
+    lat: number;
+    lng: number;
+    note?: string;
+  }> | null;
   property_type: 'apartment' | 'house' | 'townhouse' | 'office' | 'commercial';
   bedrooms: number;
   bathrooms: number;
@@ -372,7 +383,7 @@ export class PropertiesRepository {
         return acc;
       }, {} as Record<string, number>) || {};
 
-      const totalPrice = data?.reduce((sum, property) => sum + property.price, 0) || 0;
+      const totalPrice = data?.reduce((sum, property) => sum + (property.price || 0), 0) || 0;
       const averagePrice = data?.length ? totalPrice / data.length : 0;
 
       return {

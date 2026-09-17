@@ -12,6 +12,48 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+export interface ListingPriceSource {
+  price?: number | string | null;
+  rent_monthly?: number | string | null;
+  listing_type?: string | null;
+}
+
+function toFiniteNumber(value: unknown): number | null {
+  if (value == null || value === '') return null;
+  const numeric = typeof value === 'number' ? value : Number(String(value).replace(/[^\d.-]/g, ''));
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+/**
+ * Sale price first; rentals fall back to monthly rent so null `price` does not crash listings.
+ */
+export function getListingPriceValue(property: ListingPriceSource): number | null {
+  const salePrice = toFiniteNumber(property.price);
+  const monthly = toFiniteNumber(property.rent_monthly);
+  if (property.listing_type === 'rental' && monthly != null) return monthly;
+  if (salePrice != null) return salePrice;
+  if (monthly != null) return monthly;
+  return null;
+}
+
+/**
+ * Display label for catalog/detail cards. Rentals show "/mes" instead of crashing on null sale price.
+ */
+export function formatListingPrice(property: ListingPriceSource): string {
+  const salePrice = toFiniteNumber(property.price);
+  const monthly = toFiniteNumber(property.rent_monthly);
+  if (property.listing_type === 'rental' && monthly != null) {
+    return `${formatCurrency(monthly)}/mes`;
+  }
+  if (salePrice != null) {
+    return formatCurrency(salePrice);
+  }
+  if (monthly != null) {
+    return `${formatCurrency(monthly)}/mes`;
+  }
+  return 'Precio a consultar';
+}
+
 /**
  * Format date in Spanish format
  */

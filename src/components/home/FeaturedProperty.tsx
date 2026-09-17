@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
+import { formatListingPrice } from '../../utils/format';
 import { Button } from '@/components/ui/button';
 import {
   MapPin,
@@ -59,14 +60,7 @@ export const FeaturedProperty: React.FC<FeaturedPropertyProps> = ({
     fetchFeaturedProperty();
   }, []);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = (property: Property) => formatListingPrice(property);
 
   const nextImage = () => {
     if (featuredProperty?.images) {
@@ -232,7 +226,7 @@ export const FeaturedProperty: React.FC<FeaturedPropertyProps> = ({
               {/* Price and Title */}
               <div className="mb-6">
                 <div className="text-3xl font-bold text-gray-900 mb-2">
-                  {formatPrice(featuredProperty.price)}
+                  {formatPrice(featuredProperty)}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-3">
                   {featuredProperty.title}

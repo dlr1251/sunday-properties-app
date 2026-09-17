@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { PropertyCard } from '../PropertyCard';
+import { formatListingPrice, getListingPriceValue } from '../../utils/format';
 import { PropertiesMapView } from '../maps/PropertiesMapView';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useAllProperties } from '../../hooks/useSupabase';
@@ -113,8 +114,8 @@ export function PropertiesView() {
       city: property.city,
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
-      price: property.price.toString(),
-      price_value: property.price,
+      price: formatListingPrice(property),
+      price_value: getListingPriceValue(property) ?? 0,
       image: Array.isArray(property.images) && property.images.length > 0 ? property.images[0] : '',
       verified: property.verified,
       premium: property.premium,

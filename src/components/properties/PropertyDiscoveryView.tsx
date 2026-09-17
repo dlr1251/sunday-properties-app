@@ -17,6 +17,7 @@ import { useAllProperties, useVisitScheduling } from '../../hooks/useSupabase';
 import { useChat } from '../../hooks/useChat';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
+import { formatListingPrice } from '../../utils/format';
 import {
   SlidersHorizontal,
   Grid3X3,
@@ -698,7 +699,9 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
               location={property.location || `${property.neighborhood}, ${property.city}`}
               bedrooms={property.bedrooms}
               bathrooms={property.bathrooms}
-              price={typeof property.price === 'string' ? property.price : `$${property.price.toLocaleString()}`}
+              price={typeof property.price === 'string'
+                ? property.price
+                : formatListingPrice(property)}
               image={property.image || property.images?.[0]}
               rating={4.5}
               isFavorite={isFavorited(property.id)}

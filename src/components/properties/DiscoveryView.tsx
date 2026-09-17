@@ -3,6 +3,7 @@ import { PropertyGrid } from './home/PropertyGrid';
 import { supabase } from '../../lib/supabase';
 import { Property } from '../types/entities';
 import { SearchBar } from '@/components/ui/search-bar';
+import { formatListingPrice } from '../../utils/format';
 
 interface SearchFilters {
   location: string;
@@ -152,15 +153,6 @@ export const DiscoveryView: React.FC = () => {
     // Implement favorite logic here
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   const convertProperties = (props: Property[]) => {
     return props.map(prop => ({
       id: prop.id,
@@ -169,7 +161,7 @@ export const DiscoveryView: React.FC = () => {
       location: `${prop.neighborhood}, ${prop.city}`,
       bedrooms: prop.bedrooms,
       bathrooms: prop.bathrooms,
-      price: formatPrice(prop.price),
+      price: formatListingPrice(prop),
       image: prop.images?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
       rating: 4.2 + Math.random() * 0.8,
       verified: prop.verified,
