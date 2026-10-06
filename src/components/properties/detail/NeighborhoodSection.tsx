@@ -1,6 +1,7 @@
 import { useMemo, useState, type ComponentType } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { ErrorBoundary } from '@/components/core/ErrorBoundary';
 import { NeighborhoodMap } from '@/components/maps/NeighborhoodMap';
 import {
   CATEGORY_META,
@@ -80,13 +81,21 @@ export function NeighborhoodSection({
 
       {hasCoordinates && (
         <div className="px-4 pt-4 sm:px-6">
-          <NeighborhoodMap
-            coordinates={coordinates}
-            propertyTitle={title}
-            places={visiblePlaces}
-            selectedPlaceId={selectedPlaceId}
-            onSelectPlace={setSelectedPlaceId}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="flex h-[280px] sm:h-[360px] lg:h-[420px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-center">
+                <p className="text-sm text-muted-foreground">Mapa no disponible</p>
+              </div>
+            }
+          >
+            <NeighborhoodMap
+              coordinates={coordinates}
+              propertyTitle={title}
+              places={visiblePlaces}
+              selectedPlaceId={selectedPlaceId}
+              onSelectPlace={setSelectedPlaceId}
+            />
+          </ErrorBoundary>
         </div>
       )}
 

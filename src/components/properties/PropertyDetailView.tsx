@@ -23,6 +23,9 @@ import {
   NeighborhoodSection,
   SimilarProperties,
 } from './detail';
+import { ErrorBoundary } from '../core/ErrorBoundary';
+import { PropertyDetailMap } from '../maps/PropertyDetailMap';
+import { MapFallback } from '../maps/PropertyMap';
 import { useFavorites } from '../../hooks/useFavorites';
 import { 
   Heart, 
@@ -536,17 +539,19 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
-              <PropertyDetailMap
-                propertyId={property.slug || resolvedId}
-                title={displayProperty.title}
-                address={displayProperty.address}
-                neighborhood={displayProperty.neighborhood}
-                city={displayProperty.city}
-                coordinates={property?.coordinates}
-                image={images.length > 0 ? images[0] : undefined}
-                height="400px"
-                showHeader={true}
-              />
+              <ErrorBoundary fallback={<MapFallback message="No pudimos cargar el mapa." />}>
+                <PropertyDetailMap
+                  propertyId={property.slug || resolvedId}
+                  title={displayProperty.title}
+                  address={displayProperty.address}
+                  neighborhood={displayProperty.neighborhood}
+                  city={displayProperty.city}
+                  coordinates={property?.coordinates}
+                  image={images.length > 0 ? images[0] : undefined}
+                  height="400px"
+                  showHeader={true}
+                />
+              </ErrorBoundary>
             </motion.div>
           </div>
 
@@ -623,14 +628,16 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <NeighborhoodSection
-                title={displayProperty.title}
-                address={displayProperty.address}
-                neighborhood={displayProperty.neighborhood}
-                city={displayProperty.city}
-                coordinates={property?.coordinates}
-                nearbyPlaces={property?.nearby_places}
-              />
+              <ErrorBoundary fallback={<MapFallback message="No pudimos cargar el mapa del barrio." />}>
+                <NeighborhoodSection
+                  title={displayProperty.title}
+                  address={displayProperty.address}
+                  neighborhood={displayProperty.neighborhood}
+                  city={displayProperty.city}
+                  coordinates={property?.coordinates}
+                  nearbyPlaces={property?.nearby_places}
+                />
+              </ErrorBoundary>
             </motion.div>
 
             {/* Similar Properties */}

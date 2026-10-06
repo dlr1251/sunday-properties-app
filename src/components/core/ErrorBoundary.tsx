@@ -3,6 +3,7 @@ import i18n from '../../i18n/config';
 
 interface Props {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
 interface State {
@@ -25,6 +26,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
       return (
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-2">{i18n.t('errors.general')}</h1>
