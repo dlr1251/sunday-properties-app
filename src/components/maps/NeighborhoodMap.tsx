@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MapLibreMap, type Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { CATEGORY_META, hasValidMapCoordinates, type NearbyPlace } from '@/lib/nearbyPlaces';
@@ -81,22 +81,30 @@ export function NeighborhoodMap({
   const markersRef = useRef<Marker[]>([]);
   const onSelectPlaceRef = useRef(onSelectPlace);
   onSelectPlaceRef.current = onSelectPlace;
+  const [initError, setInitError] = useState(false);
 
   const hasValidCoordinates = hasValidMapCoordinates(coordinates);
 
   useEffect(() => {
     if (!containerRef.current || !hasValidCoordinates || mapRef.current) return;
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: OSM_RASTER_STYLE,
-      center: [coordinates!.lng, coordinates!.lat],
-      zoom: 14.2,
-      attributionControl: false,
-    });
+    let map: MapLibreMap;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: OSM_RASTER_STYLE,
+        center: [coordinates!.lng, coordinates!.lat],
+        zoom: 14.2,
+        attributionControl: false,
+      });
+      map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    } catch (error) {
+      console.error('NeighborhoodMap init failed', error);
+      setInitError(true);
+      return;
+    }
 
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     mapRef.current = map;
 
     const resize = () => {
@@ -117,7 +125,11 @@ export function NeighborhoodMap({
       window.removeEventListener('resize', resize);
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
-      map.remove();
+      try {
+        map.remove();
+      } catch {
+        // Map may already be gone.
+      }
       mapRef.current = null;
     };
   }, [hasValidCoordinates, coordinates?.lat, coordinates?.lng]);
@@ -126,65 +138,70 @@ export function NeighborhoodMap({
     const map = mapRef.current;
     if (!map || !hasValidCoordinates) return;
 
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
+    try {
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
 
-    const propertyMarker = new maplibregl.Marker({
-      element: createPinElement({
-        color: '#1a2441',
-        property: true,
-        label: propertyTitle,
-      }),
-      anchor: 'center',
-    })
-      .setLngLat([coordinates!.lng, coordinates!.lat])
-      .setPopup(
-        new maplibregl.Popup({ offset: 12, closeButton: false }).setHTML(
-          `<div style="font: 600 13px Satoshi, sans-serif; color: #1a2441">${escapeHtml(propertyTitle)}</div>`
-        )
-      )
-      .addTo(map);
-
-    propertyMarker.getElement().addEventListener('click', () => {
-      onSelectPlaceRef.current(null);
-    });
-    markersRef.current.push(propertyMarker);
-
-    places.forEach((place) => {
-      const marker = new maplibregl.Marker({
+      const propertyMarker = new maplibregl.Marker({
         element: createPinElement({
-          color: CATEGORY_META[place.category].color,
-          selected: selectedPlaceId === place.id,
-          label: place.name,
+          color: '#1a2441',
+          property: true,
+          label: propertyTitle,
         }),
         anchor: 'center',
       })
-        .setLngLat([place.lng, place.lat])
+        .setLngLat([coordinates!.lng, coordinates!.lat])
         .setPopup(
           new maplibregl.Popup({ offset: 12, closeButton: false }).setHTML(
-            `<div style="font: 600 13px Satoshi, sans-serif; color: #1a2441">${escapeHtml(place.name)}</div>
-             ${place.note ? `<div style="font: 12px Satoshi, sans-serif; color: #5b5348; margin-top: 2px">${escapeHtml(place.note)}</div>` : ''}`
+            `<div style="font: 600 13px Satoshi, sans-serif; color: #1a2441">${escapeHtml(propertyTitle)}</div>`
           )
         )
         .addTo(map);
 
-      marker.getElement().addEventListener('click', () => {
-        onSelectPlaceRef.current(place.id);
+      propertyMarker.getElement().addEventListener('click', () => {
+        onSelectPlaceRef.current(null);
       });
-      markersRef.current.push(marker);
+      markersRef.current.push(propertyMarker);
 
-      if (selectedPlaceId === place.id) {
-        marker.togglePopup();
+      places.forEach((place) => {
+        const marker = new maplibregl.Marker({
+          element: createPinElement({
+            color: CATEGORY_META[place.category].color,
+            selected: selectedPlaceId === place.id,
+            label: place.name,
+          }),
+          anchor: 'center',
+        })
+          .setLngLat([place.lng, place.lat])
+          .setPopup(
+            new maplibregl.Popup({ offset: 12, closeButton: false }).setHTML(
+              `<div style="font: 600 13px Satoshi, sans-serif; color: #1a2441">${escapeHtml(place.name)}</div>
+               ${place.note ? `<div style="font: 12px Satoshi, sans-serif; color: #5b5348; margin-top: 2px">${escapeHtml(place.note)}</div>` : ''}`
+            )
+          )
+          .addTo(map);
+
+        marker.getElement().addEventListener('click', () => {
+          onSelectPlaceRef.current(place.id);
+        });
+        markersRef.current.push(marker);
+
+        if (selectedPlaceId === place.id) {
+          marker.togglePopup();
+        }
+      });
+
+      const bounds = new maplibregl.LngLatBounds();
+      bounds.extend([coordinates!.lng, coordinates!.lat]);
+      places.forEach((place) => bounds.extend([place.lng, place.lat]));
+      if (places.length > 0) {
+        map.fitBounds(bounds, { padding: 56, maxZoom: 15.2, duration: 400 });
+      } else {
+        map.easeTo({ center: [coordinates!.lng, coordinates!.lat], zoom: 14.4, duration: 300 });
       }
-    });
-
-    const bounds = new maplibregl.LngLatBounds();
-    bounds.extend([coordinates!.lng, coordinates!.lat]);
-    places.forEach((place) => bounds.extend([place.lng, place.lat]));
-    if (places.length > 0) {
-      map.fitBounds(bounds, { padding: 56, maxZoom: 15.2, duration: 400 });
-    } else {
-      map.easeTo({ center: [coordinates!.lng, coordinates!.lat], zoom: 14.4, duration: 300 });
+    } catch (error) {
+      console.error('NeighborhoodMap markers failed', error);
+      setInitError(true);
     }
   }, [hasValidCoordinates, coordinates, places, selectedPlaceId, propertyTitle]);
 
@@ -193,11 +210,26 @@ export function NeighborhoodMap({
     if (!map || !selectedPlaceId) return;
     const selected = places.find((place) => place.id === selectedPlaceId);
     if (!selected) return;
-    map.easeTo({ center: [selected.lng, selected.lat], zoom: Math.max(map.getZoom(), 14.8), duration: 350 });
+    try {
+      map.easeTo({ center: [selected.lng, selected.lat], zoom: Math.max(map.getZoom(), 14.8), duration: 350 });
+    } catch (error) {
+      console.error('NeighborhoodMap easeTo failed', error);
+    }
   }, [selectedPlaceId, places]);
 
   if (!hasValidCoordinates) {
     return null;
+  }
+
+  if (initError) {
+    return (
+      <div
+        className={`neighborhood-map flex items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50 px-4 text-center ${heightClassName}`}
+        data-testid="neighborhood-map-fallback"
+      >
+        <p className="text-sm text-muted-foreground">Mapa no disponible</p>
+      </div>
+    );
   }
 
   return (

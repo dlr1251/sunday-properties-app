@@ -90,9 +90,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           hint: error.hint
         });
 
-        // Handle RLS policy issues gracefully
-        if (error.message?.includes('infinite recursion detected') ||
-            error.message?.includes('Could not find the table')) {
+        // Handle RLS / grant issues gracefully (including anon 42501 after lock_down_profile_pii)
+        if (
+          error.code === '42501' ||
+          error.message?.includes('permission denied') ||
+          error.message?.includes('infinite recursion detected') ||
+          error.message?.includes('Could not find the table')
+        ) {
           console.warn('⚠️ Profiles table access blocked by RLS policies. Using auth user data instead.');
           // Return a basic profile from auth user data
           return {
