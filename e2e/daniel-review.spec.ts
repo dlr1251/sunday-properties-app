@@ -82,10 +82,21 @@ test.describe('Daniel iPhone review', () => {
     await expect(loginEmail).toBeVisible();
     await loginEmail.fill('nobody@example.com');
     await page.locator('#password').fill('wrong-password');
-    await page.getByRole('button', { name: /Sign In|Iniciar|Entrar/i }).click();
-    await expect(page.locator('[role="alert"], .text-destructive, p')).toContainText(/.+/, {
-      timeout: 10_000,
+    let loginCalled = false;
+    await page.route('**/auth/v1/token**', async (route) => {
+      loginCalled = true;
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'invalid_grant',
+          error_description: 'Invalid login credentials',
+        }),
+      });
     });
+    await page.getByRole('button', { name: /Sign In|Iniciar|Entrar/i }).click();
+    await expect(page.getByRole('alert')).toBeVisible({ timeout: 10_000 });
+    expect(loginCalled).toBe(true);
     await expect(page.getByRole('link', { name: /Olvidaste|Forgot/i })).toBeVisible();
 
     await gotoReady(page, '/signup');
@@ -94,16 +105,19 @@ test.describe('Daniel iPhone review', () => {
     await expect(page.locator('body')).toContainText(/.+/);
 
     await gotoReady(page, '/forgot-password');
-    await page.getByLabel(/correo|email/i).first().fill('ui-test-not-a-real-user@example.invalid');
+    let recoverCalled = false;
     await page.route('**/auth/v1/recover**', async (route) => {
+      recoverCalled = true;
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({}),
       });
     });
+    await page.getByLabel(/correo|email/i).first().fill('ui-test-not-a-real-user@example.invalid');
     await page.getByRole('button', { name: /Send|Enviar/i }).click();
     await expect(page.locator('body')).toContainText(/link|enlace|envi/i);
+    expect(recoverCalled).toBe(true);
 
     await gotoReady(page, '/reset-password');
     await expect(page.getByLabel(/Nueva|New password|Contraseña/i).first()).toBeVisible();

@@ -58,7 +58,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert role="alert" className="mb-4 border-destructive bg-destructive/10 text-destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
