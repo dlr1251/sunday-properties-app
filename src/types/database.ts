@@ -47,7 +47,7 @@ export interface Database {
           description: string;
           address: string;
           city: string;
-          listing_type?: 'sale' | 'rental';
+          listing_type?: 'sale' | 'rental' | null;
           price: number | null;
           rent_monthly?: number | null;
           lease_term_months?: number | null;
@@ -55,6 +55,15 @@ export interface Database {
           admin_fee?: number | null;
           utilities_included?: string[] | null;
           pets_policy?: string | null;
+          slug: string | null;
+          nearby_places: Array<{
+            id?: string;
+            name: string;
+            category: string;
+            lat: number;
+            lng: number;
+            note?: string;
+          }> | null;
           property_type: string;
           status: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -77,7 +86,7 @@ export interface Database {
           description: string;
           address: string;
           city: string;
-          listing_type?: 'sale' | 'rental';
+          listing_type?: 'sale' | 'rental' | null;
           price?: number | null;
           rent_monthly?: number | null;
           lease_term_months?: number | null;
@@ -85,6 +94,15 @@ export interface Database {
           admin_fee?: number | null;
           utilities_included?: string[] | null;
           pets_policy?: string | null;
+          slug?: string | null;
+          nearby_places?: Array<{
+            id?: string;
+            name: string;
+            category: string;
+            lat: number;
+            lng: number;
+            note?: string;
+          }> | null;
           property_type: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -107,7 +125,7 @@ export interface Database {
           description?: string;
           address?: string;
           city?: string;
-          listing_type?: 'sale' | 'rental';
+          listing_type?: 'sale' | 'rental' | null;
           price?: number | null;
           rent_monthly?: number | null;
           lease_term_months?: number | null;
@@ -115,6 +133,15 @@ export interface Database {
           admin_fee?: number | null;
           utilities_included?: string[] | null;
           pets_policy?: string | null;
+          slug?: string | null;
+          nearby_places?: Array<{
+            id?: string;
+            name: string;
+            category: string;
+            lat: number;
+            lng: number;
+            note?: string;
+          }> | null;
           property_type?: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area?: number;

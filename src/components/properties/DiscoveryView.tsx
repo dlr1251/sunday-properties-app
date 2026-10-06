@@ -4,7 +4,7 @@ import { PropertyGrid } from './home/PropertyGrid';
 import { supabase } from '../../lib/supabase';
 import { Property } from '../types/entities';
 import { SearchBar } from '@/components/ui/search-bar';
-import { formatCurrency, listingAmount } from '../../utils/format';
+import { formatListingPrice, listingAmount } from '../../utils/format';
 
 interface SearchFilters {
   location: string;
@@ -155,8 +155,6 @@ export const DiscoveryView: React.FC = () => {
     // Implement favorite logic here
   };
 
-  const formatPrice = (price: number) => formatCurrency(price);
-
   const convertProperties = (props: Property[]) => {
     return props.map(prop => ({
       id: prop.id,
@@ -166,7 +164,7 @@ export const DiscoveryView: React.FC = () => {
       location: `${prop.neighborhood}, ${prop.city}`,
       bedrooms: prop.bedrooms,
       bathrooms: prop.bathrooms,
-      price: formatPrice(listingAmount(prop)),
+      price: formatListingPrice(prop),
       image: prop.images?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
       rating: 4.2 + Math.random() * 0.8,
       verified: prop.verified,

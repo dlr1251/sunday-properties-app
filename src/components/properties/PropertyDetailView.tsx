@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, getListingPriceValue } from '../../utils/format';
 import { isPropertyUuid, propertyEditPath, propertyPath } from '../../utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +20,9 @@ import { motion } from 'framer-motion';
 import { 
   ImageLightbox,
   ShareModal,
-  NeighborhoodInsights,
+  NeighborhoodSection,
   SimilarProperties,
 } from './detail';
-import { PropertyDetailMap } from '../maps/PropertyDetailMap';
 import { useFavorites } from '../../hooks/useFavorites';
 import { 
   Heart, 
@@ -106,6 +105,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         .from('properties')
         .select(`
           *,
+          nearby_places,
           owner:owner_id (
             id,
             full_name,
@@ -117,7 +117,8 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       query = isPropertyUuid(propertyId)
         ? query.eq('id', propertyId)
         : query.eq('slug', propertyId);
-      const { data, error } = await query.single();
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
       
@@ -602,7 +603,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">{t('properties.detail.description')}</h3>
-                    <p className="text-muted-foreground">{displayProperty.description}</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{displayProperty.description}</p>
                 </div>
 
                 <div>
@@ -631,20 +632,20 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             </Card>
             </motion.div>
 
-            {/* Neighborhood Insights */}
-            {displayProperty.neighborhood && displayProperty.city && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                <NeighborhoodInsights
-                  city={displayProperty.city}
-                  neighborhood={displayProperty.neighborhood}
-                  address={displayProperty.address}
-                />
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <NeighborhoodSection
+                title={displayProperty.title}
+                address={displayProperty.address}
+                neighborhood={displayProperty.neighborhood}
+                city={displayProperty.city}
+                coordinates={property?.coordinates}
+                nearbyPlaces={property?.nearby_places}
+              />
+            </motion.div>
 
             {/* Similar Properties */}
             <motion.div
@@ -656,7 +657,12 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 currentPropertyId={resolvedId}
                 neighborhood={displayProperty.neighborhood || ''}
                 city={displayProperty.city || ''}
-                priceRange={{ min: mainPrice * 0.7, max: mainPrice * 1.3 }}
+                priceRange={(() => {
+                  const listingPrice = getListingPriceValue(displayProperty);
+                  return listingPrice != null
+                    ? { min: listingPrice * 0.7, max: listingPrice * 1.3 }
+                    : undefined;
+                })()}
                 onPropertyClick={(id) => {
                   window.location.href = `/properties/${id}`;
                 }}

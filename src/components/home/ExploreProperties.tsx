@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
-import { formatCurrency, listingAmount } from '../../utils/format';
+import { formatListingPrice, getListingPriceValue, listingAmount } from '../../utils/format';
 import {
   Map,
   Grid3X3,
@@ -274,8 +274,6 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
     onPropertySelect?.(propertyId);
   };
 
-  const formatPrice = (price: number) => formatCurrency(price);
-
   const convertProperties = (props: Property[]) => {
     return props.map(prop => ({
       id: prop.id,
@@ -285,7 +283,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       location: `${prop.neighborhood}, ${prop.city}`,
       bedrooms: prop.bedrooms,
       bathrooms: prop.bathrooms,
-      price: formatPrice(listingAmount(prop)),
+      price: formatListingPrice(prop),
       image: prop.images?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
       rating: 4.2 + Math.random() * 0.8,
       verified: prop.verified,
@@ -305,7 +303,12 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       key: 'average',
       label: t('properties.averagePrice'),
       value: properties.length > 0
-        ? formatPrice(properties.reduce((sum, p) => sum + listingAmount(p), 0) / properties.length)
+        ? formatListingPrice({
+            price: properties
+              .map((p) => getListingPriceValue(p))
+              .filter((value): value is number => value != null)
+              .reduce((sum, value, _, list) => sum + value / list.length, 0) || null,
+          })
         : '$0',
       icon: TrendingUp,
       color: 'text-green-600'

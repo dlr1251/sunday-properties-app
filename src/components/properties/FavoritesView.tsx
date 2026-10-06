@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PropertyCard } from './PropertyCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { formatCurrency, formatDate } from '../../utils/format';
+import { formatDate, formatListingPrice, getListingPriceValue } from '../../utils/format';
 import { 
   Heart, 
   Search, 
@@ -126,9 +126,9 @@ export const FavoritesView: React.FC = () => {
   const sortedFavorites = [...filteredFavorites].sort((a, b) => {
     switch (sortBy) {
       case 'price_asc':
-        return a.property.price - b.property.price;
+        return (getListingPriceValue(a.property) ?? 0) - (getListingPriceValue(b.property) ?? 0);
       case 'price_desc':
-        return b.property.price - a.property.price;
+        return (getListingPriceValue(b.property) ?? 0) - (getListingPriceValue(a.property) ?? 0);
       case 'area_asc':
         return a.property.area - b.property.area;
       case 'area_desc':
@@ -139,7 +139,8 @@ export const FavoritesView: React.FC = () => {
     }
   });
 
-  const formatPrice = (price: number) => formatCurrency(price);
+  const formatPrice = (property: { price?: number | null; rent_monthly?: number | null; listing_type?: string | null }) =>
+    formatListingPrice(property);
 
   const propertyTypeLabel = (type: string) => {
     const keyMap: Record<string, string> = {
@@ -305,7 +306,7 @@ export const FavoritesView: React.FC = () => {
 
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-2xl font-bold text-primary">
-                    {formatPrice(favorite.property.price)}
+                    {formatPrice(favorite.property)}
                   </div>
                   <Badge variant="secondary">
                     {propertyTypeLabel(favorite.property.property_type)}

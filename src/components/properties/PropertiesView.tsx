@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { PropertyCard } from '../PropertyCard';
+import { formatListingPrice, getListingPriceValue } from '../../utils/format';
 import { PropertiesMapView } from '../maps/PropertiesMapView';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useAllProperties } from '../../hooks/useSupabase';
@@ -142,12 +143,14 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
       listing_type: (property.listing_type as 'sale' | 'rental') || 'sale',
-      price: (property.listing_type === 'rental' ? (property.rent_monthly ?? 0) : (property.price ?? 0)).toString(),
-      price_value: property.listing_type === 'rental' ? Number(property.rent_monthly ?? 0) : Number(property.price ?? 0),
+      price: String(getListingPriceValue(property) ?? 0),
+      price_value: getListingPriceValue(property) ?? 0,
       price_label:
-        property.listing_type === 'rental'
-          ? formatCurrency(Number(property.rent_monthly ?? 0)) + t('properties.perMonth')
-          : formatCurrency(Number(property.price ?? 0)),
+        getListingPriceValue(property) == null
+          ? formatListingPrice(property)
+          : property.listing_type === 'rental'
+            ? formatCurrency(getListingPriceValue(property) as number) + t('properties.perMonth')
+            : formatCurrency(getListingPriceValue(property) as number),
       image: Array.isArray(property.images) && property.images.length > 0 ? property.images[0] : '',
       verified: property.verified,
       premium: property.premium,
