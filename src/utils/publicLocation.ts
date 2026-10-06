@@ -158,6 +158,9 @@ function tidyPublicText(value: string): string {
     .replace(/\s+\+\s+/g, ' ')
     .replace(/^[\s,;:+-]+/gm, '')
     .replace(/[ \t]+$/gm, '')
+    .replace(/\bsobre\s+(?:la|el)\s*,/gi, '')
+    .replace(/\s+,/g, ',')
+    .replace(/[ \t]{2,}/g, ' ')
     .trim();
 }
 

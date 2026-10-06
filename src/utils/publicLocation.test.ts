@@ -67,6 +67,7 @@ describe('sanitizePublicDescription', () => {
     expect(clean).not.toMatch(/Carrera\s*74/i);
     expect(clean).not.toMatch(/Apto\s*517/i);
     expect(clean).not.toMatch(/No\.\s*53-162/i);
+    expect(clean).not.toMatch(/sobre la,/i);
     expect(clean).toMatch(/parqueadero/i);
   });
 
