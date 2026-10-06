@@ -25,7 +25,8 @@ export function useProjectAnalysis(tasks: DevTask[]): AnalysisMetrics {
     ).length;
 
     const suggestions: string[] = [];
-    if (MODULES.find((m) => m.id === 'testing')?.progress && (MODULES.find((m) => m.id === 'testing')?.progress ?? 0) < 50) {
+    const testingProgress = MODULES.find((m) => m.id === 'testing')?.progress ?? 0;
+    if (testingProgress < 50) {
       suggestions.push('Aumentar cobertura de tests: el módulo Testing está por debajo del 50%.');
     }
     if (bugCount > 0) {

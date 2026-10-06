@@ -24,9 +24,11 @@ import {
   Calendar
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../../i18n/useDateFnsLocale';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
+import { formatCurrency } from '../../../utils/format';
 import { Skeleton } from '../../ui/skeleton';
 
 interface PropertyDetailViewProps {
@@ -35,6 +37,8 @@ interface PropertyDetailViewProps {
 }
 
 export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewProps) {
+  const { t } = useTranslation();
+  const dateFnsLocale = useDateFnsLocale();
   const { data, loading, error, update, refresh } = useResourceDetail({
     resourceType: 'property',
     resourceId: propertyId,
@@ -58,8 +62,14 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         state: data.state || '',
         country: data.country || '',
         property_type: data.property_type || 'apartment',
-        transaction_type: data.transaction_type || 'sale',
+        listing_type: data.listing_type || 'sale',
         price: data.price || 0,
+        rent_monthly: data.rent_monthly || 0,
+        lease_term_months: data.lease_term_months || null,
+        deposit: data.deposit || null,
+        admin_fee: data.admin_fee || null,
+        utilities_included: data.utilities_included || [],
+        pets_policy: data.pets_policy || '',
         minimum_offer_price: data.minimum_offer_price || null,
         monthly_costs: data.monthly_costs || null,
         visit_price: data.visit_price || 49000,
@@ -131,14 +141,6 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const handleSave = async () => {
     const success = await update(formData);
     if (success) {
@@ -192,12 +194,12 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      published: { label: 'Publicada', variant: 'default' as const },
-      pending: { label: 'Pendiente', variant: 'secondary' as const },
+      published: { label: t('admin.status.published'), variant: 'default' as const },
+      pending: { label: t('admin.status.pending'), variant: 'secondary' as const },
       draft: { label: 'Borrador', variant: 'outline' as const },
       sold: { label: 'Vendida', variant: 'default' as const },
-      rented: { label: 'Arrendada', variant: 'default' as const },
-      archived: { label: 'Archivada', variant: 'outline' as const },
+      rented: { label: t('admin.status.rented'), variant: 'default' as const },
+      archived: { label: t('admin.status.archived'), variant: 'outline' as const },
     };
     const config = variants[status] || { label: status, variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -217,7 +219,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
     return (
       <div className="text-center py-8">
         <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-        <p className="text-destructive">{error || 'Propiedad no encontrada'}</p>
+        <p className="text-destructive">{error || t('admin.propertyNotFound')}</p>
       </div>
     );
   }
@@ -232,23 +234,23 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
       {/* Header with Edit Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Detalles de la Propiedad</h3>
+          <h3 className="text-lg font-semibold">{t('admin.propertyDetails')}</h3>
           <p className="text-sm text-muted-foreground">{property.title}</p>
         </div>
         {!isEditing ? (
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="h-4 w-4 mr-2" />
-            Editar
+            {t('common.edit')}
           </Button>
         ) : (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleCancel}>
               <X className="h-4 w-4 mr-2" />
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button size="sm" onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
-              Guardar
+              {t('common.save')}
             </Button>
           </div>
         )}
@@ -256,24 +258,24 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
 
       <Tabs defaultValue="info" className="w-full">
         <TabsList>
-          <TabsTrigger value="info">Información</TabsTrigger>
-          <TabsTrigger value="characteristics">Características</TabsTrigger>
-          <TabsTrigger value="location">Ubicación</TabsTrigger>
-          <TabsTrigger value="multimedia">Multimedia</TabsTrigger>
+          <TabsTrigger value="info">{t('admin.information')}</TabsTrigger>
+          <TabsTrigger value="characteristics">{t('admin.features')}</TabsTrigger>
+          <TabsTrigger value="location">{t('admin.locationSection')}</TabsTrigger>
+          <TabsTrigger value="multimedia">{t('admin.mediaSection')}</TabsTrigger>
           <TabsTrigger value="documents">Documentos ({legalDocs.length + (property.legal_documents?.length || 0)})</TabsTrigger>
-          <TabsTrigger value="relations">Relaciones</TabsTrigger>
+          <TabsTrigger value="relations">{t('admin.relationships')}</TabsTrigger>
         </TabsList>
 
         {/* Información General */}
         <TabsContent value="info" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Información General</CardTitle>
+              <CardTitle>{t('admin.generalInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Título</Label>
+                  <Label>{t('admin.recordTitle')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.title}
@@ -285,19 +287,19 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Estado</Label>
+                  <Label>{t('properties.status')}</Label>
                   {isEditing ? (
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     >
-                      <option value="draft">Borrador</option>
-                      <option value="pending">Pendiente</option>
-                      <option value="published">Publicada</option>
-                      <option value="sold">Vendida</option>
-                      <option value="rented">Arrendada</option>
-                      <option value="archived">Archivada</option>
+                      <option value="draft">{t('admin.status.draft')}</option>
+                      <option value="pending">{t('admin.status.pending')}</option>
+                      <option value="published">{t('admin.status.published')}</option>
+                      <option value="sold">{t('admin.status.sold')}</option>
+                      <option value="rented">{t('admin.status.rented')}</option>
+                      <option value="archived">{t('admin.status.archived')}</option>
                     </select>
                   ) : (
                     <div>{getStatusBadge(property.status)}</div>
@@ -305,7 +307,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2 col-span-2">
-                  <Label>Descripción</Label>
+                  <Label>{t('admin.description')}</Label>
                   {isEditing ? (
                     <textarea
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[100px]"
@@ -318,18 +320,18 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Tipo de Propiedad</Label>
+                  <Label>{t('admin.propertyType')}</Label>
                   {isEditing ? (
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.property_type}
                       onChange={(e) => setFormData({ ...formData, property_type: e.target.value })}
                     >
-                      <option value="apartment">Apartamento</option>
-                      <option value="house">Casa</option>
-                      <option value="townhouse">Casa Campestre</option>
-                      <option value="office">Oficina</option>
-                      <option value="commercial">Comercial</option>
+                      <option value="apartment">{t('properties.types.apartment')}</option>
+                      <option value="house">{t('properties.types.house')}</option>
+                      <option value="townhouse">{t('properties.types.countryHouse')}</option>
+                      <option value="office">{t('properties.types.office')}</option>
+                      <option value="commercial">{t('properties.types.commercial')}</option>
                     </select>
                   ) : (
                     <p className="text-sm font-medium capitalize">{property.property_type}</p>
@@ -337,15 +339,15 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Tipo de Transacción</Label>
+                  <Label>{t('admin.listingType')}</Label>
                   {isEditing ? (
                     <select
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.transaction_type}
                       onChange={(e) => setFormData({ ...formData, transaction_type: e.target.value })}
                     >
-                      <option value="sale">Venta</option>
-                      <option value="rent">Arriendo</option>
+                      <option value="sale">{t('properties.listingTypes.sale')}</option>
+                      <option value="rent">{t('properties.listingTypes.rental')}</option>
                     </select>
                   ) : (
                     <p className="text-sm font-medium capitalize">{property.transaction_type || 'sale'}</p>
@@ -353,7 +355,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Verificada</Label>
+                  <Label>{t('admin.verifiedLabel')}</Label>
                   {isEditing ? (
                     <input
                       type="checkbox"
@@ -369,7 +371,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Premium</Label>
+                  <Label>{t('admin.premiumLabel')}</Label>
                   {isEditing ? (
                     <input
                       type="checkbox"
@@ -392,12 +394,12 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         <TabsContent value="characteristics" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Características Físicas</CardTitle>
+              <CardTitle>{t('admin.physicalFeatures')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Área (m²)</Label>
+                  <Label>{t('admin.areaM2')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -410,7 +412,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Habitaciones</Label>
+                  <Label>{t('properties.bedrooms')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -423,7 +425,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Baños</Label>
+                  <Label>{t('properties.bathrooms')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -436,7 +438,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Parqueaderos</Label>
+                  <Label>{t('properties.parking')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -449,7 +451,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Piso</Label>
+                  <Label>{t('admin.floor')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -462,7 +464,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Total de Pisos</Label>
+                  <Label>{t('admin.totalFloors')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -475,7 +477,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Año de Construcción</Label>
+                  <Label>{t('admin.yearBuilt')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -488,7 +490,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Estrato</Label>
+                  <Label>{t('admin.stratum')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -505,10 +507,10 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
 
               {/* Features */}
               <div className="mt-4 space-y-2">
-                <Label>Características</Label>
+                <Label>{t('admin.features')}</Label>
                 {isEditing ? (
                   <Input
-                    placeholder="Separadas por comas (ej: piscina, gimnasio, seguridad)"
+                    placeholder={t("admin.featuresPlaceholder")}
                     value={Array.isArray(formData.features) ? formData.features.join(', ') : ''}
                     onChange={(e) => setFormData({ ...formData, features: e.target.value.split(',').map((f: string) => f.trim()).filter(Boolean) })}
                   />
@@ -519,7 +521,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                         <Badge key={idx} variant="outline">{feature}</Badge>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground">Sin características</p>
+                      <p className="text-sm text-muted-foreground">{t('common.noneFeminine')}</p>
                     )}
                   </div>
                 )}
@@ -527,10 +529,10 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
 
               {/* Tags */}
               <div className="mt-4 space-y-2">
-                <Label>Etiquetas</Label>
+                <Label>{t('admin.tags')}</Label>
                 {isEditing ? (
                   <Input
-                    placeholder="Separadas por comas"
+                    placeholder={t("admin.tagsPlaceholder")}
                     value={Array.isArray(formData.tags) ? formData.tags.join(', ') : ''}
                     onChange={(e) => setFormData({ ...formData, tags: e.target.value.split(',').map((t: string) => t.trim()).filter(Boolean) })}
                   />
@@ -541,7 +543,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                         <Badge key={idx} variant="secondary">{tag}</Badge>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground">Sin etiquetas</p>
+                      <p className="text-sm text-muted-foreground">{t('common.noneFeminine')}</p>
                     )}
                   </div>
                 )}
@@ -552,12 +554,12 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
           {/* Precio */}
           <Card>
             <CardHeader>
-              <CardTitle>Información de Precio</CardTitle>
+              <CardTitle>{t('admin.priceInfo')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Precio</Label>
+                  <Label>{t('properties.price')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -570,7 +572,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Precio Mínimo de Oferta</Label>
+                  <Label>{t('admin.minOfferPrice')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -585,7 +587,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Costos Mensuales</Label>
+                  <Label>{t('admin.monthlyCosts')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -600,7 +602,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Precio de Visita</Label>
+                  <Label>{t('admin.visitPrice')}</Label>
                   {isEditing ? (
                     <Input
                       type="number"
@@ -613,7 +615,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Acepta Criptomonedas</Label>
+                  <Label>{t('admin.acceptsCrypto')}</Label>
                   {isEditing ? (
                     <input
                       type="checkbox"
@@ -629,7 +631,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Financiación Disponible</Label>
+                  <Label>{t('admin.financingAvailable')}</Label>
                   {isEditing ? (
                     <input
                       type="checkbox"
@@ -652,12 +654,12 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         <TabsContent value="location" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Ubicación</CardTitle>
+              <CardTitle>{t('admin.locationSection')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Dirección</Label>
+                  <Label>{t('admin.address')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.address}
@@ -669,7 +671,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Barrio</Label>
+                  <Label>{t('admin.neighborhood')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.neighborhood}
@@ -681,7 +683,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Ciudad</Label>
+                  <Label>{t('admin.city')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.city}
@@ -693,7 +695,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Departamento</Label>
+                  <Label>{t('admin.department')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.state}
@@ -705,7 +707,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>País</Label>
+                  <Label>{t('admin.country')}</Label>
                   {isEditing ? (
                     <Input
                       value={formData.country}
@@ -718,7 +720,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
 
                 {coordinates && (
                   <div className="space-y-2">
-                    <Label>Coordenadas</Label>
+                    <Label>{t('admin.coordinates')}</Label>
                     <p className="text-sm font-medium">
                       {coordinates.lat}, {coordinates.lng}
                     </p>
@@ -733,15 +735,15 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         <TabsContent value="multimedia" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Multimedia</CardTitle>
+              <CardTitle>{t('admin.mediaSection')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Images */}
               <div className="space-y-2">
-                <Label>Imágenes</Label>
+                <Label>{t('admin.images')}</Label>
                 {isEditing ? (
                   <Input
-                    placeholder="URLs separadas por comas"
+                    placeholder={t("admin.urlsCommaPlaceholder")}
                     value={Array.isArray(formData.images) ? formData.images.join(', ') : ''}
                     onChange={(e) => setFormData({ ...formData, images: e.target.value.split(',').map((url: string) => url.trim()).filter(Boolean) })}
                   />
@@ -750,14 +752,14 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                     {property.images && property.images.length > 0 ? (
                       property.images.map((url: string, idx: number) => (
                         <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="relative group">
-                          <img src={url} alt={`Imagen ${idx + 1}`} className="w-full h-24 object-cover rounded border" />
+                          <img src={url} alt={t('admin.imageN', { n: idx + 1 })} className="w-full h-24 object-cover rounded border" />
                           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity rounded flex items-center justify-center">
                             <Eye className="h-5 w-5 text-white opacity-0 group-hover:opacity-100" />
                           </div>
                         </a>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground col-span-3">Sin imágenes</p>
+                      <p className="text-sm text-muted-foreground col-span-3">{t('common.noneFeminine')}</p>
                     )}
                   </div>
                 )}
@@ -765,10 +767,10 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
 
               {/* Virtual Tour */}
               <div className="space-y-2">
-                <Label>Tour Virtual</Label>
+                <Label>{t('admin.virtualTour')}</Label>
                 {isEditing ? (
                   <Input
-                    placeholder="URL del tour virtual"
+                    placeholder={t("admin.virtualTourPlaceholder")}
                     value={formData.virtual_tour}
                     onChange={(e) => setFormData({ ...formData, virtual_tour: e.target.value })}
                   />
@@ -776,20 +778,20 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                   property.virtual_tour ? (
                     <a href={property.virtual_tour} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-2">
                       <LinkIcon className="h-4 w-4" />
-                      Ver tour virtual
+                      {t('admin.viewTour')}
                     </a>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No disponible</p>
+                    <p className="text-sm text-muted-foreground">{t('common.notAvailable')}</p>
                   )
                 )}
               </div>
 
               {/* Video */}
               <div className="space-y-2">
-                <Label>Video</Label>
+                <Label>{t('admin.video')}</Label>
                 {isEditing ? (
                   <Input
-                    placeholder="URL del video"
+                    placeholder={t("admin.videoPlaceholder")}
                     value={formData.video}
                     onChange={(e) => setFormData({ ...formData, video: e.target.value })}
                   />
@@ -797,20 +799,20 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                   property.video ? (
                     <a href={property.video} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-2">
                       <Video className="h-4 w-4" />
-                      Ver video
+                      {t('admin.video')}
                     </a>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No disponible</p>
+                    <p className="text-sm text-muted-foreground">{t('common.notAvailable')}</p>
                   )
                 )}
               </div>
 
               {/* Floor Plan */}
               <div className="space-y-2">
-                <Label>Plano</Label>
+                <Label>{t('admin.floorPlan')}</Label>
                 {isEditing ? (
                   <Input
-                    placeholder="URL del plano"
+                    placeholder={t("admin.floorPlanPlaceholder")}
                     value={formData.floor_plan}
                     onChange={(e) => setFormData({ ...formData, floor_plan: e.target.value })}
                   />
@@ -818,10 +820,10 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                   property.floor_plan ? (
                     <a href={property.floor_plan} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      Ver plano
+                      {t('admin.floorPlan')}
                     </a>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No disponible</p>
+                    <p className="text-sm text-muted-foreground">{t('common.notAvailable')}</p>
                   )
                 )}
               </div>
@@ -833,30 +835,30 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         <TabsContent value="documents" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Documentos Legales</CardTitle>
+              <CardTitle>{t('admin.legalDocuments')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Freedom and Tradition */}
               <div className="space-y-2">
-                <Label>Libertad y Tradición</Label>
+                <Label>{t('admin.freedomTradition')}</Label>
                 {isEditing ? (
                   <textarea
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[100px]"
                     value={formData.freedom_tradition}
                     onChange={(e) => setFormData({ ...formData, freedom_tradition: e.target.value })}
-                    placeholder="Texto de libertad y tradición"
+                    placeholder={t("admin.freedomTraditionPlaceholder")}
                   />
                 ) : (
-                  <p className="text-sm whitespace-pre-wrap">{property.freedom_tradition || 'No disponible'}</p>
+                  <p className="text-sm whitespace-pre-wrap">{property.freedom_tradition || t('common.notAvailable')}</p>
                 )}
               </div>
 
               {/* Legal Documents Array */}
               <div className="space-y-2">
-                <Label>Documentos Legales (URLs)</Label>
+                <Label>{t('admin.legalDocumentUrls')}</Label>
                 {isEditing ? (
                   <Input
-                    placeholder="URLs separadas por comas"
+                    placeholder={t("admin.urlsCommaPlaceholder")}
                     value={Array.isArray(formData.legal_documents) ? formData.legal_documents.join(', ') : ''}
                     onChange={(e) => setFormData({ ...formData, legal_documents: e.target.value.split(',').map((url: string) => url.trim()).filter(Boolean) })}
                   />
@@ -870,7 +872,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                         </a>
                       ))
                     ) : (
-                      <p className="text-sm text-muted-foreground">Sin documentos</p>
+                      <p className="text-sm text-muted-foreground">{t('admin.noDocuments')}</p>
                     )}
                   </div>
                 )}
@@ -879,16 +881,16 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
               {/* Legal Documents from Table */}
               {legalDocs.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Documentos en Sistema</Label>
+                  <Label>{t('admin.systemDocuments')}</Label>
                   <div className="space-y-2">
                     {legalDocs.map((doc: any) => (
                       <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
                           <FileText className="h-5 w-5 text-blue-600" />
                           <div>
-                            <p className="font-medium">{doc.document_type || 'Documento'}</p>
+                            <p className="font-medium">{doc.document_type || t('admin.documentFallback')}</p>
                             <p className="text-sm text-muted-foreground">
-                              {doc.created_at ? format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: es }) : '-'}
+                              {doc.created_at ? format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: dateFnsLocale }) : '-'}
                             </p>
                           </div>
                         </div>
@@ -908,12 +910,12 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         <TabsContent value="relations" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Relaciones</CardTitle>
+              <CardTitle>{t('admin.relationships')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Propietario</Label>
+                  <Label>{t('negotiations.roles.owner')}</Label>
                   {owner ? (
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
@@ -923,12 +925,12 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No asignado</p>
+                    <p className="text-sm text-muted-foreground">{t('common.notSpecified')}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Agente</Label>
+                  <Label>{t('profile.roles.agent')}</Label>
                   {agent ? (
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
@@ -938,12 +940,12 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No asignado</p>
+                    <p className="text-sm text-muted-foreground">{t('common.notSpecified')}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Ofertas</Label>
+                  <Label>{t('admin.offersSection')}</Label>
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
                     <p className="text-sm font-medium">{offersCount}</p>
@@ -951,7 +953,7 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Visitas</Label>
+                  <Label>{t('visits.title')}</Label>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     <p className="text-sm font-medium">{visitsCount}</p>
@@ -959,19 +961,19 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Fecha de Creación</Label>
+                  <Label>{t('admin.createdAt')}</Label>
                   <p className="text-sm font-medium">
                     {property.created_at
-                      ? format(new Date(property.created_at), 'dd/MM/yyyy HH:mm', { locale: es })
+                      ? format(new Date(property.created_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })
                       : '-'}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Última Actualización</Label>
+                  <Label>{t('admin.updatedAt')}</Label>
                   <p className="text-sm font-medium">
                     {property.updated_at
-                      ? format(new Date(property.updated_at), 'dd/MM/yyyy HH:mm', { locale: es })
+                      ? format(new Date(property.updated_at), 'dd/MM/yyyy HH:mm', { locale: dateFnsLocale })
                       : '-'}
                   </p>
                 </div>

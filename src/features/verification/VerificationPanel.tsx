@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { VerificationFilters } from './VerificationFilters';
 import { VerificationTable } from './VerificationTable';
 import { VerificationStats } from './VerificationStats';
@@ -8,6 +9,7 @@ import DocumentsViewer from './dialogs/DocumentsViewer';
 import ApprovalDialog from './dialogs/ApprovalDialog';
 
 export function VerificationPanel() {
+  const { t } = useTranslation();
   const [filters, setFilters] = React.useState<VerificationFilterValues>(defaultVerificationFilters);
   const [page] = React.useState(1);
   const [limit] = React.useState(20);
@@ -25,7 +27,7 @@ export function VerificationPanel() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Verification Management</h2>
+        <h2 className="text-lg font-semibold">{t('admin.verificationManagement')}</h2>
       </div>
 
       <VerificationStats stats={stats as any} />
@@ -46,4 +48,3 @@ export function VerificationPanel() {
 }
 
 export default VerificationPanel;
-

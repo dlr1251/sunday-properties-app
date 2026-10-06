@@ -30,7 +30,7 @@ Minimum for production:
 | `VITE_APP_ENV` | `production` |
 | `VITE_GOOGLE_MAPS_API_KEY` | Google Maps key (if using maps) |
 
-Others may include `VITE_STRIPE_PUBLIC_KEY`, `VITE_YJS_WS_URL` (if Yjs server in production), `VITE_PAYMENT_TEST_MODE`, etc. See `env.example`.
+Others may include `VITE_STRIPE_PUBLIC_KEY`, `VITE_YJS_WS_URL` (if Yjs server in production), `VITE_PAYMENT_TEST_MODE`, etc. See `.env.example`.
 
 Do not expose the Supabase **service role key** in the frontend. Use it only in Edge Functions or backend scripts.
 

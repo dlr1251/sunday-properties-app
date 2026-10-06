@@ -35,11 +35,11 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
     if (!lawyer) {
       return (
         <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="mx-auto h-12 w-12 text-muted-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <div className="text-sm font-medium text-gray-900 mt-2">No hay abogado asignado</div>
-          <div className="text-sm text-gray-600 mt-1">
+          <div className="text-sm font-medium text-foreground mt-2">No hay abogado asignado</div>
+          <div className="text-sm text-muted-foreground mt-1">
             Un abogado será asignado para asistir en esta negociación
           </div>
         </div>
@@ -66,7 +66,7 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
         </div>
 
         {/* Chat Panel */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="border border-border rounded-lg overflow-hidden">
           <ChatPanel
             conversationId={`legal-${negotiationId}`}
             title="Chat Legal de la Negociación"
@@ -83,11 +83,11 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
     if (legalDocuments.length === 0) {
       return (
         <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="mx-auto h-12 w-12 text-muted-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <div className="text-sm font-medium text-gray-900 mt-2">No hay documentos legales</div>
-          <div className="text-sm text-gray-600 mt-1">
+          <div className="text-sm font-medium text-foreground mt-2">No hay documentos legales</div>
+          <div className="text-sm text-muted-foreground mt-1">
             Los documentos legales aparecerán aquí cuando sean generados
           </div>
         </div>
@@ -97,16 +97,16 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
     return (
       <div className="space-y-4">
         {legalDocuments.map((document) => (
-          <div key={document.id} className="border border-gray-200 rounded-lg p-4">
+          <div key={document.id} className="border border-border rounded-lg p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{getDocumentIcon(document.kind)}</span>
-                  <h3 className="font-medium text-gray-900">{document.document_name || getDocumentTypeLabel(document.kind)}</h3>
+                  <h3 className="font-medium text-foreground">{document.document_name || getDocumentTypeLabel(document.kind)}</h3>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                     document.status === 'finalized' ? 'bg-green-100 text-green-800' :
                     document.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
+                    'bg-muted text-foreground'
                   }`}>
                     {document.status === 'finalized' ? 'Finalizado' :
                      document.status === 'review' ? 'En revisión' :
@@ -114,7 +114,7 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
                   </span>
                 </div>
 
-                <div className="text-sm text-gray-600 mb-2">
+                <div className="text-sm text-muted-foreground mb-2">
                   Versión {document.version} • Actualizado {new Date(document.updated_at).toLocaleDateString('es-CO')}
                 </div>
 
@@ -132,7 +132,7 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
                       </svg>
                       Ver documento
                     </a>
-                    <button className="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-md transition-colors">
+                    <button className="inline-flex items-center px-3 py-1 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-md transition-colors">
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
@@ -154,11 +154,11 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
     if (contractDocuments.length === 0) {
       return (
         <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="mx-auto h-12 w-12 text-muted-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <div className="text-sm font-medium text-gray-900 mt-2">No hay contratos</div>
-          <div className="text-sm text-gray-600 mt-1">
+          <div className="text-sm font-medium text-foreground mt-2">No hay contratos</div>
+          <div className="text-sm text-muted-foreground mt-1">
             Los contratos aparecerán aquí cuando sean generados
           </div>
           <div className="mt-4">
@@ -176,16 +176,16 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
     return (
       <div className="space-y-4">
         {contractDocuments.map((document) => (
-          <div key={document.id} className="border border-gray-200 rounded-lg p-4">
+          <div key={document.id} className="border border-border rounded-lg p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{getDocumentIcon(document.kind)}</span>
-                  <h3 className="font-medium text-gray-900">{document.document_name || getDocumentTypeLabel(document.kind)}</h3>
+                  <h3 className="font-medium text-foreground">{document.document_name || getDocumentTypeLabel(document.kind)}</h3>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                     document.status === 'signed' ? 'bg-green-100 text-green-800' :
                     document.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
+                    'bg-muted text-foreground'
                   }`}>
                     {document.status === 'signed' ? 'Firmado' :
                      document.status === 'review' ? 'En revisión' :
@@ -193,7 +193,7 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
                   </span>
                 </div>
 
-                <div className="text-sm text-gray-600 mb-3">
+                <div className="text-sm text-muted-foreground mb-3">
                   Versión {document.version} • Actualizado {new Date(document.updated_at).toLocaleDateString('es-CO')}
                 </div>
 
@@ -214,7 +214,7 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
                     </a>
                   )}
 
-                  <button className="inline-flex items-center px-3 py-1 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-md transition-colors">
+                  <button className="inline-flex items-center px-3 py-1 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/30 rounded-md transition-colors">
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -236,7 +236,7 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
         ))}
 
         {/* Botón para generar nuevo contrato */}
-        <div className="border-t border-gray-200 pt-4">
+        <div className="border-t border-border pt-4">
           <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -249,16 +249,16 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
   };
 
   return (
-    <section className={`bg-white border border-gray-200 rounded-xl shadow-sm p-6 ${className ?? ''}`}>
+    <section className={`bg-card border border-border rounded-xl shadow-sm p-6 ${className ?? ''}`}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Parte Legal</h2>
-        <div className="text-sm text-gray-600">
+        <h2 className="text-lg font-semibold text-foreground">Parte Legal</h2>
+        <div className="text-sm text-muted-foreground">
           Asistencia jurídica para la negociación
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-border mb-6">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
             <button
@@ -267,7 +267,7 @@ export const NegotiationLegalSection: React.FC<NegotiationLegalSectionProps> = (
               className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-muted-foreground hover:text-muted-foreground hover:border-border'
               }`}
             >
               <span className="mr-2">{tab.icon}</span>

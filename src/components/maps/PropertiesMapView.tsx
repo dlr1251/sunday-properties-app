@@ -1,14 +1,17 @@
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PropertyMap, PropertyMarker, MapFallback } from './PropertyMap';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { getBoundsCenter, getBounds, isValidCoordinates } from '@/lib/googleMaps';
+import { propertyPath } from '@/utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, MapPin, AlertCircle } from 'lucide-react';
 
 export interface PropertyForMap {
   id: string;
+  slug?: string | null;
   title: string;
   address?: string;
   neighborhood?: string;
@@ -31,6 +34,7 @@ export const PropertiesMapView: React.FC<PropertiesMapViewProps> = ({
   height = '600px',
   onPropertyClick,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
@@ -62,13 +66,15 @@ export const PropertiesMapView: React.FC<PropertiesMapViewProps> = ({
 
   const handleMarkerClick = useCallback(
     (markerId: string) => {
+      const match = properties.find((p) => p.id === markerId);
+      const key = match?.slug || markerId;
       if (onPropertyClick) {
-        onPropertyClick(markerId);
+        onPropertyClick(key);
       } else {
-        navigate(`/properties/${markerId}`);
+        navigate(match ? propertyPath(match) : `/properties/${markerId}`);
       }
     },
-    [navigate, onPropertyClick]
+    [navigate, onPropertyClick, properties]
   );
 
   // Loading state
@@ -77,9 +83,9 @@ export const PropertiesMapView: React.FC<PropertiesMapViewProps> = ({
       <Card className="flex items-center justify-center" style={{ minHeight: height }}>
         <div className="text-center p-8">
           <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-semibold mb-2">Google Maps no configurado</h3>
+          <h3 className="font-semibold mb-2">{t('properties.maps.notConfigured')}</h3>
           <p className="text-muted-foreground text-sm">
-            Por favor, configura VITE_MAPS_API_KEY en tu archivo .env
+            {t('properties.maps.notConfiguredHint')}
           </p>
         </div>
       </Card>
@@ -91,7 +97,7 @@ export const PropertiesMapView: React.FC<PropertiesMapViewProps> = ({
       <Card className="flex items-center justify-center" style={{ minHeight: height }}>
         <div className="text-center p-8">
           <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Cargando mapa...</p>
+          <p className="text-muted-foreground">{t('properties.maps.loading')}</p>
         </div>
       </Card>
     );
@@ -114,9 +120,9 @@ export const PropertiesMapView: React.FC<PropertiesMapViewProps> = ({
       <Card className="flex items-center justify-center" style={{ minHeight: height }}>
         <div className="text-center p-8">
           <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-semibold mb-2">No hay propiedades con ubicación</h3>
+          <h3 className="font-semibold mb-2">{t('properties.maps.noLocation')}</h3>
           <p className="text-muted-foreground text-sm">
-            Las propiedades necesitan coordenadas para mostrarse en el mapa
+            {t('properties.maps.noLocationHint')}
           </p>
         </div>
       </Card>

@@ -207,7 +207,7 @@ export function AttachmentManager({
     if (fileType.startsWith('image/')) {
       return <Image className="h-5 w-5 text-blue-500" />;
     }
-    return <FileText className="h-5 w-5 text-gray-500" />;
+    return <FileText className="h-5 w-5 text-muted-foreground" />;
   };
 
   const formatFileSize = (bytes: number) => {

@@ -26,12 +26,14 @@ export interface Visit {
     title: string;
     address: string;
     owner_id: string;
+    images?: string[] | null;
   };
   visitor?: {
     id: string;
     full_name: string;
     email: string;
     phone?: string;
+    avatar_url?: string | null;
   };
 }
 
@@ -75,13 +77,15 @@ export const useVisits = (userId?: string) => {
             id,
             title,
             address,
-            owner_id
+            owner_id,
+            images
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,
             full_name,
             email,
-            phone
+            phone,
+            avatar_url
           )
         `)
         .order('scheduled_date', { ascending: false });

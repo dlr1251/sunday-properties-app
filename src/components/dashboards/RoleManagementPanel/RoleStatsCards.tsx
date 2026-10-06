@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Card, CardContent } from '../../ui/card';
 import { Users, Shield, CheckCircle } from 'lucide-react';
@@ -11,7 +12,9 @@ interface Props {
   } | null;
 }
 
-export const RoleStatsCards: React.FC<Props> = ({ stats }) => {
+export const RoleStatsCards: React.FC<Props> = ({
+  stats }) => {
+    const { t } = useTranslation();
   if (!stats) return null;
 
   return (
@@ -20,7 +23,7 @@ export const RoleStatsCards: React.FC<Props> = ({ stats }) => {
         <CardContent className="pt-6">
           <div className="text-center">
             <Users className="mx-auto h-8 w-8 text-blue-500 mb-2" />
-            <p className="text-sm text-muted-foreground">Total Usuarios</p>
+            <p className="text-sm text-muted-foreground">{t('admin.totalUsers')}</p>
             <p className="text-3xl font-bold">{stats.total_users}</p>
           </div>
         </CardContent>
@@ -29,7 +32,7 @@ export const RoleStatsCards: React.FC<Props> = ({ stats }) => {
         <CardContent className="pt-6">
           <div className="text-center">
             <Shield className="mx-auto h-8 w-8 text-purple-500 mb-2" />
-            <p className="text-sm text-muted-foreground">Administradores</p>
+            <p className="text-sm text-muted-foreground">{t('admin.administrators')}</p>
             <p className="text-3xl font-bold text-purple-600">
               {stats.super_admins + stats.admins}
             </p>
@@ -40,7 +43,7 @@ export const RoleStatsCards: React.FC<Props> = ({ stats }) => {
         <CardContent className="pt-6">
           <div className="text-center">
             <CheckCircle className="mx-auto h-8 w-8 text-green-500 mb-2" />
-            <p className="text-sm text-muted-foreground">Verificados</p>
+            <p className="text-sm text-muted-foreground">{t('admin.verifiedCount')}</p>
             <p className="text-3xl font-bold text-green-600">{stats.verified_users}</p>
           </div>
         </CardContent>

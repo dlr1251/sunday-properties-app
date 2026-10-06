@@ -17,8 +17,11 @@ export const PaymentMethodSchema = z.enum([
   'mixed'
 ]);
 
+export const TransactionTypeSchema = z.enum(['sale', 'rental']);
+
 // Create offer schema
-export const createOfferSchema = z.object({
+const saleOfferSchema = z.object({
+  transactionType: z.literal('sale'),
   propertyId: z.string().uuid('ID de propiedad inválido'),
   offerPrice: z.number().positive('El precio de oferta debe ser mayor a 0'),
   originalPrice: z.number().positive('El precio original debe ser mayor a 0'),
@@ -40,8 +43,25 @@ export const createOfferSchema = z.object({
   message: z.string().optional(),
 });
 
+const rentalOfferSchema = z.object({
+  transactionType: z.literal('rental'),
+  propertyId: z.string().uuid('ID de propiedad inválido'),
+  monthlyRent: z.number().positive('El canon mensual debe ser mayor a 0'),
+  leaseStartDate: z.string().min(1, 'La fecha de inicio es requerida'),
+  leaseTermMonths: z.number().min(1, 'El plazo del contrato debe ser al menos 1 mes'),
+  deposit: z.number().min(0).optional(),
+  adminFee: z.number().min(0).optional(),
+  utilitiesIncluded: z.array(z.string()).default([]),
+  petsPolicy: z.string().optional(),
+  conditions: z.array(z.string()).default([]),
+  message: z.string().optional(),
+});
+
+export const createOfferSchema = z.discriminatedUnion('transactionType', [saleOfferSchema, rentalOfferSchema]);
+
 // Counter offer schema
-export const counterOfferSchema = z.object({
+const saleCounterOfferSchema = z.object({
+  transactionType: z.literal('sale'),
   originalOfferId: z.string().uuid('ID de oferta original inválido'),
   counterPrice: z.number().positive('El precio de contraoferta debe ser mayor a 0'),
   paymentMethod: PaymentMethodSchema,
@@ -62,6 +82,23 @@ export const counterOfferSchema = z.object({
   message: z.string().optional(),
   reason: z.string().optional(),
 });
+
+const rentalCounterOfferSchema = z.object({
+  transactionType: z.literal('rental'),
+  originalOfferId: z.string().uuid('ID de oferta original inválido'),
+  monthlyRent: z.number().positive('El canon mensual debe ser mayor a 0'),
+  leaseStartDate: z.string().min(1, 'La fecha de inicio es requerida'),
+  leaseTermMonths: z.number().min(1, 'El plazo del contrato debe ser al menos 1 mes'),
+  deposit: z.number().min(0).optional(),
+  adminFee: z.number().min(0).optional(),
+  utilitiesIncluded: z.array(z.string()).default([]),
+  petsPolicy: z.string().optional(),
+  conditions: z.array(z.string()).default([]),
+  message: z.string().optional(),
+  reason: z.string().optional(),
+});
+
+export const counterOfferSchema = z.discriminatedUnion('transactionType', [saleCounterOfferSchema, rentalCounterOfferSchema]);
 
 // Update offer status schema
 export const updateOfferStatusSchema = z.object({
@@ -86,6 +123,7 @@ export const offerFiltersSchema = z.object({
 // Type exports
 export type OfferStatus = z.infer<typeof OfferStatusSchema>;
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
+export type TransactionType = z.infer<typeof TransactionTypeSchema>;
 export type CreateOfferInput = z.infer<typeof createOfferSchema>;
 export type CounterOfferInput = z.infer<typeof counterOfferSchema>;
 export type UpdateOfferStatusInput = z.infer<typeof updateOfferStatusSchema>;

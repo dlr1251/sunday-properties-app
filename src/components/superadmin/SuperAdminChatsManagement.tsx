@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { MessageSquare, Search } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { formatDateTime } from '../../utils/format';
 
 export function SuperAdminChatsManagement() {
+  const { t } = useTranslation();
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,9 +64,9 @@ export function SuperAdminChatsManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Gestión de Chats</h2>
+        <h2 className="text-2xl font-bold">{t('admin.manageChatsTitle')}</h2>
         <p className="text-muted-foreground">
-          Ver todos los mensajes y conversaciones del sistema
+          {t('admin.manageChatsDescription')}
         </p>
       </div>
 
@@ -74,7 +75,7 @@ export function SuperAdminChatsManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar mensajes..."
+              placeholder={t('admin.searchMessagesPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -85,8 +86,8 @@ export function SuperAdminChatsManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Mensajes ({filteredChats.length})</CardTitle>
-          <CardDescription>Todos los mensajes del sistema</CardDescription>
+          <CardTitle>{t('admin.messagesCountLabel', { count: filteredChats.length })}</CardTitle>
+          <CardDescription>{t('admin.messagesAllDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -96,7 +97,7 @@ export function SuperAdminChatsManagement() {
           ) : filteredChats.length === 0 ? (
             <div className="text-center py-12">
               <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron mensajes</p>
+              <p className="text-muted-foreground">{t('admin.noMessagesFound')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -105,17 +106,17 @@ export function SuperAdminChatsManagement() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium">{chat.sender?.full_name || 'Usuario'}</span>
-                        <Badge variant="outline">{chat.chat_type}</Badge>
+                        <span className="font-medium">{chat.sender?.full_name || t('user')}</span>
+                        <Badge variant="outline">{chat.chat_type === 'case' ? t('admin.chatTypeCase') : chat.chat_type === 'negotiation' ? t('admin.chatTypeNegotiation') : chat.chat_type}</Badge>
                         {chat.is_read ? (
-                          <Badge variant="default" className="text-xs">Leído</Badge>
+                          <Badge variant="default" className="text-xs">{t('admin.read')}</Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-xs">No leído</Badge>
+                          <Badge variant="secondary" className="text-xs">{t('admin.unread')}</Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">{chat.message}</p>
                       <div className="text-xs text-muted-foreground">
-                        {chat.created_at ? format(new Date(chat.created_at), 'dd/MM/yyyy HH:mm', { locale: es }) : '-'}
+                        {chat.created_at ? formatDateTime(chat.created_at) : '-'}
                       </div>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../ui/dialog';
 import { Button } from '../../ui/button';
 import { Textarea } from '../../ui/textarea';
@@ -18,6 +19,7 @@ export const RejectDialog: React.FC<RejectDialogProps> = ({
   onClose,
   onReject
 }) => {
+  const { t } = useTranslation();
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -45,17 +47,17 @@ export const RejectDialog: React.FC<RejectDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Rechazar Visita</DialogTitle>
+          <DialogTitle>{t('visits.rejectTitle')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="reason">Razón del rechazo</Label>
+            <Label htmlFor="reason">{t('visits.rejectReason')}</Label>
             <Textarea
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Explica por qué rechazas esta visita..."
+              placeholder={t('visits.rejectPlaceholder')}
               rows={4}
               required
             />
@@ -63,14 +65,14 @@ export const RejectDialog: React.FC<RejectDialogProps> = ({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button 
               type="submit" 
               variant="destructive" 
               disabled={loading || !reason.trim()}
             >
-              {loading ? 'Rechazando...' : 'Rechazar Visita'}
+              {loading ? t('visits.rejecting') : t('visits.rejectVisit')}
             </Button>
           </DialogFooter>
         </form>

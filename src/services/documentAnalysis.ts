@@ -2,6 +2,7 @@ import { generateText } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { PDFDocument } from 'pdf-lib';
 import { supabase } from '../lib/supabase';
+import { appendAiPromptDisclaimer } from '@/lib/ai/append-prompt-disclaimer';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Configure PDF.js worker - use local copy from public folder
@@ -21,6 +22,8 @@ class XAIService {
     try {
       console.log('🤖 Calling xAI API directly');
 
+      const fullPrompt = appendAiPromptDisclaimer(prompt);
+
       // Use direct API call (proven to work)
       const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
@@ -30,7 +33,7 @@ class XAIService {
         },
         body: JSON.stringify({
           model: 'grok-4-fast-reasoning',
-          messages: [{ role: 'user', content: prompt }],
+          messages: [{ role: 'user', content: fullPrompt }],
           temperature: 0.1,
           max_tokens: 2000,
         }),
@@ -154,6 +157,8 @@ class XAIService {
       console.log('📄 File ID:', fileId);
       console.log('🤖 Model:', model);
 
+      const fullPrompt = appendAiPromptDisclaimer(prompt);
+
       // XAI Files API format: file IDs are included in message content
       const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
@@ -169,7 +174,7 @@ class XAIService {
               content: [
                 {
                   type: 'text',
-                  text: prompt
+                  text: fullPrompt
                 },
                 {
                   type: 'file',
@@ -224,9 +229,11 @@ class XAIService {
       console.log('🖼️ First image base64 length:', images[0].length);
       console.log('🔑 API Key available:', !!this.apiKey);
 
+      const fullPrompt = appendAiPromptDisclaimer(prompt);
+
       // Build content array with text and all images
       const content: any[] = [
-        { type: 'text', text: prompt }
+        { type: 'text', text: fullPrompt }
       ];
       
       // Add all images to the content

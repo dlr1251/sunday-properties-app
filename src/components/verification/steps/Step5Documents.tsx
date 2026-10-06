@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../ui/button';
 import { Label } from '../../ui/label';
 import { FileText, Upload, Eye, X } from 'lucide-react';
 import { useVerificationForm } from '../VerificationFormContext';
 
 export const Step5Documents: React.FC = () => {
+  const { t } = useTranslation();
   const {
     formData,
     uploadedIdDoc,
@@ -23,13 +25,13 @@ export const Step5Documents: React.FC = () => {
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Por favor selecciona un archivo válido (JPG, PNG, GIF o PDF)');
+        alert(t('verification.documents.invalidFile'));
         return;
       }
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert('El archivo es demasiado grande. Máximo 10MB');
+        alert(t('verification.documents.fileTooLarge'));
         return;
       }
 
@@ -46,13 +48,13 @@ export const Step5Documents: React.FC = () => {
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Por favor selecciona un archivo válido (JPG, PNG, GIF o PDF)');
+        alert(t('verification.documents.invalidFile'));
         return;
       }
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert('El archivo es demasiado grande. Máximo 10MB');
+        alert(t('verification.documents.fileTooLarge'));
         return;
       }
 
@@ -77,23 +79,23 @@ export const Step5Documents: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <FileText className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold">Documentos</h3>
-        <p className="text-muted-foreground">Sube tu cédula y documentos adicionales si es necesario</p>
+        <h3 className="text-lg font-semibold">{t('verification.documents.title')}</h3>
+        <p className="text-muted-foreground">{t('verification.documents.subtitle')}</p>
       </div>
 
       <div className="space-y-6">
         {/* ID Document Upload */}
         <div>
-          <Label className="text-base font-medium">Cédula de Ciudadanía *</Label>
+          <Label className="text-base font-medium">{t('verification.documents.idLabel')}</Label>
           <p className="text-sm text-muted-foreground mb-4">
-            Sube una foto o PDF de tu cédula de ciudadanía
+            {t('verification.documents.idHint')}
           </p>
 
           {!uploadedIdDoc ? (
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
               <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-muted-foreground mb-4">
-                Arrastra y suelta o haz clic para seleccionar
+                {t('verification.documents.dropOrClick')}
               </p>
               <input
                 type="file"
@@ -105,7 +107,7 @@ export const Step5Documents: React.FC = () => {
               <Button asChild>
                 <label htmlFor="id-doc-upload" className="cursor-pointer">
                   <Upload className="h-4 w-4 mr-2" />
-                  Seleccionar Archivo
+                  {t('verification.documents.selectFile')}
                 </label>
               </Button>
             </div>
@@ -147,16 +149,16 @@ export const Step5Documents: React.FC = () => {
         {/* POA Document Upload - Only show if not owner and has POA */}
         {!formData.is_owner && formData.has_poa && (
           <div>
-            <Label className="text-base font-medium">Poder Notarial *</Label>
+            <Label className="text-base font-medium">{t('verification.documents.poaLabel')}</Label>
             <p className="text-sm text-muted-foreground mb-4">
-              Sube tu poder notarial para representar al propietario
+              {t('verification.documents.poaHint')}
             </p>
 
             {!uploadedPoaDoc ? (
               <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
                 <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                 <p className="text-muted-foreground mb-4">
-                  Arrastra y suelta o haz clic para seleccionar
+                  {t('verification.documents.dropOrClick')}
                 </p>
                 <input
                   type="file"
@@ -168,7 +170,7 @@ export const Step5Documents: React.FC = () => {
                 <Button asChild>
                   <label htmlFor="poa-doc-upload" className="cursor-pointer">
                     <Upload className="h-4 w-4 mr-2" />
-                    Seleccionar Archivo
+                    {t('verification.documents.selectFile')}
                   </label>
                 </Button>
               </div>

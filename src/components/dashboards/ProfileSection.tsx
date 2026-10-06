@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAvatarUrl } from '@/utils/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -32,6 +33,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '../../utils/format';
 
 interface ProfileSectionProps {
   isDarkMode?: boolean;
@@ -42,6 +45,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   isDarkMode = false,
   compact = false
 }) => {
+  const { t } = useTranslation();
   const { user, profile, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>({});
@@ -84,10 +88,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
 
       await updateProfile(editData);
       setIsEditing(false);
-      toast.success('Perfil actualizado exitosamente');
+      toast.success(t('profile.toasts.profileUpdated'));
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast.error('Error al actualizar el perfil');
+      toast.error(t('profile.toasts.profileUpdateError'));
     } finally {
       setSaving(false);
     }
@@ -100,13 +104,13 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      super_admin: { label: 'Super Admin', color: 'bg-purple-100 text-purple-800', icon: Crown },
-      admin: { label: 'Administrador', color: 'bg-red-100 text-red-800', icon: Shield },
-      lawyer: { label: 'Abogado', color: 'bg-blue-100 text-blue-800', icon: GraduationCap },
-      agent: { label: 'Agente', color: 'bg-green-100 text-green-800', icon: Briefcase },
-      verified: { label: 'Verificado', color: 'bg-green-100 text-green-800', icon: Award },
-      premium: { label: 'Premium', color: 'bg-yellow-100 text-yellow-800', icon: Star },
-      user: { label: 'Usuario', color: 'bg-gray-100 text-gray-800', icon: User }
+      super_admin: { labelKey: 'profile.roles.super_admin', color: 'bg-purple-100 text-purple-800', icon: Crown },
+      admin: { labelKey: 'profile.roles.admin', color: 'bg-red-100 text-red-800', icon: Shield },
+      lawyer: { labelKey: 'profile.roles.lawyer', color: 'bg-blue-100 text-blue-800', icon: GraduationCap },
+      agent: { labelKey: 'profile.roles.agent', color: 'bg-green-100 text-green-800', icon: Briefcase },
+      verified: { labelKey: 'profile.verified', color: 'bg-green-100 text-green-800', icon: Award },
+      premium: { labelKey: 'profile.roles.premium', color: 'bg-yellow-100 text-yellow-800', icon: Star },
+      user: { labelKey: 'profile.roles.user', color: 'bg-gray-100 text-gray-800', icon: User }
     };
 
     const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.user;
@@ -115,17 +119,17 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>
         <IconComponent className="w-3 h-3" />
-        {config.label}
+        {t(config.labelKey)}
       </Badge>
     );
   };
 
   const getVerificationBadge = (status: string) => {
     const statusConfig = {
-      verified: { label: 'Verificado', color: 'bg-green-100 text-green-800', icon: Award },
-      pending: { label: 'En Revisión', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      rejected: { label: 'Rechazado', color: 'bg-red-100 text-red-800', icon: X },
-      unverified: { label: 'No Verificado', color: 'bg-gray-100 text-gray-800', icon: User }
+      verified: { labelKey: 'profile.verified', color: 'bg-green-100 text-green-800', icon: Award },
+      pending: { labelKey: 'profile.pendingReview', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+      rejected: { labelKey: 'profile.rejected', color: 'bg-red-100 text-red-800', icon: X },
+      unverified: { labelKey: 'profile.notVerified', color: 'bg-gray-100 text-gray-800', icon: User }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.unverified;
@@ -134,7 +138,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>
         <IconComponent className="w-3 h-3" />
-        {config.label}
+        {t(config.labelKey)}
       </Badge>
     );
   };
@@ -145,7 +149,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         <CardContent className="p-6">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className={textSecondary}>Cargando perfil...</p>
+            <p className={textSecondary}>{t('profile.loading')}</p>
           </div>
         </CardContent>
       </Card>
@@ -158,14 +162,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="w-16 h-16">
-              <AvatarImage src={profile.avatar_url} alt={profile.full_name || user?.email} />
+              <AvatarImage src={getAvatarUrl(profile)} alt={profile.full_name || user?.email} />
               <AvatarFallback>
                 {profile.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
               <CardTitle className={textPrimary}>
-                {profile.full_name || 'Usuario'}
+                {profile.full_name || t('profile.roles.user')}
               </CardTitle>
               <CardDescription className="flex items-center gap-2 mt-1">
                 <Mail className="w-4 h-4" />
@@ -176,7 +180,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           {!isEditing && (
             <Button onClick={handleEdit} variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-2" />
-              Editar
+              {t('common.edit')}
             </Button>
           )}
         </div>
@@ -190,9 +194,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
       <CardContent>
         <Tabs defaultValue="basic" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basic">Información Básica</TabsTrigger>
-            <TabsTrigger value="professional">Profesional</TabsTrigger>
-            <TabsTrigger value="account">Cuenta</TabsTrigger>
+            <TabsTrigger value="basic">{t('profile.tabBasic')}</TabsTrigger>
+            <TabsTrigger value="professional">{t('profile.tabProfessional')}</TabsTrigger>
+            <TabsTrigger value="account">{t('profile.tabAccount')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 mt-4">
@@ -200,47 +204,47 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="full_name">Nombre Completo</Label>
+                    <Label htmlFor="full_name">{t('profile.fullName')}</Label>
                     <Input
                       id="full_name"
                       value={editData.full_name || ''}
                       onChange={(e) => setEditData({...editData, full_name: e.target.value})}
-                      placeholder="Tu nombre completo"
+                      placeholder={t('profile.placeholders.fullName')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Teléfono</Label>
+                    <Label htmlFor="phone">{t('profile.phone')}</Label>
                     <Input
                       id="phone"
                       value={editData.phone || ''}
                       onChange={(e) => setEditData({...editData, phone: e.target.value})}
-                      placeholder="+57 300 000 0000"
+                      placeholder={t('profile.placeholders.phone')}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="location">Ubicación</Label>
+                    <Label htmlFor="location">{t('profile.location')}</Label>
                     <Input
                       id="location"
                       value={editData.location || ''}
                       onChange={(e) => setEditData({...editData, location: e.target.value})}
-                      placeholder="Ciudad, País"
+                      placeholder={t('profile.placeholders.location')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address">Dirección</Label>
+                    <Label htmlFor="address">{t('profile.address')}</Label>
                     <Input
                       id="address"
                       value={editData.address || ''}
                       onChange={(e) => setEditData({...editData, address: e.target.value})}
-                      placeholder="Dirección completa"
+                      placeholder={t('profile.placeholders.address')}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="date_of_birth">Fecha de Nacimiento</Label>
+                    <Label htmlFor="date_of_birth">{t('profile.dateOfBirth')}</Label>
                     <Input
                       id="date_of_birth"
                       type="date"
@@ -249,33 +253,33 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="nationality">Nacionalidad</Label>
+                    <Label htmlFor="nationality">{t('profile.nationality')}</Label>
                     <Input
                       id="nationality"
                       value={editData.nationality || ''}
                       onChange={(e) => setEditData({...editData, nationality: e.target.value})}
-                      placeholder="Colombian"
+                      placeholder={t('profile.placeholders.nationality')}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Biografía</Label>
+                  <Label htmlFor="bio">{t('profile.bio')}</Label>
                   <Textarea
                     id="bio"
                     value={editData.bio || ''}
                     onChange={(e) => setEditData({...editData, bio: e.target.value})}
-                    placeholder="Cuéntanos sobre ti..."
+                    placeholder={t('profile.placeholders.bio')}
                     rows={4}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="website">Sitio Web</Label>
+                  <Label htmlFor="website">{t('profile.website')}</Label>
                   <Input
                     id="website"
                     type="url"
                     value={editData.website || ''}
                     onChange={(e) => setEditData({...editData, website: e.target.value})}
-                    placeholder="https://tu-sitio.com"
+                    placeholder={t('profile.placeholders.website')}
                   />
                 </div>
               </div>
@@ -285,15 +289,15 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <div className="flex items-center gap-3">
                     <User className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Nombre</p>
-                      <p className={textPrimary}>{profile.full_name || 'No especificado'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.fullName')}</p>
+                      <p className={textPrimary}>{profile.full_name || t('common.notSpecified')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Teléfono</p>
-                      <p className={textPrimary}>{profile.phone || 'No especificado'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.phone')}</p>
+                      <p className={textPrimary}>{profile.phone || t('common.notSpecified')}</p>
                     </div>
                   </div>
                 </div>
@@ -301,15 +305,15 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <div className="flex items-center gap-3">
                     <MapPin className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Ubicación</p>
-                      <p className={textPrimary}>{profile.location || 'No especificada'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.location')}</p>
+                      <p className={textPrimary}>{profile.location || t('common.notSpecified')}</p>
                     </div>
                   </div>
                   {profile.address && (
                     <div className="flex items-center gap-3">
                       <MapPin className={`w-5 h-5 ${textSecondary}`} />
                       <div>
-                        <p className={`text-sm ${textSecondary}`}>Dirección</p>
+                        <p className={`text-sm ${textSecondary}`}>{t('profile.address')}</p>
                         <p className={textPrimary}>{profile.address}</p>
                       </div>
                     </div>
@@ -321,13 +325,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <div className="flex items-center gap-3">
                         <Calendar className={`w-5 h-5 ${textSecondary}`} />
                         <div>
-                          <p className={`text-sm ${textSecondary}`}>Fecha de Nacimiento</p>
+                          <p className={`text-sm ${textSecondary}`}>{t('profile.dateOfBirth')}</p>
                           <p className={textPrimary}>
-                            {new Date(profile.date_of_birth).toLocaleDateString('es-CO', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                            {formatDate(profile.date_of_birth)}
                           </p>
                         </div>
                       </div>
@@ -336,7 +336,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                       <div className="flex items-center gap-3">
                         <User className={`w-5 h-5 ${textSecondary}`} />
                         <div>
-                          <p className={`text-sm ${textSecondary}`}>Nacionalidad</p>
+                          <p className={`text-sm ${textSecondary}`}>{t('profile.nationality')}</p>
                           <p className={textPrimary}>{profile.nationality}</p>
                         </div>
                       </div>
@@ -345,7 +345,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                 )}
                 {profile.bio && (
                   <div>
-                    <p className={`text-sm ${textSecondary} mb-2`}>Biografía</p>
+                    <p className={`text-sm ${textSecondary} mb-2`}>{t('profile.bio')}</p>
                     <p className={textPrimary}>{profile.bio}</p>
                   </div>
                 )}
@@ -371,27 +371,27 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="company">Empresa</Label>
+                    <Label htmlFor="company">{t('profile.company')}</Label>
                     <Input
                       id="company"
                       value={editData.company || ''}
                       onChange={(e) => setEditData({...editData, company: e.target.value})}
-                      placeholder="Nombre de tu empresa"
+                      placeholder={t('profile.placeholders.company')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="license_number">Número de Licencia</Label>
+                    <Label htmlFor="license_number">{t('profile.licenseNumber')}</Label>
                     <Input
                       id="license_number"
                       value={editData.license_number || ''}
                       onChange={(e) => setEditData({...editData, license_number: e.target.value})}
-                      placeholder="Número de licencia profesional"
+                      placeholder={t('profile.placeholders.license')}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="experience_years">Años de Experiencia</Label>
+                    <Label htmlFor="experience_years">{t('profile.experienceYears')}</Label>
                     <Input
                       id="experience_years"
                       type="number"
@@ -401,22 +401,22 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="specializations">Especializaciones</Label>
+                    <Label htmlFor="specializations">{t('profile.specializations')}</Label>
                     <Input
                       id="specializations"
                       value={editData.specializations?.join(', ') || ''}
                       onChange={(e) => setEditData({...editData, specializations: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
-                      placeholder="Derecho inmobiliario, contratos, etc."
+                      placeholder={t('profile.placeholders.specializations')}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="languages">Idiomas</Label>
+                  <Label htmlFor="languages">{t('profile.languages')}</Label>
                   <Input
                     id="languages"
                     value={editData.languages?.join(', ') || ''}
                     onChange={(e) => setEditData({...editData, languages: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
-                    placeholder="Español, Inglés, etc."
+                    placeholder={t('profile.placeholders.languages')}
                   />
                 </div>
               </div>
@@ -426,15 +426,15 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <div className="flex items-center gap-3">
                     <Building2 className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Empresa</p>
-                      <p className={textPrimary}>{profile.company || 'No especificada'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.company')}</p>
+                      <p className={textPrimary}>{profile.company || t('common.notSpecified')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Award className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Licencia</p>
-                      <p className={textPrimary}>{profile.license_number || 'No especificada'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.license')}</p>
+                      <p className={textPrimary}>{profile.license_number || t('common.notSpecified')}</p>
                     </div>
                   </div>
                 </div>
@@ -443,22 +443,22 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                   <div className="flex items-center gap-3">
                     <Briefcase className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Experiencia</p>
-                      <p className={textPrimary}>{profile.experience_years ? `${profile.experience_years} años` : 'No especificada'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.experience')}</p>
+                      <p className={textPrimary}>{profile.experience_years ? t('profile.experienceValue', { count: profile.experience_years }) : t('common.notSpecified')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <GraduationCap className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Especializaciones</p>
-                      <p className={textPrimary}>{profile.specializations?.length ? profile.specializations.join(', ') : 'No especificadas'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.specializations')}</p>
+                      <p className={textPrimary}>{profile.specializations?.length ? profile.specializations.join(', ') : t('common.notSpecified')}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Languages className={`w-5 h-5 ${textSecondary}`} />
                     <div>
-                      <p className={`text-sm ${textSecondary}`}>Idiomas</p>
-                      <p className={textPrimary}>{profile.languages?.length ? profile.languages.join(', ') : 'No especificados'}</p>
+                      <p className={`text-sm ${textSecondary}`}>{t('profile.languages')}</p>
+                      <p className={textPrimary}>{profile.languages?.length ? profile.languages.join(', ') : t('common.notSpecified')}</p>
                     </div>
                   </div>
                 </div>
@@ -471,10 +471,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
               <div className="flex items-center gap-3">
                 <Mail className={`w-5 h-5 ${textSecondary}`} />
                 <div>
-                  <p className={`text-sm ${textSecondary}`}>Email</p>
+                  <p className={`text-sm ${textSecondary}`}>{t('profile.email')}</p>
                   <p className={textPrimary}>{user?.email}</p>
                   <p className="text-xs text-green-600 mt-1">
-                    {user?.email_confirmed_at ? '✓ Email confirmado' : '⚠️ Email pendiente de confirmación'}
+                    {user?.email_confirmed_at ? t('profile.emailConfirmed') : t('profile.emailPending')}
                   </p>
                 </div>
               </div>
@@ -482,9 +482,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
               <div className="flex items-center gap-3">
                 <Calendar className={`w-5 h-5 ${textSecondary}`} />
                 <div>
-                  <p className={`text-sm ${textSecondary}`}>Miembro desde</p>
+                  <p className={`text-sm ${textSecondary}`}>{t('profile.memberSince')}</p>
                   <p className={textPrimary}>
-                    {profile.created_at ? new Date(profile.created_at).toLocaleDateString('es-CO') : 'Fecha no disponible'}
+                    {profile.created_at ? formatDate(profile.created_at) : t('profile.dateUnavailable')}
                   </p>
                 </div>
               </div>
@@ -493,9 +493,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <div className="flex items-center gap-3">
                   <Award className={`w-5 h-5 ${textSecondary}`} />
                   <div>
-                    <p className={`text-sm ${textSecondary}`}>Verificado el</p>
+                    <p className={`text-sm ${textSecondary}`}>{t('profile.verifiedOnLabel')}</p>
                     <p className={textPrimary}>
-                      {new Date(profile.verified_at).toLocaleDateString('es-CO')}
+                      {formatDate(profile.verified_at)}
                     </p>
                   </div>
                 </div>
@@ -508,11 +508,11 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           <div className="flex gap-3 justify-end mt-6 pt-4 border-t border-gray-200">
             <Button variant="outline" onClick={handleCancel} disabled={saving}>
               <X className="w-4 h-4 mr-2" />
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
+              {saving ? t('common.saving') : t('common.saveChanges')}
             </Button>
           </div>
         )}

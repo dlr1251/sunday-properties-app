@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { KnowledgeBaseEntry, AdvisorySession } from '../../types/database';
 import { supabase } from '../../lib/supabase';
+import { AiLegalDisclaimer } from '@/components/ai/AiLegalDisclaimer';
 
 interface AdvisoryAssistantProps {
   userId: string;
@@ -308,6 +309,7 @@ export const AdvisoryAssistant: React.FC<AdvisoryAssistantProps> = ({
 
   return (
     <Card className="p-6 border-l-4 border-l-primary bg-primary/5">
+      <AiLegalDisclaimer className="mb-4" />
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-primary/10 rounded-lg">

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../../utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +59,7 @@ export function LegalValidationSection({
   sellerIsCompany = false,
   className = ''
 }: LegalValidationSectionProps) {
+  const { t } = useTranslation();
 
   const [legalCosts, setLegalCosts] = useState<LegalCosts>({
     notarialFees: 0,
@@ -147,14 +150,6 @@ export function LegalValidationSection({
     setComplianceValidation(validation);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const getComplianceStatus = () => {
     if (!complianceValidation) return 'unknown';
 
@@ -178,7 +173,7 @@ export function LegalValidationSection({
         <CardTitle className="text-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Scale className="h-5 w-5 text-blue-600" />
-            Validación Legal y Costos
+            {t('negotiations.sections.legalValidation')}
           </div>
           <Badge
             variant={
@@ -228,7 +223,7 @@ export function LegalValidationSection({
         {/* Desglose detallado de costos */}
         <Card className="bg-gray-50">
           <CardHeader>
-            <CardTitle className="text-base">Desglose de Costos</CardTitle>
+            <CardTitle className="text-base">{t('negotiations.sections.costBreakdown')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Gastos Notariales */}
@@ -375,7 +370,7 @@ export function LegalValidationSection({
             <CardHeader>
               <CardTitle className="text-base text-orange-900 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5" />
-                Sistema de Validación Especial
+                {t('negotiations.sections.specialValidation')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -445,14 +440,6 @@ function ValidationOverrideModal({ amount, onClose, onPaymentComplete }: Validat
       setProcessing(false);
       onPaymentComplete();
     }, 2000);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   return (

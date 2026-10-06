@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Layout } from './components/Layout';
 import { StorageInitializer } from './components/StorageInitializer';
@@ -17,7 +18,6 @@ import { DocumentationViewer } from './components/documentation/DocumentationVie
 import { TestingUsersPage } from './components/pages/TestingUsersPage';
 import { ImplementationReviewPage } from './components/pages/ImplementationReviewPage';
 import { DatabaseSchemaPage } from './components/pages/DatabaseSchemaPage';
-import { SettingsPage } from './components/pages/SettingsPage';
 import { PropertyUploadWizardModal } from './components/properties/PropertyUploadWizardModal';
 import LawyerApprovalPanel from './components/dashboards/LawyerApprovalPanel';
 
@@ -61,10 +61,12 @@ import { NegotiationPage } from './components/negotiation/NegotiationPage';
 import { NegotiationsList } from './components/negotiation/NegotiationsList';
 import { DashboardShell } from './components/layout/DashboardShell';
 import { useNegotiationPermissions } from './hooks/useNegotiationPermissions';
+import { DevManagementPanel } from './features/dev-management';
 
 // Role-based Dashboard Component
 const RoleBasedDashboard: React.FC = () => {
   const { profile, user } = useAuth();
+  const { t } = useTranslation();
 
   // Show loading while profile is being fetched
   if (!user) {
@@ -72,8 +74,8 @@ const RoleBasedDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Cargando dashboard...</h1>
-          <p className="text-gray-600">Estamos cargando tu información del dashboard.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('dashboard.loading')}</h1>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -85,7 +87,7 @@ const RoleBasedDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando perfil...</p>
+          <p className="text-gray-600">{t('dashboard.profileLoading')}</p>
         </div>
       </div>
     );
@@ -152,6 +154,7 @@ const PropertiesPageRouter: React.FC = () => {
 // Negotiation Page Router Component with Permissions
 const NegotiationPageRouter: React.FC = () => {
   const { negotiationId } = useParams();
+  const { t } = useTranslation();
   console.log('🛣️ [NegotiationPageRouter] Routing to negotiation:', negotiationId);
 
   const { canAccess, loading, error } = useNegotiationPermissions(negotiationId || '');
@@ -165,8 +168,8 @@ const NegotiationPageRouter: React.FC = () => {
           <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Negociación no encontrada</h1>
-          <p className="text-lg text-gray-600">El ID de negociación no es válido.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('negotiations.notFound')}</h1>
+          <p className="text-lg text-gray-600">{t('negotiations.notFound')}</p>
         </div>
       </div>
     );
@@ -178,8 +181,8 @@ const NegotiationPageRouter: React.FC = () => {
       <div className="w-full min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-2xl px-4">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-6"></div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Verificando permisos...</h1>
-          <p className="text-lg text-gray-600">Estamos verificando si tienes acceso a esta negociación.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('dashboard.verifyingPermissions')}</h1>
+          <p className="text-lg text-gray-600">{t('dashboard.verifyingPermissions')}</p>
         </div>
       </div>
     );
@@ -193,9 +196,9 @@ const NegotiationPageRouter: React.FC = () => {
           <svg className="mx-auto h-16 w-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Acceso denegado</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('dashboard.accessDenied')}</h1>
           <p className="text-lg text-gray-600">
-            {error || 'No tienes permisos para acceder a esta negociación.'}
+            {error || t('negotiations.noPermission')}
           </p>
         </div>
       </div>
@@ -206,9 +209,10 @@ const NegotiationPageRouter: React.FC = () => {
   return <NegotiationPage negotiationId={negotiationId} />;
 };
 
-// User-only Route component (for verification routes)
-const UserOnlyRoute = ({ children }) => {
+// Dev Management route: admin and super_admin only
+const DevManagementRoute = ({ children }: { children: React.ReactNode }) => {
   const { profile, user } = useAuth();
+  const { t } = useTranslation();
 
   if (!user) {
     return <Navigate to="/" replace />;
@@ -219,7 +223,34 @@ const UserOnlyRoute = ({ children }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando perfil...</p>
+          <p className="text-gray-600">{t('dashboard.profileLoading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (profile.role !== 'admin' && profile.role !== 'super_admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// User-only Route component (for verification routes)
+const UserOnlyRoute = ({ children }) => {
+  const { profile, user } = useAuth();
+  const { t } = useTranslation();
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!profile) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('dashboard.profileLoading')}</p>
         </div>
       </div>
     );
@@ -245,7 +276,9 @@ const AppRouter = () => {
           <Route 
             path="/properties/:propertyId" 
             element={
-              <PropertiesPageRouter />
+              <Layout>
+                <PropertiesPageRouter />
+              </Layout>
             } 
           />
           <Route 
@@ -291,7 +324,6 @@ const AppRouter = () => {
 
           {/* Protected Routes */}
           <Route path="/profile" element={<ProtectedRoute children={<Layout children={<ProfilePage />} />} />} />
-          <Route path="/settings" element={<ProtectedRoute children={<Layout children={<SettingsPage />} />} />} />
           <Route 
             path="/upload-property" 
             element={
@@ -311,6 +343,18 @@ const AppRouter = () => {
           {/* Chat Routes */}
           <Route path="/messages" element={<ProtectedRoute children={<Layout children={<ChatWindow />} />} />} />
           <Route path="/messages/:conversationId" element={<ProtectedRoute children={<Layout children={<ChatWindow />} />} />} />
+
+          {/* Dev Management (admin / super_admin only) */}
+          <Route
+            path="/dev-management"
+            element={
+              <DevManagementRoute>
+                <DashboardShell>
+                  <DevManagementPanel />
+                </DashboardShell>
+              </DevManagementRoute>
+            }
+          />
 
           {/* Dashboard Routes (role-based) */}
           <Route path="/dashboard" element={

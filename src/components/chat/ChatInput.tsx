@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
@@ -27,8 +28,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   replyTo,
   onCancelReply,
   disabled = false,
-  placeholder = "Escribe un mensaje..."
+  placeholder
 }) => {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder || t('chat.placeholder');
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -70,9 +73,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       const uploadedFiles = await Promise.all(uploadPromises);
       setAttachments(prev => [...prev, ...uploadedFiles]);
-      toast.success(`${uploadedFiles.length} archivo(s) adjuntado(s)`);
+      toast.success(t('chat.filesAttached', { count: uploadedFiles.length }));
     } catch (error) {
-      toast.error('Error subiendo archivos');
+      toast.error(t('chat.uploadError'));
       console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
@@ -98,7 +101,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">
-                Respondiendo a {replyTo.sender?.full_name || 'Usuario'}
+                {t('chat.replyingTo', { name: replyTo.sender?.full_name || t('chat.userFallback') })}
               </p>
               <p className="text-sm truncate">{replyTo.message}</p>
             </div>
@@ -145,7 +148,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={placeholder}
+            placeholder={resolvedPlaceholder}
             disabled={disabled || isUploading}
             rows={1}
             className="min-h-[40px] max-h-32 resize-none"
@@ -206,7 +209,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       {isUploading && (
         <div className="mt-2 text-xs text-muted-foreground">
-          Subiendo archivos...
+          {t('chat.uploading')}
         </div>
       )}
     </Card>

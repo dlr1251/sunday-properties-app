@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type NegotiationActionsProps = {
   canEdit: boolean;
@@ -21,6 +22,7 @@ export const NegotiationActions: React.FC<NegotiationActionsProps> = ({
   onToggleLegal,
   className
 }) => {
+  const { t } = useTranslation();
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className ?? ''}`}>
       <button
@@ -34,12 +36,12 @@ export const NegotiationActions: React.FC<NegotiationActionsProps> = ({
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         )}
-        {generating ? 'Generando...' : 'Generar Promesa (Grok)'}
+        {generating ? t('negotiations.generating') : t('negotiations.generatePromise')}
       </button>
       <button
         onClick={onExport}
         disabled={exporting || !canEdit}
-        className="inline-flex items-center px-4 py-2 rounded-md bg-gray-900 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800 transition-colors"
+        className="inline-flex items-center px-4 py-2 rounded-md bg-brand-navy text-primary-foreground text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-brand-navy/90 transition-colors"
       >
         {exporting && (
           <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -47,27 +49,27 @@ export const NegotiationActions: React.FC<NegotiationActionsProps> = ({
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         )}
-        {exporting ? 'Exportando...' : 'Exportar DOCX'}
+        {exporting ? t('negotiations.exporting') : t('negotiations.exportDocx')}
       </button>
       <button
         onClick={onToggleLegal}
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-semibold transition-colors ${
           showLegalSection
             ? 'bg-blue-600 text-white hover:bg-blue-700'
-            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            : 'bg-card border border-border text-muted-foreground hover:bg-muted/30'
         }`}
       >
         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2V9a6 6 0 00-12 0v4.394" />
         </svg>
-        {showLegalSection ? 'Ocultar Legal' : 'Parte Legal'}
+        {showLegalSection ? t('negotiations.hideLegal') : t('negotiations.showLegal')}
       </button>
       {!canEdit && (
-        <div className="text-sm text-gray-600 flex items-center">
-          <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-sm text-muted-foreground flex items-center">
+          <svg className="w-4 h-4 mr-1 text-muted-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          Solo lectura - No eres participante activo
+          {t('negotiations.readOnly')}
         </div>
       )}
     </div>

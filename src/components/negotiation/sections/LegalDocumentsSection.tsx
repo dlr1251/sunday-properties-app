@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ export function LegalDocumentsSection({
   offerValidityDays,
   className = ''
 }: LegalDocumentsSectionProps) {
+  const { t } = useTranslation();
 
   const [selectedDocument, setSelectedDocument] = useState<LegalDocument | null>(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
@@ -187,7 +189,7 @@ export function LegalDocumentsSection({
         <CardTitle className="text-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-blue-600" />
-            Documentos Legales Requeridos
+            {t('negotiations.sections.legalDocuments')}
           </div>
           <Button
             size="sm"

@@ -27,7 +27,7 @@ Sunday Properties is a platform for real-estate transactions. The terms define t
 
 ## Full document
 
-For the complete, current terms, see the official Terms and Conditions (e.g. in `docs/legal/TERMS_AND_CONDITIONS.md` or the path indicated by the application for legal use).
+For the complete, current terms, see the official Terms and Conditions (e.g. in `docs/_legacy/legal/TERMS_AND_CONDITIONS.md` or the path indicated by the application for legal use).
 
 ## Related
 

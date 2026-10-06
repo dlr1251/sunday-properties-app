@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
@@ -29,6 +30,15 @@ const StarRating: React.FC<{
   onChange: (value: number) => void;
   label: string;
 }> = ({ value, onChange, label }) => {
+  const { t } = useTranslation();
+  const ratingLabels = [
+    t('visits.feedback.selectRating'),
+    t('visits.feedback.rating1'),
+    t('visits.feedback.rating2'),
+    t('visits.feedback.rating3'),
+    t('visits.feedback.rating4'),
+    t('visits.feedback.rating5'),
+  ];
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">{label}</Label>
@@ -51,12 +61,7 @@ const StarRating: React.FC<{
         ))}
       </div>
       <div className="text-xs text-muted-foreground">
-        {value === 0 ? 'Selecciona una calificación' :
-         value === 1 ? 'Muy malo' :
-         value === 2 ? 'Malo' :
-         value === 3 ? 'Regular' :
-         value === 4 ? 'Bueno' :
-         'Excelente'}
+        {ratingLabels[value] || ratingLabels[0]}
       </div>
     </div>
   );
@@ -70,6 +75,7 @@ export function VisitFeedbackModal({
   onSubmit
 }: VisitFeedbackModalProps) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({
     propertyRating: 0,
@@ -82,13 +88,13 @@ export function VisitFeedbackModal({
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error('Debes iniciar sesión para enviar feedback');
+      toast.error(t('visits.feedback.loginRequired'));
       return;
     }
 
     // Validate required ratings
     if (feedback.propertyRating === 0 || feedback.serviceRating === 0 || feedback.overallSatisfaction === 0) {
-      toast.error('Por favor completa todas las calificaciones requeridas');
+      toast.error(t('visits.feedback.ratingsRequired'));
       return;
     }
 
@@ -109,7 +115,7 @@ export function VisitFeedbackModal({
 
       if (error) throw error;
 
-      toast.success('¡Gracias por tu feedback! Nos ayuda a mejorar.');
+      toast.success(t('visits.feedback.success'));
       onOpenChange(false);
       onSubmit?.();
 
@@ -124,7 +130,7 @@ export function VisitFeedbackModal({
       });
     } catch (error: any) {
       console.error('Error submitting feedback:', error);
-      toast.error('Error al enviar el feedback');
+      toast.error(t('visits.feedback.error'));
     } finally {
       setLoading(false);
     }
@@ -141,10 +147,10 @@ export function VisitFeedbackModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ThumbsUp className="h-5 w-5 text-green-500" />
-            ¿Cómo fue tu visita?
+            {t('visits.feedback.title')}
           </DialogTitle>
           <p className="text-muted-foreground">
-            Tu feedback nos ayuda a mejorar nuestros servicios para {propertyTitle}
+            {t('visits.feedback.subtitle', { property: propertyTitle })}
           </p>
         </DialogHeader>
 
@@ -155,7 +161,7 @@ export function VisitFeedbackModal({
               <StarRating
                 value={feedback.propertyRating}
                 onChange={(value) => setFeedback(prev => ({ ...prev, propertyRating: value }))}
-                label="¿Cómo calificarías la propiedad?"
+                label={t('visits.feedback.propertyRating')}
               />
             </CardContent>
           </Card>
@@ -166,7 +172,7 @@ export function VisitFeedbackModal({
               <StarRating
                 value={feedback.serviceRating}
                 onChange={(value) => setFeedback(prev => ({ ...prev, serviceRating: value }))}
-                label="¿Cómo calificarías el servicio recibido?"
+                label={t('visits.feedback.serviceRating')}
               />
             </CardContent>
           </Card>
@@ -177,7 +183,7 @@ export function VisitFeedbackModal({
               <StarRating
                 value={feedback.overallSatisfaction}
                 onChange={(value) => setFeedback(prev => ({ ...prev, overallSatisfaction: value }))}
-                label="¿Cuál es tu satisfacción general con la visita?"
+                label={t('visits.feedback.overallSatisfaction')}
               />
             </CardContent>
           </Card>
@@ -188,7 +194,7 @@ export function VisitFeedbackModal({
               <StarRating
                 value={feedback.purchaseInterest}
                 onChange={(value) => setFeedback(prev => ({ ...prev, purchaseInterest: value }))}
-                label="¿Cuál es tu interés en comprar esta propiedad?"
+                label={t('visits.feedback.purchaseInterest')}
               />
             </CardContent>
           </Card>
@@ -199,11 +205,11 @@ export function VisitFeedbackModal({
               <div className="space-y-2">
                 <Label htmlFor="comments" className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
-                  Comentarios adicionales (opcional)
+                  {t('visits.feedback.comments')}
                 </Label>
                 <Textarea
                   id="comments"
-                  placeholder="Comparte tus impresiones, sugerencias o cualquier detalle adicional..."
+                  placeholder={t('visits.feedback.commentsPlaceholder')}
                   value={feedback.comments}
                   onChange={(e) => setFeedback(prev => ({ ...prev, comments: e.target.value }))}
                   rows={4}
@@ -217,9 +223,9 @@ export function VisitFeedbackModal({
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label>Enviar de forma anónima</Label>
+                  <Label>{t('visits.feedback.anonymous')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Tu identidad no será visible en los resultados agregados
+                    {t('visits.feedback.anonymousHint')}
                   </p>
                 </div>
                 <button
@@ -244,10 +250,9 @@ export function VisitFeedbackModal({
             <div className="flex items-start space-x-3">
               <MessageSquare className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <h4 className="font-semibold text-blue-900">Privacidad del Feedback</h4>
+                <h4 className="font-semibold text-blue-900">{t('visits.feedback.privacyTitle')}</h4>
                 <p className="text-blue-700 text-sm mt-1">
-                  Los resultados agregados se comparten con el vendedor para mejorar el servicio.
-                  Los comentarios individuales son confidenciales y solo se usan para análisis interno.
+                  {t('visits.feedback.privacyBody')}
                 </p>
               </div>
             </div>
@@ -256,14 +261,14 @@ export function VisitFeedbackModal({
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={handleClose} disabled={loading}>
-            Más tarde
+            {t('visits.feedback.later')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading || feedback.propertyRating === 0 || feedback.serviceRating === 0 || feedback.overallSatisfaction === 0}
             className="bg-green-600 hover:bg-green-700"
           >
-            {loading ? 'Enviando...' : 'Enviar Feedback'}
+            {loading ? t('common.sending') : t('visits.feedback.submit')}
           </Button>
         </DialogFooter>
       </DialogContent>

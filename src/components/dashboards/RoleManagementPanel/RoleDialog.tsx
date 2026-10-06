@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../ui/dialog';
 import { Label } from '../../ui/label';
@@ -15,25 +16,27 @@ interface Props {
   confirming: boolean;
 }
 
-export const RoleDialog: React.FC<Props> = ({ open, onOpenChange, currentRoleLabel, newRole, setNewRole, onConfirm, confirming }) => {
+export const RoleDialog: React.FC<Props> = ({
+  open, onOpenChange, currentRoleLabel, newRole, setNewRole, onConfirm, confirming }) => {
+    const { t } = useTranslation();
   const availableRoles = getAvailableRoles();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Cambiar Rol de Usuario</DialogTitle>
+          <DialogTitle>{t('admin.changeRoleTitle')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Rol Actual</Label>
+            <Label>{t('admin.currentRole')}</Label>
             <p className="text-sm text-muted-foreground">{currentRoleLabel || ''}</p>
           </div>
           <div>
-            <Label>Nuevo Rol</Label>
+            <Label>{t('admin.newRole')}</Label>
             <Select value={newRole} onValueChange={setNewRole}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona un rol..." />
+                <SelectValue placeholder={t('admin.selectRole')} />
               </SelectTrigger>
               <SelectContent>
                 {availableRoles.map((role) => (
@@ -49,17 +52,16 @@ export const RoleDialog: React.FC<Props> = ({ open, onOpenChange, currentRoleLab
           </div>
           <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
             <p className="text-sm text-yellow-800">
-              <strong>Advertencia:</strong> Cambiar el rol de un usuario puede afectar significativamente sus permisos y acceso al sistema.
-              Asegúrate de que el usuario entienda las implicaciones de este cambio.
+              <strong>{t('admin.warning')}</strong> {t('admin.changeRoleWarning')} {t('admin.roleChangeUnderstand')}
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={() => onConfirm()} disabled={!newRole || confirming}>
-            {confirming ? 'Actualizando...' : 'Actualizar Rol'}
+            {confirming ? t('common.updating') : t('admin.updateRole')}
           </Button>
         </DialogFooter>
       </DialogContent>

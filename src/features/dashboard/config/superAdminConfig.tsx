@@ -21,80 +21,81 @@ import { SuperAdminLawyersManagement } from '../../../components/superadmin/Supe
 import { SuperAdminAdminsManagement } from '../../../components/superadmin/SuperAdminAdminsManagement';
 
 export const superAdminConfig: DashboardConfig = {
-  title: 'Super Admin Dashboard',
-  description: 'Control total del sistema: gestión completa de usuarios, propiedades, negociaciones, documentos y más.',
-  badge: { label: 'Super Admin', variant: 'destructive' },
+  title: 'dashboard.superAdminTitle',
+  description: 'dashboard.superAdminDescription',
+  badge: { label: 'admin.title', variant: 'destructive' },
   defaultTab: 'overview',
+  showTabBar: false,
   tabs: [
     { 
       id: 'overview', 
-      label: 'Overview', 
+      label: 'dashboard.overview', 
       icon: BarChart3, 
       component: () => <SuperAdminOverview />
     },
     { 
       id: 'users', 
-      label: 'Usuarios', 
+      label: 'admin.users', 
       icon: Users, 
       component: () => <SuperAdminUsersManagement />
     },
     { 
       id: 'properties', 
-      label: 'Propiedades', 
+      label: 'admin.properties', 
       icon: Home, 
       component: () => <SuperAdminPropertiesManagement />
     },
     { 
       id: 'negotiations', 
-      label: 'Negociaciones', 
+      label: 'negotiations.title', 
       icon: Handshake, 
       component: () => <SuperAdminNegotiationsManagement />
     },
     { 
       id: 'documents', 
-      label: 'Documentos', 
+      label: 'admin.documents', 
       icon: FileText, 
       component: () => <SuperAdminDocumentsManagement />
     },
     { 
       id: 'chats', 
-      label: 'Chats', 
+      label: 'admin.chats', 
       icon: MessageSquare, 
       component: () => <SuperAdminChatsManagement />
     },
     { 
       id: 'visits', 
-      label: 'Visitas', 
+      label: 'visits.title', 
       icon: Calendar, 
       component: () => <SuperAdminVisitsManagement />
     },
     { 
       id: 'lawyers', 
-      label: 'Abogados', 
+      label: 'admin.lawyers', 
       icon: Scale, 
       component: () => <SuperAdminLawyersManagement />
     },
     { 
       id: 'admins', 
-      label: 'Admins', 
+      label: 'admin.admins', 
       icon: Crown, 
       component: () => <SuperAdminAdminsManagement />
     },
     { 
       id: 'verifications', 
-      label: 'Verificaciones', 
+      label: 'admin.verifications', 
       icon: Shield, 
       component: () => <VerificationPanel />
     },
     { 
       id: 'reports', 
-      label: 'Reportes', 
+      label: 'admin.reports', 
       icon: BarChart3, 
       component: () => <ReportsPanel />
     },
     { 
       id: 'profile', 
-      label: 'Perfil', 
+      label: 'nav.profile', 
       icon: Settings, 
       component: () => <ProfileSection isDarkMode={false} />
     },

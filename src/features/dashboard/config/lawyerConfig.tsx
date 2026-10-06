@@ -8,15 +8,16 @@ import { LawyerVerificationPanel } from '../../../components/dashboards/LawyerVe
 import { ProfileSection } from '../../../components/dashboards/ProfileSection';
 
 export const lawyerConfig: DashboardConfig = {
-  title: 'Lawyer Dashboard',
-  description: 'Manage legal cases, documents, and verifications.',
-  badge: { label: 'Lawyer', variant: 'secondary' },
+  title: 'dashboard.lawyerTitle',
+  description: 'dashboard.lawyerDescription',
+  badge: { label: 'admin.lawyers', variant: 'secondary' },
   defaultTab: 'cases',
+  showTabBar: false,
   tabs: [
-    { id: 'cases', label: 'Cases', icon: Briefcase, component: () => <CaseManager /> },
-    { id: 'chat', label: 'Chat', icon: MessageSquare, component: () => <ChatPanel /> },
-    { id: 'verifications', label: 'Verifications', icon: Shield, component: () => <LawyerVerificationPanel /> },
-    { id: 'profile', label: 'Profile', icon: Settings, component: () => <ProfileSection isDarkMode={false} /> },
+    { id: 'cases', label: 'admin.cases', icon: Briefcase, component: () => <CaseManager /> },
+    { id: 'chat', label: 'chat.title', icon: MessageSquare, component: () => <ChatPanel /> },
+    { id: 'verifications', label: 'admin.verifications', icon: Shield, component: () => <LawyerVerificationPanel /> },
+    { id: 'profile', label: 'nav.profile', icon: Settings, component: () => <ProfileSection isDarkMode={false} /> },
   ],
 };
 

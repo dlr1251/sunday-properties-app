@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../i18n';
 /**
  * Componente de demostración para el sistema completo de pagos colombianos
  * Integra PaymentForm, validaciones legales y análisis NPV
@@ -78,7 +79,7 @@ export function PaymentNegotiationDemo() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
@@ -98,7 +99,7 @@ export function PaymentNegotiationDemo() {
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'critical': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-muted text-foreground border-border';
     }
   };
 
@@ -128,10 +129,10 @@ export function PaymentNegotiationDemo() {
       <div className="flex items-center gap-3 mb-6">
         <Calculator className="h-8 w-8 text-blue-600" />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Sistema de Pagos Colombiano
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Demostración completa de formas de pago, validaciones legales y análisis NPV
           </p>
         </div>
@@ -159,11 +160,11 @@ export function PaymentNegotiationDemo() {
                 className={`p-4 border-2 rounded-lg text-left transition-all ${
                   selectedScenario === key
                     ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-border hover:border-border'
                 }`}
               >
-                <h3 className="font-semibold text-gray-900">{label}</h3>
-                <p className="text-sm text-gray-600">{desc}</p>
+                <h3 className="font-semibold text-foreground">{label}</h3>
+                <p className="text-sm text-muted-foreground">{desc}</p>
               </button>
             ))}
           </div>
@@ -178,19 +179,19 @@ export function PaymentNegotiationDemo() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <span className="text-gray-600">Precio:</span>
+              <span className="text-muted-foreground">Precio:</span>
               <p className="font-semibold text-lg">{formatCurrency(property.price)}</p>
             </div>
             <div>
-              <span className="text-gray-600">Ubicación:</span>
+              <span className="text-muted-foreground">Ubicación:</span>
               <p className="font-medium">{property.city}</p>
             </div>
             <div>
-              <span className="text-gray-600">Área:</span>
+              <span className="text-muted-foreground">Área:</span>
               <p className="font-medium">{property.area}m²</p>
             </div>
             <div>
-              <span className="text-gray-600">Estado:</span>
+              <span className="text-muted-foreground">Estado:</span>
               <Badge variant="outline" className="capitalize">{property.status}</Badge>
             </div>
           </div>
@@ -222,21 +223,21 @@ export function PaymentNegotiationDemo() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <span className="text-sm text-gray-600">Método:</span>
+                  <span className="text-sm text-muted-foreground">Método:</span>
                   <p className="font-medium capitalize">
                     {mockNegotiationData.paymentStructure.method.replace('_', ' ')}
                   </p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600">Monto total:</span>
+                  <span className="text-sm text-muted-foreground">Monto total:</span>
                   <p className="font-medium">{formatCurrency(mockNegotiationData.paymentStructure.totalAmount)}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600">Pagos programados:</span>
+                  <span className="text-sm text-muted-foreground">Pagos programados:</span>
                   <p className="font-medium">{mockNegotiationData.paymentStructure.paymentSchedule.length}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600">Riesgo:</span>
+                  <span className="text-sm text-muted-foreground">Riesgo:</span>
                   <Badge className={getRiskBadgeColor(mockNegotiationData.paymentStructure.riskLevel || 'low')}>
                     {mockNegotiationData.paymentStructure.riskLevel || 'low'}
                   </Badge>
@@ -248,11 +249,11 @@ export function PaymentNegotiationDemo() {
                 <h4 className="font-semibold mb-3">Cronograma de Pagos</h4>
                 <div className="space-y-2">
                   {mockNegotiationData.paymentStructure.paymentSchedule.map((payment, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                       <div>
                         <p className="font-medium">{payment.description}</p>
-                        <p className="text-sm text-gray-600">
-                          {new Date(payment.date).toLocaleDateString('es-CO')}
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(payment.date).toLocaleDateString(getIntlLocale())}
                         </p>
                       </div>
                       <div className="text-right">
@@ -281,25 +282,25 @@ export function PaymentNegotiationDemo() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-gray-600">NPV Base</p>
+                  <p className="text-sm text-muted-foreground">NPV Base</p>
                   <p className="text-2xl font-bold text-blue-600">
                     {formatCurrency(mockNegotiationData.npvAnalysis.baseNPV)}
                   </p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <p className="text-sm text-gray-600">NPV Ajustado</p>
+                  <p className="text-sm text-muted-foreground">NPV Ajustado</p>
                   <p className="text-2xl font-bold text-green-600">
                     {formatCurrency(mockNegotiationData.npvAnalysis.adjustedNPV)}
                   </p>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <p className="text-sm text-gray-600">TIR Estimada</p>
+                  <p className="text-sm text-muted-foreground">TIR Estimada</p>
                   <p className="text-2xl font-bold text-purple-600">
                     {(mockNegotiationData.npvAnalysis.irr * 100).toFixed(1)}%
                   </p>
                 </div>
                 <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Break-even</p>
+                  <p className="text-sm text-muted-foreground">Break-even</p>
                   <p className="text-2xl font-bold text-orange-600">
                     {mockNegotiationData.npvAnalysis.breakEvenPoint} meses
                   </p>
@@ -309,14 +310,14 @@ export function PaymentNegotiationDemo() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold text-green-600">Impacto Positivo</h4>
-                  <p className="text-sm text-gray-600">Método de pago</p>
+                  <p className="text-sm text-muted-foreground">Método de pago</p>
                   <p className="text-lg font-bold text-green-600">
                     +{formatCurrency(Math.abs(mockNegotiationData.npvAnalysis.paymentMethodImpact))}
                   </p>
                 </div>
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold text-blue-600">Impacto Temporal</h4>
-                  <p className="text-sm text-gray-600">Timing de pagos</p>
+                  <p className="text-sm text-muted-foreground">Timing de pagos</p>
                   <p className="text-lg font-bold text-blue-600">
                     {mockNegotiationData.npvAnalysis.timingImpact >= 0 ? '+' : ''}
                     {formatCurrency(mockNegotiationData.npvAnalysis.timingImpact)}
@@ -324,7 +325,7 @@ export function PaymentNegotiationDemo() {
                 </div>
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold text-red-600">Ajuste por Riesgo</h4>
-                  <p className="text-sm text-gray-600">Riesgo calculado</p>
+                  <p className="text-sm text-muted-foreground">Riesgo calculado</p>
                   <p className="text-lg font-bold text-red-600">
                     {formatCurrency(mockNegotiationData.npvAnalysis.riskAdjustment)}
                   </p>
@@ -357,7 +358,7 @@ export function PaymentNegotiationDemo() {
                   <span className="font-medium">{formatCurrency(mockNegotiationData.legalCompliance.dianCompliance.threshold)}</span>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-600">Categoría:</span>
+                  <span className="text-sm text-muted-foreground">Categoría:</span>
                   <p className="text-sm capitalize">{mockNegotiationData.legalCompliance.dianCompliance.category.replace('_', ' ')}</p>
                 </div>
               </CardContent>
@@ -380,7 +381,7 @@ export function PaymentNegotiationDemo() {
                 </div>
                 {mockNegotiationData.legalCompliance.antiMoneyLaundering.flags.length > 0 && (
                   <div>
-                    <span className="text-sm text-gray-600">Banderas:</span>
+                    <span className="text-sm text-muted-foreground">Banderas:</span>
                     <ul className="text-sm text-red-600 mt-1 space-y-1">
                       {mockNegotiationData.legalCompliance.antiMoneyLaundering.flags.map((flag, index) => (
                         <li key={index}>• {flag}</li>
@@ -413,7 +414,7 @@ export function PaymentNegotiationDemo() {
                       <span className="font-medium">{formatCurrency(mockNegotiationData.legalCompliance.notaryRequirements.estimatedCost)}</span>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-600">Jurisdicción:</span>
+                      <span className="text-sm text-muted-foreground">Jurisdicción:</span>
                       <p className="text-sm">{mockNegotiationData.legalCompliance.notaryRequirements.jurisdiction}</p>
                     </div>
                   </>
@@ -438,7 +439,7 @@ export function PaymentNegotiationDemo() {
                 </div>
                 {mockNegotiationData.legalCompliance.bankingCompliance.restrictions.length > 0 && (
                   <div>
-                    <span className="text-sm text-gray-600">Restricciones:</span>
+                    <span className="text-sm text-muted-foreground">Restricciones:</span>
                     <ul className="text-sm text-red-600 mt-1 space-y-1">
                       {mockNegotiationData.legalCompliance.bankingCompliance.restrictions.map((restriction, index) => (
                         <li key={index}>• {restriction}</li>
@@ -463,7 +464,7 @@ export function PaymentNegotiationDemo() {
                 return (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Prioridad:</span>
+                      <span className="text-sm text-muted-foreground">Prioridad:</span>
                       <Badge variant={
                         recommendations.priority === 'high' ? 'destructive' :
                         recommendations.priority === 'medium' ? 'default' : 'secondary'
@@ -482,7 +483,7 @@ export function PaymentNegotiationDemo() {
                             </Badge>
                             <div className="flex-1">
                               <p className="font-medium">{rec.description}</p>
-                              <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                                 <span>Impacto: {rec.impact}</span>
                                 <Badge variant={
                                   rec.urgency === 'immediate' ? 'destructive' :
@@ -506,9 +507,9 @@ export function PaymentNegotiationDemo() {
       </Tabs>
 
       {/* Footer con información de debug */}
-      <Card className="bg-gray-50">
+      <Card className="bg-muted/30">
         <CardContent className="pt-6">
-          <div className="text-center text-sm text-gray-600">
+          <div className="text-center text-sm text-muted-foreground">
             <p><strong>Datos de Prueba:</strong> Esta demostración utiliza datos ficticios basados en documentos reales colombianos.</p>
             <p>Para producción, conecte con la base de datos real y valide con entidades regulatorias.</p>
           </div>

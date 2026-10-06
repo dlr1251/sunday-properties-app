@@ -19,7 +19,8 @@ import {
 import { toast } from 'sonner';
 import { CreateUserDialog } from '../../features/users/dialogs/CreateUserDialog';
 import { format, formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 import { Skeleton } from '../ui/skeleton';
 import { ResourceDetailDialog } from './ResourceDetailDialog';
 
@@ -36,6 +37,8 @@ interface User {
 }
 
 export function SuperAdminUsersManagement() {
+  const { t, i18n } = useTranslation();
+  const dateFnsLocale = useDateFnsLocale();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -68,7 +71,7 @@ export function SuperAdminUsersManagement() {
 
       setUsers(data || []);
     } catch (err: any) {
-      const errorMessage = err.message || 'Error al cargar usuarios';
+      const errorMessage = err.message || t('admin.loadUsersError');
       setError(errorMessage);
       toast.error(errorMessage);
       console.error('Error fetching users:', err);
@@ -76,7 +79,7 @@ export function SuperAdminUsersManagement() {
       setLoading(false);
       setInitialLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchUsers();
@@ -131,7 +134,7 @@ export function SuperAdminUsersManagement() {
 
         // Handle string sorting (case insensitive)
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-          const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase(), 'es');
+          const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase(), i18n.language);
           return sortDirection === 'asc' ? comparison : -comparison;
         }
 
@@ -145,7 +148,7 @@ export function SuperAdminUsersManagement() {
     }
 
     return filtered;
-  }, [users, searchTerm, selectedRole, sortColumn, sortDirection]);
+  }, [users, searchTerm, selectedRole, sortColumn, sortDirection, i18n.language]);
 
   const handleCreateUser = async (userData: any) => {
     try {
@@ -172,11 +175,11 @@ export function SuperAdminUsersManagement() {
 
       if (profileError) throw profileError;
 
-      toast.success('Usuario creado exitosamente');
+      toast.success(t('admin.userCreated'));
       setShowCreateDialog(false);
       await fetchUsers();
     } catch (error: any) {
-      toast.error('Error al crear usuario: ' + error.message);
+      toast.error(t('admin.createUserError', { message: error.message }));
     }
   };
 
@@ -198,12 +201,12 @@ export function SuperAdminUsersManagement() {
 
       if (error) throw error;
 
-      toast.success('Usuario actualizado exitosamente');
+      toast.success(t('admin.userUpdated'));
       setShowEditDialog(false);
       setEditingUser(null);
       await fetchUsers();
     } catch (error: any) {
-      toast.error('Error al actualizar usuario: ' + error.message);
+      toast.error(t('admin.updateUserError', { message: error.message }));
     }
   };
 
@@ -215,12 +218,12 @@ export function SuperAdminUsersManagement() {
       const { error: authError } = await supabase.auth.admin.deleteUser(selectedUser.id);
       if (authError) throw authError;
 
-      toast.success('Usuario eliminado exitosamente');
+      toast.success(t('admin.userDeleted'));
       setShowDeleteDialog(false);
       setSelectedUser(null);
       await fetchUsers();
     } catch (error: any) {
-      toast.error('Error al eliminar usuario: ' + error.message);
+      toast.error(t('admin.deleteUserError', { message: error.message }));
     }
   };
 
@@ -240,10 +243,10 @@ export function SuperAdminUsersManagement() {
 
       if (error) throw error;
 
-      toast.success(`Estado de verificación ${newStatus === 'verified' ? 'activado' : 'desactivado'}`);
+      toast.success(t(newStatus === 'verified' ? 'admin.verificationToggledOn' : 'admin.verificationToggledOff'));
       await fetchUsers();
     } catch (error: any) {
-      toast.error('Error al cambiar estado de verificación: ' + error.message);
+      toast.error(t('admin.toggleVerificationError', { message: error.message }));
     } finally {
       setVerifyingUser(null);
     }
@@ -251,11 +254,11 @@ export function SuperAdminUsersManagement() {
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      super_admin: { label: 'Super Admin', variant: 'destructive' },
-      admin: { label: 'Admin', variant: 'default' },
-      lawyer: { label: 'Abogado', variant: 'secondary' },
-      agent: { label: 'Agente', variant: 'outline' },
-      user: { label: 'Usuario', variant: 'outline' }
+      super_admin: { label: t('profile.roles.super_admin'), variant: 'destructive' },
+      admin: { label: t('profile.roles.admin'), variant: 'default' },
+      lawyer: { label: t('profile.roles.lawyer'), variant: 'secondary' },
+      agent: { label: t('profile.roles.agent'), variant: 'outline' },
+      user: { label: t('profile.roles.user'), variant: 'outline' }
     };
     
     const config = variants[role] || { label: role, variant: 'outline' as const };
@@ -267,14 +270,14 @@ export function SuperAdminUsersManagement() {
       return (
         <Badge variant="default" className="bg-green-600 hover:bg-green-700">
           <CheckCircle className="h-3 w-3 mr-1" />
-          Verificado
+          {t('admin.status.verified')}
         </Badge>
       );
     }
     return (
       <Badge variant="outline">
         <XCircle className="h-3 w-3 mr-1" />
-        Pendiente
+        {t('admin.status.pending')}
       </Badge>
     );
   };
@@ -303,9 +306,9 @@ export function SuperAdminUsersManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Gestión de Usuarios</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t('admin.manageUsersTitle')}</h2>
           <p className="text-muted-foreground mt-1">
-            Crear, editar, eliminar y gestionar todos los usuarios del sistema
+            {t('admin.manageUsersDescription')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -316,11 +319,11 @@ export function SuperAdminUsersManagement() {
             disabled={loading}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
+            {t('common.refresh')}
           </Button>
           <Button onClick={() => setShowCreateDialog(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Crear Usuario
+            {t('admin.createUser')}
           </Button>
         </div>
       </div>
@@ -333,7 +336,7 @@ export function SuperAdminUsersManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nombre, email o teléfono..."
+                  placeholder={t('admin.searchUsersPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -342,15 +345,15 @@ export function SuperAdminUsersManagement() {
             </div>
             <Select value={selectedRole} onValueChange={setSelectedRole}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filtrar por rol" />
+                <SelectValue placeholder={t('admin.filterByRole')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los roles</SelectItem>
-                <SelectItem value="super_admin">Super Admin</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="lawyer">Abogado</SelectItem>
-                <SelectItem value="agent">Agente</SelectItem>
-                <SelectItem value="user">Usuario</SelectItem>
+                <SelectItem value="all">{t('common.allRoles')}</SelectItem>
+                <SelectItem value="super_admin">{t('profile.roles.super_admin')}</SelectItem>
+                <SelectItem value="admin">{t('profile.roles.admin')}</SelectItem>
+                <SelectItem value="lawyer">{t('profile.roles.lawyer')}</SelectItem>
+                <SelectItem value="agent">{t('profile.roles.agent')}</SelectItem>
+                <SelectItem value="user">{t('profile.roles.user')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -374,11 +377,11 @@ export function SuperAdminUsersManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Usuarios</CardTitle>
+              <CardTitle>{t('admin.users')}</CardTitle>
               <CardDescription>
                 {initialLoading 
-                  ? 'Cargando usuarios...' 
-                  : `${filteredAndSortedUsers.length} ${filteredAndSortedUsers.length === 1 ? 'usuario encontrado' : 'usuarios encontrados'}`
+                  ? t('admin.loadingUsers')
+                  : t('admin.userFound', { count: filteredAndSortedUsers.length })
                 }
               </CardDescription>
             </div>
@@ -390,11 +393,11 @@ export function SuperAdminUsersManagement() {
           ) : filteredAndSortedUsers.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground font-medium">No se encontraron usuarios</p>
+              <p className="text-muted-foreground font-medium">{t('admin.noUsersFound')}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 {searchTerm || selectedRole !== 'all' 
-                  ? 'Intenta ajustar los filtros de búsqueda' 
-                  : 'Crea tu primer usuario para comenzar'}
+                  ? t('admin.adjustSearchFilters')
+                  : t('admin.createFirstUserHint')}
               </p>
             </div>
           ) : (
@@ -408,7 +411,7 @@ export function SuperAdminUsersManagement() {
                           onClick={() => handleSort('full_name')}
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
-                          Usuario
+                          {t('user')}
                           {sortColumn === 'full_name' ? (
                             sortDirection === 'asc' ? (
                               <ArrowUp className="h-4 w-4" />
@@ -425,7 +428,7 @@ export function SuperAdminUsersManagement() {
                           onClick={() => handleSort('email')}
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
-                          Email
+                          {t('profile.email')}
                           {sortColumn === 'email' ? (
                             sortDirection === 'asc' ? (
                               <ArrowUp className="h-4 w-4" />
@@ -442,7 +445,7 @@ export function SuperAdminUsersManagement() {
                           onClick={() => handleSort('phone')}
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
-                          Teléfono
+                          {t('profile.phone')}
                           {sortColumn === 'phone' ? (
                             sortDirection === 'asc' ? (
                               <ArrowUp className="h-4 w-4" />
@@ -459,7 +462,7 @@ export function SuperAdminUsersManagement() {
                           onClick={() => handleSort('role')}
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
-                          Rol
+                          {t('profile.role')}
                           {sortColumn === 'role' ? (
                             sortDirection === 'asc' ? (
                               <ArrowUp className="h-4 w-4" />
@@ -476,7 +479,7 @@ export function SuperAdminUsersManagement() {
                           onClick={() => handleSort('status')}
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
-                          Estado
+                          {t('properties.status')}
                           {sortColumn === 'status' ? (
                             sortDirection === 'asc' ? (
                               <ArrowUp className="h-4 w-4" />
@@ -488,13 +491,13 @@ export function SuperAdminUsersManagement() {
                           )}
                         </button>
                       </th>
-                      <th className="text-left p-4 font-semibold">Verificación</th>
+                      <th className="text-left p-4 font-semibold">{t('admin.verificationStatus')}</th>
                       <th className="text-left p-4 font-semibold">
                         <button
                           onClick={() => handleSort('created_at')}
                           className="flex items-center gap-2 hover:text-primary transition-colors"
                         >
-                          Creado
+                          {t('common.created')}
                           {sortColumn === 'created_at' ? (
                             sortDirection === 'asc' ? (
                               <ArrowUp className="h-4 w-4" />
@@ -506,7 +509,7 @@ export function SuperAdminUsersManagement() {
                           )}
                         </button>
                       </th>
-                      <th className="text-right p-4 font-semibold">Acciones</th>
+                      <th className="text-right p-4 font-semibold">{t('common.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -522,7 +525,7 @@ export function SuperAdminUsersManagement() {
                                 {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                               </span>
                             </div>
-                            <span className="font-medium">{user.full_name || 'Sin nombre'}</span>
+                            <span className="font-medium">{user.full_name || t('common.unnamed')}</span>
                           </div>
                         </td>
                         <td className="p-4">
@@ -556,12 +559,12 @@ export function SuperAdminUsersManagement() {
                           {user.created_at ? (
                             <div className="flex flex-col">
                               <span className="text-sm font-medium">
-                                {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: es })}
+                                {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: dateFnsLocale })}
                               </span>
                               <span className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(new Date(user.created_at), { 
                                   addSuffix: true, 
-                                  locale: es 
+                                  locale: dateFnsLocale 
                                 })}
                               </span>
                             </div>
@@ -629,9 +632,9 @@ export function SuperAdminUsersManagement() {
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Editar Usuario</DialogTitle>
+              <DialogTitle>{t('admin.editUser')}</DialogTitle>
               <DialogDescription>
-                Modificar información del usuario: {editingUser.email}
+                {t('admin.editUserDescription', { email: editingUser.email })}
               </DialogDescription>
             </DialogHeader>
             <EditUserForm
@@ -650,18 +653,18 @@ export function SuperAdminUsersManagement() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>¿Eliminar usuario?</DialogTitle>
+            <DialogTitle>{t('admin.confirmDeleteUser')}</DialogTitle>
             <DialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente el usuario{' '}
-              <strong>{selectedUser?.email}</strong> y todos sus datos asociados.
+              {t('admin.confirmDeleteUserBody')}{' '}
+              <strong>{selectedUser?.email}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteUser}>
-              Eliminar
+              {t('common.delete')}
             </Button>
           </div>
         </DialogContent>
@@ -696,6 +699,7 @@ function EditUserForm({
   onSave: (data: any) => void; 
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     full_name: user.full_name || '',
     email: user.email || '',
@@ -718,7 +722,7 @@ function EditUserForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="full_name">Nombre Completo</Label>
+        <Label htmlFor="full_name">{t('profile.fullName')}</Label>
         <Input
           id="full_name"
           value={formData.full_name}
@@ -727,7 +731,7 @@ function EditUserForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('profile.email')}</Label>
         <Input
           id="email"
           type="email"
@@ -737,7 +741,7 @@ function EditUserForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="phone">Teléfono</Label>
+        <Label htmlFor="phone">{t('profile.phone')}</Label>
         <Input
           id="phone"
           value={formData.phone}
@@ -745,45 +749,45 @@ function EditUserForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="role">Rol</Label>
+        <Label htmlFor="role">{t('profile.role')}</Label>
         <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
           <SelectTrigger id="role">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="user">Usuario</SelectItem>
-            <SelectItem value="agent">Agente</SelectItem>
-            <SelectItem value="lawyer">Abogado</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="super_admin">Super Admin</SelectItem>
+            <SelectItem value="user">{t('profile.roles.user')}</SelectItem>
+            <SelectItem value="agent">{t('profile.roles.agent')}</SelectItem>
+            <SelectItem value="lawyer">{t('profile.roles.lawyer')}</SelectItem>
+            <SelectItem value="admin">{t('profile.roles.admin')}</SelectItem>
+            <SelectItem value="super_admin">{t('profile.roles.super_admin')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="status">Estado</Label>
+        <Label htmlFor="status">{t('properties.status')}</Label>
         <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
           <SelectTrigger id="status">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Activo</SelectItem>
-            <SelectItem value="inactive">Inactivo</SelectItem>
-            <SelectItem value="suspended">Suspendido</SelectItem>
+            <SelectItem value="active">{t('profile.accountStatuses.active')}</SelectItem>
+            <SelectItem value="inactive">{t('profile.accountStatuses.inactive')}</SelectItem>
+            <SelectItem value="suspended">{t('profile.accountStatuses.suspended')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={saving}>
           {saving ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Guardando...
+              {t('common.saving')}
             </>
           ) : (
-            'Guardar Cambios'
+            t('common.saveChanges')
           )}
         </Button>
       </div>

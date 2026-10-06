@@ -13,8 +13,11 @@ import { supabase } from '../../lib/supabase';
 import { Profile } from '../../types/database';
 import { User, Mail, Phone, MapPin, Globe, FileText, Settings, Shield, Bell } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatDate, formatDateTime } from '../../utils/format';
 
 export const ProfileSettings: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,14 +41,14 @@ export const ProfileSettings: React.FC = () => {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        toast.error('Error al cargar el perfil');
+        toast.error(t('profile.loadError'));
         return;
       }
 
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
-      toast.error('Error al cargar el perfil');
+      toast.error(t('profile.loadError'));
     } finally {
       setLoading(false);
     }
@@ -66,15 +69,15 @@ export const ProfileSettings: React.FC = () => {
 
       if (error) {
         console.error('Error updating profile:', error);
-        toast.error('Error al actualizar el perfil');
+        toast.error(t('profile.toasts.profileUpdateError'));
         return;
       }
 
       setProfile({ ...profile, ...updates });
-      toast.success('Perfil actualizado correctamente');
+      toast.success(t('profile.toasts.profileUpdated'));
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Error al actualizar el perfil');
+      toast.error(t('profile.toasts.profileUpdateError'));
     } finally {
       setSaving(false);
     }
@@ -101,7 +104,7 @@ export const ProfileSettings: React.FC = () => {
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando perfil...</p>
+          <p className="text-muted-foreground">{t('profile.loading')}</p>
         </div>
       </div>
     );
@@ -110,7 +113,7 @@ export const ProfileSettings: React.FC = () => {
   if (!profile) {
     return (
       <div className="text-center p-8">
-        <p className="text-muted-foreground">No se pudo cargar el perfil</p>
+        <p className="text-muted-foreground">{t('profile.loadFailed')}</p>
       </div>
     );
   }
@@ -119,14 +122,11 @@ export const ProfileSettings: React.FC = () => {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Configuración de Perfil</h1>
-          <p className="text-muted-foreground mt-2">Gestiona tu información personal y preferencias</p>
+          <h1 className="text-3xl font-bold">{t('profile.settingsTitle')}</h1>
+          <p className="text-muted-foreground mt-2">{t('profile.settingsSubtitle')}</p>
         </div>
         <Badge variant="outline" className="text-sm">
-          {profile.role === 'admin' ? 'Administrador' :
-           profile.role === 'lawyer' ? 'Abogado' :
-           profile.role === 'agent' ? 'Agente' :
-           profile.role === 'super_admin' ? 'Super Admin' : 'Usuario'}
+          {t(`profile.roles.${profile.role}`, { defaultValue: t('profile.roles.user') })}
         </Badge>
       </div>
 
@@ -134,19 +134,19 @@ export const ProfileSettings: React.FC = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="personal" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            Personal
+            {t('profile.tabPersonal')}
           </TabsTrigger>
           <TabsTrigger value="contact" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
-            Contacto
+            {t('profile.tabContact')}
           </TabsTrigger>
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            Preferencias
+            {t('profile.tabPreferences')}
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            Seguridad
+            {t('profile.tabSecurity')}
           </TabsTrigger>
         </TabsList>
 
@@ -155,25 +155,25 @@ export const ProfileSettings: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Información Personal
+                {t('profile.personalInfo')}
               </CardTitle>
               <CardDescription>
-                Actualiza tu información personal básica
+                {t('profile.personalInfoBasic')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="full_name">Nombre Completo</Label>
+                  <Label htmlFor="full_name">{t('profile.fullName')}</Label>
                   <Input
                     id="full_name"
                     value={profile.full_name || ''}
                     onChange={(e) => handleInputChange('full_name', e.target.value)}
-                    placeholder="Tu nombre completo"
+                    placeholder={t('profile.placeholders.fullName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('profile.email')}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -185,23 +185,23 @@ export const ProfileSettings: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="bio">Biografía</Label>
+                <Label htmlFor="bio">{t('profile.bio')}</Label>
                 <Textarea
                   id="bio"
                   value={profile.bio || ''}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder="Cuéntanos sobre ti..."
+                  placeholder={t('profile.placeholders.bio')}
                   rows={3}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Ubicación</Label>
+                <Label htmlFor="location">{t('profile.location')}</Label>
                 <Input
                   id="location"
                   value={profile.location || ''}
                   onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="Ciudad, País"
+                  placeholder={t('profile.placeholders.location')}
                 />
               </div>
 
@@ -210,7 +210,7 @@ export const ProfileSettings: React.FC = () => {
                 disabled={saving}
                 className="w-full"
               >
-                {saving ? 'Guardando...' : 'Guardar Cambios'}
+                {saving ? t('common.saving') : t('common.saveChanges')}
               </Button>
             </CardContent>
           </Card>
@@ -221,15 +221,15 @@ export const ProfileSettings: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Phone className="h-5 w-5" />
-                Información de Contacto
+                {t('profile.contactInfo')}
               </CardTitle>
               <CardDescription>
-                Mantén tu información de contacto actualizada
+                {t('profile.contactKeepUpdated')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono</Label>
+                <Label htmlFor="phone">{t('profile.phone')}</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -240,13 +240,13 @@ export const ProfileSettings: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="website">Sitio Web</Label>
+                <Label htmlFor="website">{t('profile.website')}</Label>
                 <Input
                   id="website"
                   type="url"
                   value={profile.website || ''}
                   onChange={(e) => handleInputChange('website', e.target.value)}
-                  placeholder="https://tu-sitio.com"
+                  placeholder={t('profile.placeholders.website')}
                 />
               </div>
 
@@ -255,7 +255,7 @@ export const ProfileSettings: React.FC = () => {
                 disabled={saving}
                 className="w-full"
               >
-                {saving ? 'Guardando...' : 'Guardar Cambios'}
+                {saving ? t('common.saving') : t('common.saveChanges')}
               </Button>
             </CardContent>
           </Card>
@@ -266,18 +266,18 @@ export const ProfileSettings: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Preferencias
+                {t('profile.preferences')}
               </CardTitle>
               <CardDescription>
-                Configura tus preferencias de la aplicación
+                {t('profile.preferencesAppDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Tema</Label>
-                    <p className="text-sm text-muted-foreground">Elige tu tema preferido</p>
+                    <Label>{t('profile.theme')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('profile.chooseTheme')}</p>
                   </div>
                   <Select
                     value={profile.preferences?.theme || 'light'}
@@ -287,16 +287,16 @@ export const ProfileSettings: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="light">Claro</SelectItem>
-                      <SelectItem value="dark">Oscuro</SelectItem>
+                      <SelectItem value="light">{t('settings.themes.light')}</SelectItem>
+                      <SelectItem value="dark">{t('settings.themes.dark')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Idioma</Label>
-                    <p className="text-sm text-muted-foreground">Idioma de la interfaz</p>
+                    <Label>{t('profile.language')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('profile.interfaceLanguage')}</p>
                   </div>
                   <Select
                     value={profile.preferences?.language || 'es'}
@@ -314,8 +314,8 @@ export const ProfileSettings: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Notificaciones</Label>
-                    <p className="text-sm text-muted-foreground">Recibir notificaciones</p>
+                    <Label>{t('settings.notifications')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('profile.receiveNotifications')}</p>
                   </div>
                   <Switch
                     checked={profile.preferences?.notifications ?? true}
@@ -325,8 +325,8 @@ export const ProfileSettings: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label>Actualizaciones por Email</Label>
-                    <p className="text-sm text-muted-foreground">Recibir actualizaciones por correo</p>
+                    <Label>{t('profile.emailUpdates')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('profile.emailUpdatesHint')}</p>
                   </div>
                   <Switch
                     checked={profile.preferences?.emailUpdates ?? true}
@@ -340,7 +340,7 @@ export const ProfileSettings: React.FC = () => {
                 disabled={saving}
                 className="w-full"
               >
-                {saving ? 'Guardando...' : 'Guardar Preferencias'}
+                {saving ? t('common.saving') : t('profile.savePreferences')}
               </Button>
             </CardContent>
           </Card>
@@ -351,44 +351,42 @@ export const ProfileSettings: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Seguridad y Privacidad
+                {t('profile.securityPrivacy')}
               </CardTitle>
               <CardDescription>
-                Gestiona la seguridad de tu cuenta
+                {t('profile.securityDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Estado de la Cuenta</Label>
+                <Label>{t('profile.accountStatus')}</Label>
                 <div className="flex items-center gap-2">
                   <Badge variant={profile.status === 'active' ? 'default' : 'secondary'}>
-                    {profile.status === 'active' ? 'Activa' : 
-                     profile.status === 'inactive' ? 'Inactiva' :
-                     profile.status === 'suspended' ? 'Suspendida' : 'Pendiente'}
+                    {t(`profile.accountStatuses.${profile.status}`, { defaultValue: t('profile.accountStatuses.pending') })}
                   </Badge>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Último Acceso</Label>
+                <Label>{t('profile.lastAccess')}</Label>
                 <p className="text-sm text-muted-foreground">
                   {profile.last_login_at 
-                    ? new Date(profile.last_login_at).toLocaleString('es-ES')
-                    : 'Nunca'
+                    ? formatDateTime(profile.last_login_at)
+                    : t('common.never')
                   }
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Miembro desde</Label>
+                <Label>{t('profile.memberSince')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(profile.created_at).toLocaleDateString('es-ES')}
+                  {formatDate(profile.created_at)}
                 </p>
               </div>
 
               <div className="pt-4 border-t">
                 <Button variant="outline" className="w-full">
-                  Cambiar Contraseña
+                  {t('profile.changePassword')}
                 </Button>
               </div>
             </CardContent>

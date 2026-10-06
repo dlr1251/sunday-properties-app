@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Phone, MapPin, Calendar, Flag, AlertCircle, CheckCircle } from 'lucide-react';
@@ -6,6 +7,7 @@ import { useVerificationForm } from '../VerificationFormContext';
 import { Badge } from '../../ui/badge';
 
 export const Step1PersonalData: React.FC = () => {
+  const { t } = useTranslation();
   const { formData, setFormData, ageError, validateAge, idDocAnalysis } = useVerificationForm();
 
   // Pre-fill form with extracted data from document analysis
@@ -37,16 +39,16 @@ export const Step1PersonalData: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <Phone className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold">Datos Personales</h3>
+        <h3 className="text-lg font-semibold">{t('verification.personal.title')}</h3>
         <p className="text-muted-foreground">
           {hasExtractedData 
-            ? 'Revisa y completa los datos extraídos de tu documento' 
-            : 'Ingresa tu información básica para comenzar el proceso de verificación'}
+            ? t('verification.personal.subtitleExtracted')
+            : t('verification.personal.subtitle')}
         </p>
         {hasExtractedData && (
           <Badge className="mt-2 bg-green-100 text-green-800">
             <CheckCircle className="h-3 w-3 mr-1" />
-            Datos extraídos automáticamente
+            {t('verification.personal.extractedAuto')}
           </Badge>
         )}
       </div>
@@ -55,7 +57,7 @@ export const Step1PersonalData: React.FC = () => {
         <div>
           <Label htmlFor="phone" className="flex items-center gap-2">
             <Phone className="h-4 w-4" />
-            Teléfono *
+            {t('verification.personal.phone')}
           </Label>
           <Input
             id="phone"
@@ -70,11 +72,11 @@ export const Step1PersonalData: React.FC = () => {
         <div>
           <Label htmlFor="location" className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
-            Ubicación *
+            {t('verification.personal.location')}
           </Label>
           <Input
             id="location"
-            placeholder="Ciudad, País"
+            placeholder={t('verification.personal.locationPlaceholder')}
             value={formData.location}
             onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
             required
@@ -84,10 +86,10 @@ export const Step1PersonalData: React.FC = () => {
         <div>
           <Label htmlFor="date_of_birth" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            Fecha de Nacimiento *
+            {t('verification.personal.dateOfBirth')}
             {hasExtractedData && idDocAnalysis?.extractedData?.birthDate && (
               <Badge variant="outline" className="ml-2 text-xs">
-                Extraído: {idDocAnalysis.extractedData.birthDate}
+                {t('verification.personal.extracted', { value: idDocAnalysis.extractedData.birthDate })}
               </Badge>
             )}
           </Label>
@@ -109,10 +111,10 @@ export const Step1PersonalData: React.FC = () => {
         <div>
           <Label className="flex items-center gap-2">
             <Flag className="h-4 w-4" />
-            Nacionalidad *
+            {t('verification.personal.nationality')}
             {hasExtractedData && idDocAnalysis?.extractedData?.nationality && (
               <Badge variant="outline" className="ml-2 text-xs">
-                Extraído: {idDocAnalysis.extractedData.nationality}
+                {t('verification.personal.extracted', { value: idDocAnalysis.extractedData.nationality })}
               </Badge>
             )}
           </Label>
@@ -122,21 +124,21 @@ export const Step1PersonalData: React.FC = () => {
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
-            <option value="">Seleccionar nacionalidad</option>
-            <option value="Colombiano">Colombiano</option>
-            <option value="Venezolano">Venezolano</option>
-            <option value="Mexicano">Mexicano</option>
-            <option value="Argentino">Argentino</option>
-            <option value="Chileno">Chileno</option>
-            <option value="Peruano">Peruano</option>
-            <option value="Ecuatoriano">Ecuatoriano</option>
-            <option value="Boliviano">Boliviano</option>
-            <option value="Paraguayo">Paraguayo</option>
-            <option value="Uruguayo">Uruguayo</option>
-            <option value="Brasileño">Brasileño</option>
-            <option value="Español">Español</option>
-            <option value="Estadounidense">Estadounidense</option>
-            <option value="Otro">Otro</option>
+            <option value="">{t('verification.personal.selectNationality')}</option>
+            <option value="Colombiano">{t('verification.nationalities.colombian')}</option>
+            <option value="Venezolano">{t('verification.nationalities.venezuelan')}</option>
+            <option value="Mexicano">{t('verification.nationalities.mexican')}</option>
+            <option value="Argentino">{t('verification.nationalities.argentine')}</option>
+            <option value="Chileno">{t('verification.nationalities.chilean')}</option>
+            <option value="Peruano">{t('verification.nationalities.peruvian')}</option>
+            <option value="Ecuatoriano">{t('verification.nationalities.ecuadorian')}</option>
+            <option value="Boliviano">{t('verification.nationalities.bolivian')}</option>
+            <option value="Paraguayo">{t('verification.nationalities.paraguayan')}</option>
+            <option value="Uruguayo">{t('verification.nationalities.uruguayan')}</option>
+            <option value="Brasileño">{t('verification.nationalities.brazilian')}</option>
+            <option value="Español">{t('verification.nationalities.spanish')}</option>
+            <option value="Estadounidense">{t('verification.nationalities.american')}</option>
+            <option value="Otro">{t('verification.nationalities.other')}</option>
           </select>
         </div>
       </div>

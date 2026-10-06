@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Clock, FileText, ArrowRight } from 'lucide-react';
@@ -8,6 +9,7 @@ interface VerificationSuccessProps {
 }
 
 export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({ onContinue }) => {
+  const { t } = useTranslation();
   useEffect(() => {
     // Auto-redirect after 5 seconds
     const timer = setTimeout(() => {
@@ -25,24 +27,24 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({ onCont
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <CardTitle className="text-2xl font-bold text-green-900">
-            ¡Solicitud Enviada Exitosamente!
+            {t('verification.success.title')}
           </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-6">
           <div className="text-center">
             <p className="text-lg text-green-800 mb-4">
-              Tu solicitud de verificación de identidad ha sido enviada correctamente.
+              {t('verification.success.body')}
             </p>
             <p className="text-green-700">
-              Nuestro equipo de verificación revisará tu solicitud en las próximas 24-48 horas.
+              {t('verification.success.reviewTime')}
             </p>
           </div>
 
           <div className="bg-white rounded-lg p-4 border border-green-200">
             <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              ¿Qué sucede ahora?
+              {t('verification.success.whatNow')}
             </h3>
             <div className="space-y-3 text-sm text-green-800">
               <div className="flex items-start gap-3">
@@ -50,8 +52,8 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({ onCont
                   1
                 </div>
                 <div>
-                  <p className="font-medium">Revisión de documentos</p>
-                  <p className="text-green-700">Nuestro equipo verifica tu cédula y documentos adicionales</p>
+                  <p className="font-medium">{t('verification.success.step1Title')}</p>
+                  <p className="text-green-700">{t('verification.success.step1Body')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -59,8 +61,8 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({ onCont
                   2
                 </div>
                 <div>
-                  <p className="font-medium">Verificación de identidad</p>
-                  <p className="text-green-700">Validamos tu información personal y foto</p>
+                  <p className="font-medium">{t('verification.success.step2Title')}</p>
+                  <p className="text-green-700">{t('verification.success.step2Body')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -68,8 +70,8 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({ onCont
                   3
                 </div>
                 <div>
-                  <p className="font-medium">Notificación de resultado</p>
-                  <p className="text-green-700">Te notificaremos cuando tu verificación sea aprobada o rechazada</p>
+                  <p className="font-medium">{t('verification.success.step3Title')}</p>
+                  <p className="text-green-700">{t('verification.success.step3Body')}</p>
                 </div>
               </div>
             </div>
@@ -79,9 +81,9 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({ onCont
             <div className="flex items-start gap-3">
               <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <h4 className="font-semibold text-blue-900">¿Quieres ver el estado de tu solicitud?</h4>
+                <h4 className="font-semibold text-blue-900">{t('verification.success.statusPrompt')}</h4>
                 <p className="text-blue-700 text-sm mt-1">
-                  Puedes revisar el progreso de tu verificación en cualquier momento desde tu perfil.
+                  {t('verification.success.statusHint')}
                 </p>
               </div>
             </div>
@@ -92,13 +94,13 @@ export const VerificationSuccess: React.FC<VerificationSuccessProps> = ({ onCont
               onClick={onContinue}
               className="bg-green-600 hover:bg-green-700"
             >
-              Ver Estado de Verificación
+              {t('verification.success.viewStatus')}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
 
           <div className="text-center text-sm text-green-600">
-            Redirigiendo automáticamente en 5 segundos...
+            {t('verification.success.redirecting')}
           </div>
         </CardContent>
       </Card>

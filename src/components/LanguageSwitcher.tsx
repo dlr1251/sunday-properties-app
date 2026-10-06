@@ -11,10 +11,11 @@ import { Button } from './ui/button';
 import { supportedLanguages } from '../i18n';
 
 export const LanguageSwitcher: React.FC = () => {
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
+  const languageCode = (i18n.resolvedLanguage || i18n.language || 'es').split('-')[0];
 
   const currentLanguage = supportedLanguages.find(
-    (lang) => lang.code === i18n.language
+    (lang) => lang.code === languageCode
   ) || supportedLanguages[0];
 
   const handleLanguageChange = (langCode: string) => {
@@ -40,7 +41,7 @@ export const LanguageSwitcher: React.FC = () => {
             onClick={() => handleLanguageChange(lang.code)}
             className={[
               'flex items-center gap-2 cursor-pointer',
-              i18n.language === lang.code ? 'bg-accent' : '',
+              i18n.language.startsWith(lang.code) ? 'bg-accent' : '',
             ].join(' ')}
           >
             <span>{lang.flag}</span>

@@ -5,18 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAvatarUrl } from '@/utils/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Download, RefreshCw, Search, Filter, Users, Award, Briefcase, Star, Eye, Edit, Trash2 } from 'lucide-react';
 import { useLawyers } from '../../hooks/useLawyers';
 import { CreateLawyerInput } from '../../lib/db/repositories/lawyers.repo';
+import { useTranslation } from 'react-i18next';
 
 interface LawyersManagementPanelProps {
   isDarkMode?: boolean;
 }
 
 export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ isDarkMode = false }) => {
+  const { t } = useTranslation();
   const {
     lawyers,
     loading,
@@ -95,8 +98,8 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className={`text-2xl font-bold ${textClasses}`}>Gestión de Abogados</h2>
-          <p className={subTextClasses}>Administra abogados, especializaciones y validaciones</p>
+          <h2 className={`text-2xl font-bold ${textClasses}`}>{t('admin.manageLawyersTitle')}</h2>
+          <p className={subTextClasses}>{t('admin.manageLawyersDescription')}</p>
         </div>
 
         <Button
@@ -104,7 +107,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
           className="bg-blue-600 hover:bg-blue-700"
         >
           <Award className="h-4 w-4 mr-2" />
-          Agregar Abogado
+          {t('admin.addLawyer')}
         </Button>
       </div>
 
@@ -114,7 +117,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Total Abogados</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.totalLawyers')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>{stats?.total || 0}</p>
               </div>
               <Users className="h-8 w-8 text-blue-500" />
@@ -126,7 +129,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Verificados</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.verifiedCount')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>{stats?.verified || 0}</p>
               </div>
               <Award className="h-8 w-8 text-green-500" />
@@ -138,7 +141,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Casos Activos</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.activeCases')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>{stats?.active_cases || 0}</p>
               </div>
               <Briefcase className="h-8 w-8 text-orange-500" />
@@ -150,7 +153,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${subTextClasses}`}>Rating Promedio</p>
+                <p className={`text-sm ${subTextClasses}`}>{t('admin.averageRating')}</p>
                 <p className={`text-2xl font-bold ${textClasses}`}>{stats?.average_rating?.toFixed(1) || '0.0'}</p>
               </div>
               <Star className="h-8 w-8 text-yellow-500" />
@@ -167,7 +170,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
               <div className="relative">
                 <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${subTextClasses}`} />
                 <Input
-                  placeholder="Buscar por nombre, email o empresa..."
+                  placeholder={t('admin.searchNameEmailCompany')}
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className={`pl-10 ${isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : ''}`}
@@ -181,20 +184,20 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
                 onValueChange={(value) => setFilters({ ...filters, verification_status: value as any })}
               >
                 <SelectTrigger className={`w-40 ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}>
-                  <SelectValue placeholder="Estado" />
+                  <SelectValue placeholder={t('properties.status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="unverified">No verificado</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="verified">Verificado</SelectItem>
-                  <SelectItem value="rejected">Rechazado</SelectItem>
+                  <SelectItem value="all">{t('common.allStatuses')}</SelectItem>
+                  <SelectItem value="unverified">{t('admin.status.unverified')}</SelectItem>
+                  <SelectItem value="pending">{t('admin.status.pending')}</SelectItem>
+                  <SelectItem value="verified">{t('admin.status.verified')}</SelectItem>
+                  <SelectItem value="rejected">{t('admin.status.rejected')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Input
                 type="number"
-                placeholder="Exp. min"
+                placeholder={t('admin.experienceMin')}
                 value={filters.experience_min}
                 onChange={(e) => setFilters({ ...filters, experience_min: e.target.value })}
                 className={`w-24 ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}
@@ -202,7 +205,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
 
               <Input
                 type="number"
-                placeholder="Exp. max"
+                placeholder={t('admin.experienceMax')}
                 value={filters.experience_max}
                 onChange={(e) => setFilters({ ...filters, experience_max: e.target.value })}
                 className={`w-24 ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}
@@ -215,7 +218,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
                 className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Actualizar
+                {t('common.refresh')}
               </Button>
             </div>
           </div>
@@ -229,7 +232,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={lawyer.avatar_url} />
+                  <AvatarImage src={getAvatarUrl(lawyer)} />
                   <AvatarFallback className={isDarkMode ? 'bg-gray-600 text-gray-300' : 'bg-gray-200'}>
                     {lawyer.name?.charAt(0).toUpperCase() || lawyer.email.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -237,7 +240,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h3 className={`font-semibold ${textClasses}`}>{lawyer.name || 'Sin nombre'}</h3>
+                    <h3 className={`font-semibold ${textClasses}`}>{lawyer.name || t('common.unnamed')}</h3>
                     <Badge
                       variant={lawyer.verification_status === 'verified' ? 'default' : 'secondary'}
                       className={
@@ -248,9 +251,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
                             : 'bg-gray-500'
                       }
                     >
-                      {lawyer.verification_status === 'verified' ? 'Verificado' :
-                       lawyer.verification_status === 'pending' ? 'Pendiente' :
-                       lawyer.verification_status === 'rejected' ? 'Rechazado' : 'No verificado'}
+                      {t(`admin.status.${lawyer.verification_status === 'verified' ? 'verified' : lawyer.verification_status === 'pending' ? 'pending' : lawyer.verification_status === 'rejected' ? 'rejected' : 'unverified'}`)}
                     </Badge>
                   </div>
 
@@ -262,7 +263,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
 
                   {lawyer.experience_years && (
                     <p className={`text-sm ${subTextClasses} mb-2`}>
-                      {lawyer.experience_years} años de experiencia
+                      {t('admin.yearsExperience', { count: lawyer.experience_years })}
                     </p>
                   )}
 
@@ -315,7 +316,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className={`max-w-2xl ${isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
           <DialogHeader>
-            <DialogTitle className={textClasses}>Agregar Nuevo Abogado</DialogTitle>
+            <DialogTitle className={textClasses}>{t('admin.addNewLawyer')}</DialogTitle>
             <DialogDescription className={subTextClasses}>
               Crea un nuevo perfil de abogado en el sistema
             </DialogDescription>
@@ -324,7 +325,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="lawyer-name" className={textClasses}>Nombre Completo *</Label>
+                <Label htmlFor="lawyer-name" className={textClasses}>{t('admin.fullNameRequired')}</Label>
                 <Input
                   id="lawyer-name"
                   value={createForm.name}
@@ -334,7 +335,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
               </div>
 
               <div>
-                <Label htmlFor="lawyer-email" className={textClasses}>Email *</Label>
+                <Label htmlFor="lawyer-email" className={textClasses}>{t('admin.emailRequired')}</Label>
                 <Input
                   id="lawyer-email"
                   type="email"
@@ -345,7 +346,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
               </div>
 
               <div>
-                <Label htmlFor="lawyer-phone" className={textClasses}>Teléfono</Label>
+                <Label htmlFor="lawyer-phone" className={textClasses}>{t('profile.phone')}</Label>
                 <Input
                   id="lawyer-phone"
                   value={createForm.phone || ''}
@@ -355,7 +356,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
               </div>
 
               <div>
-                <Label htmlFor="lawyer-company" className={textClasses}>Empresa</Label>
+                <Label htmlFor="lawyer-company" className={textClasses}>{t('admin.company')}</Label>
                 <Input
                   id="lawyer-company"
                   value={createForm.company || ''}
@@ -365,7 +366,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
               </div>
 
               <div>
-                <Label htmlFor="lawyer-license" className={textClasses}>Número de Licencia</Label>
+                <Label htmlFor="lawyer-license" className={textClasses}>{t('admin.licenseNumber')}</Label>
                 <Input
                   id="lawyer-license"
                   value={createForm.license_number || ''}
@@ -375,7 +376,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
               </div>
 
               <div>
-                <Label htmlFor="lawyer-experience" className={textClasses}>Años de Experiencia</Label>
+                <Label htmlFor="lawyer-experience" className={textClasses}>{t('admin.experienceYears')}</Label>
                 <Input
                   id="lawyer-experience"
                   type="number"
@@ -387,7 +388,7 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
             </div>
 
             <div>
-              <Label htmlFor="lawyer-bio" className={textClasses}>Biografía</Label>
+              <Label htmlFor="lawyer-bio" className={textClasses}>{t('admin.bio')}</Label>
               <Textarea
                 id="lawyer-bio"
                 value={createForm.bio || ''}
@@ -402,13 +403,13 @@ export const LawyersManagementPanel: React.FC<LawyersManagementPanelProps> = ({ 
                 onClick={() => setShowCreateDialog(false)}
                 className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
               >
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleCreateLawyer}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                Crear Abogado
+                {t('admin.createLawyer')}
               </Button>
             </div>
           </div>

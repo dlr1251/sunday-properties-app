@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +33,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onBack,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const {
     conversations,
@@ -135,7 +137,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     return (
       <Card className="h-full">
         <CardContent className="p-8 text-center">
-          <p>Debes iniciar sesión para usar el chat</p>
+          <p>{t('chat.loginRequired')}</p>
         </CardContent>
       </Card>
     );
@@ -180,7 +182,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       <h3 className="font-medium">
                         {selectedConversation.subject || 
                          selectedConversation.property?.title ||
-                         'Conversación'}
+                         t('chat.conversation')}
                       </h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         {getConversationIcon(selectedConversation.type)}
@@ -222,8 +224,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   <div className="h-full flex items-center justify-center text-muted-foreground">
                     <div className="text-center">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No hay mensajes en esta conversación</p>
-                      <p className="text-sm">Envía el primer mensaje para comenzar</p>
+                      <p>{t('chat.noMessagesInConversation')}</p>
+                      <p className="text-sm">{t('chat.sendFirst')}</p>
                     </div>
                   </div>
                 ) : (
@@ -249,7 +251,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 replyTo={replyTo}
                 onCancelReply={handleCancelReply}
                 disabled={loading}
-                placeholder="Escribe un mensaje..."
+                placeholder={t('chat.placeholder')}
               />
             </div>
           </>
@@ -258,8 +260,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             <CardContent className="h-full flex items-center justify-center">
               <div className="text-center text-muted-foreground">
                 <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Selecciona una conversación</h3>
-                <p>Elige una conversación de la lista para comenzar a chatear</p>
+                <h3 className="text-lg font-medium mb-2">{t('chat.selectConversation')}</h3>
+                <p>{t('chat.selectFromList')}</p>
               </div>
             </CardContent>
           </Card>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -20,16 +21,10 @@ interface VerificationWizardProps {
   onCancel: () => void;
 }
 
-const steps = [
-  { id: 1, title: 'Datos Personales', description: 'Información básica' },
-  { id: 2, title: 'Descubrimiento', description: '¿Cómo nos encontraste?' },
-  { id: 3, title: 'Tipo de Usuario', description: '¿Eres dueño o intermediario?' },
-  { id: 4, title: 'Foto de Rostro', description: 'Selfie para verificación' },
-  { id: 5, title: 'Documentos', description: 'Cédula y poderes' },
-  { id: 6, title: 'Revisión Final', description: 'Confirmar y enviar' }
-];
+const STEP_KEYS = ['personal', 'discovery', 'userType', 'selfie', 'documents', 'review'] as const;
 
 const VerificationWizardContent: React.FC<VerificationWizardProps> = ({ onComplete, onCancel }) => {
+  const { t } = useTranslation();
   const { submitVerificationRequest, uploadFile } = useVerificationFlow();
   const form = useVerificationForm(); // Move hook call to component level
   const [currentStep, setCurrentStep] = useState(1);
@@ -37,10 +32,11 @@ const VerificationWizardContent: React.FC<VerificationWizardProps> = ({ onComple
   const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
 
-  const progress = (currentStep / steps.length) * 100;
+  const progress = (currentStep / STEP_KEYS.length) * 100;
+  const currentStepKey = STEP_KEYS[currentStep - 1];
 
   const nextStep = () => {
-    if (currentStep < steps.length) {
+    if (currentStep < STEP_KEYS.length) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -130,11 +126,11 @@ const VerificationWizardContent: React.FC<VerificationWizardProps> = ({ onComple
       await submitVerificationRequest(verificationData);
 
       // Show success message and redirect to profile
-      toast.success('¡Verificación enviada exitosamente!', {
-        description: 'Tu solicitud de verificación está siendo revisada. Te notificaremos cuando esté lista.',
+      toast.success(t('verification.toastSuccess'), {
+        description: t('verification.toastSuccessDescription'),
         duration: 5000,
         action: {
-          label: 'Ir al dashboard',
+          label: t('verification.goToDashboard'),
           onClick: () => navigate('/dashboard'),
         },
       });
@@ -148,11 +144,11 @@ const VerificationWizardContent: React.FC<VerificationWizardProps> = ({ onComple
       console.error('Verification submission error:', error);
 
       // Enhanced error message with animation
-      toast.error('Error al enviar verificación', {
-        description: error.message || 'Ocurrió un error inesperado. Por favor intenta nuevamente.',
+      toast.error(t('verification.toastError'), {
+        description: error.message || t('verification.toastErrorDescription'),
         duration: 6000,
         action: {
-          label: 'Reintentar',
+          label: t('verification.retry'),
           onClick: () => handleSubmit(),
         },
       });
@@ -187,15 +183,15 @@ const VerificationWizardContent: React.FC<VerificationWizardProps> = ({ onComple
       {!showSuccess && (
         <>
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Verificación de Identidad</h1>
-            <p className="text-gray-600">Completa los siguientes pasos para verificar tu identidad</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('verification.title')}</h1>
+            <p className="text-gray-600">{t('verification.subtitle')}</p>
           </div>
 
           {/* Progress */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">Paso {currentStep} de {steps.length}</span>
-              <span className="text-sm text-gray-500">{steps[currentStep - 1].title}</span>
+              <span className="text-sm font-medium text-gray-700">{t('verification.stepOf', { current: currentStep, total: STEP_KEYS.length })}</span>
+              <span className="text-sm text-gray-500">{t(`verification.steps.${currentStepKey}.title`)}</span>
             </div>
             <Progress value={progress} className="w-full" />
           </div>
@@ -213,17 +209,17 @@ const VerificationWizardContent: React.FC<VerificationWizardProps> = ({ onComple
               disabled={submitting}
             >
               <ChevronLeft className="h-4 w-4 mr-2" />
-              {currentStep === 1 ? 'Cancelar' : 'Anterior'}
+              {currentStep === 1 ? t('common.cancel') : t('common.previous')}
             </Button>
 
-            {currentStep < steps.length ? (
+            {currentStep < STEP_KEYS.length ? (
               <Button onClick={nextStep} disabled={!canProceed() || submitting}>
                 <ChevronRight className="h-4 w-4 ml-2" />
-                Siguiente
+                {t('common.next')}
               </Button>
             ) : (
               <Button onClick={handleSubmit} disabled={!canProceed() || submitting}>
-                {submitting ? 'Enviando...' : 'Enviar Solicitud'}
+                {submitting ? t('common.sending') : t('verification.submitRequest')}
               </Button>
             )}
           </div>

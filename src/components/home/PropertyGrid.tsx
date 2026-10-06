@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PropertyCard } from '../PropertyCard';
 import { PropertyCardSkeleton } from '../PropertyCardSkeleton';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { GridControls } from './GridControls';
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   area: string;
   location: string;
@@ -34,23 +36,26 @@ interface PropertyGridProps {
 
 const PropertySkeleton: React.FC = () => <PropertyCardSkeleton />;
 
-const EmptyState: React.FC = () => (
+const EmptyState: React.FC = () => {
+  const { t } = useTranslation();
+  return (
   <div className="text-center py-16">
     <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
       <MapPin className="h-12 w-12 text-muted-foreground" />
     </div>
     <h3 className="text-xl font-semibold mb-2">
-      No se encontraron propiedades
+      {t('properties.noProperties')}
     </h3>
     <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
-      Intenta ajustar tus filtros de búsqueda para encontrar más opciones.
+      {t('properties.emptyAdjustHint')}
     </p>
     <Button variant="outline">
       <Filter className="h-4 w-4 mr-2" />
-      Ajustar Filtros
+      {t('properties.adjustFilters')}
     </Button>
   </div>
-);
+  );
+};
 
 export const PropertyGrid: React.FC<PropertyGridProps> = ({
   properties,
@@ -63,6 +68,8 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
   onSortChange,
   className = ''
 }) => {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className={`space-y-8 ${className}`}>
@@ -104,14 +111,19 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
           <PropertyCard
             key={property.id}
             id={property.id}
+            slug={property.slug}
             title={property.title}
             area={property.area}
             location={property.location}
             bedrooms={property.bedrooms}
             bathrooms={property.bathrooms}
             price={property.price}
+            priceLabel={(property as any).priceLabel}
+            listingType={(property as any).listingType}
             image={property.image}
             rating={property.rating}
+            verified={(property as any).verified}
+            premium={(property as any).premium}
             onView={onPropertySelect}
             onFavorite={onPropertyFavorite}
             className={viewMode === 'list' ? 'flex flex-row' : ''}
@@ -120,7 +132,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
       </div>
       <div className="flex justify-center pt-8">
         <Button variant="outline" size="lg">
-          Cargar más propiedades
+          {t('properties.loadMore')}
         </Button>
       </div>
     </div>

@@ -1,6 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Upload, Camera, Trash2, Play } from 'lucide-react';
+import { Upload, Camera, Trash2, Play, Zap, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PropertyData {
   title: string;
@@ -49,6 +51,7 @@ interface Step3ImagesProps {
   onMoveImage: (index: number, direction: 'left' | 'right') => void;
   onSetPrimaryImage: (index: number) => void;
   onRemoveImage: (index: number) => void;
+  onLoadSampleImage?: () => Promise<void>;
 }
 
 export const Step3Images: React.FC<Step3ImagesProps> = ({
@@ -63,13 +66,36 @@ export const Step3Images: React.FC<Step3ImagesProps> = ({
   onMoveImage,
   onSetPrimaryImage,
   onRemoveImage,
+  onLoadSampleImage,
 }) => {
-  console.log('📸 Step3Images rendering with data:', propertyData);
+  const { t } = useTranslation();
+  const [loadingSample, setLoadingSample] = useState(false);
+
+  const handleLoadSample = useCallback(async () => {
+    if (!onLoadSampleImage) return;
+    setLoadingSample(true);
+    try {
+      await onLoadSampleImage();
+      toast.success(t('properties.wizard.images.sampleLoaded'));
+    } catch (err: any) {
+      toast.error(err.message || t('properties.wizard.images.sampleError'));
+    } finally {
+      setLoadingSample(false);
+    }
+  }, [onLoadSampleImage, t]);
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Fotografías de la Propiedad</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">{t('properties.wizard.images.title')}</h3>
+          {onLoadSampleImage && (
+            <Button type="button" variant="outline" size="sm" onClick={handleLoadSample} disabled={loadingSample || propertyData.images.length > 0} className="text-xs">
+              {loadingSample ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Zap className="h-3 w-3 mr-1" />}
+              {t('properties.wizard.images.useSample')}
+            </Button>
+          )}
+        </div>
 
         {/* Upload Area */}
         <div
@@ -82,9 +108,9 @@ export const Step3Images: React.FC<Step3ImagesProps> = ({
           onDrop={onDrop}
         >
           <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h4 className="text-lg font-semibold mb-2">Subir Imágenes</h4>
+          <h4 className="text-lg font-semibold mb-2">{t('properties.wizard.images.uploadTitle')}</h4>
           <p className="text-muted-foreground mb-4">
-            Arrastra y suelta las imágenes aquí o haz clic para seleccionar
+            {t('properties.wizard.images.uploadHint')}
           </p>
           <input
             type="file"
@@ -97,7 +123,7 @@ export const Step3Images: React.FC<Step3ImagesProps> = ({
           <Button asChild>
             <label htmlFor="image-upload" className="cursor-pointer">
               <Camera className="h-4 w-4 mr-2" />
-              Seleccionar Imágenes
+              {t('properties.wizard.images.selectImages')}
             </label>
           </Button>
         </div>
@@ -105,13 +131,13 @@ export const Step3Images: React.FC<Step3ImagesProps> = ({
         {/* Image Preview */}
         {propertyData.images.length > 0 && (
           <div className="mt-6">
-            <h4 className="text-md font-semibold mb-3">Imágenes Subidas ({propertyData.images.length})</h4>
+            <h4 className="text-md font-semibold mb-3">{t('properties.wizard.images.uploadedCount', { count: propertyData.images.length })}</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {propertyData.images.map((image, index) => (
                 <div key={index} className="relative group">
                   <img
                     src={URL.createObjectURL(image)}
-                    alt={`Preview ${index + 1}`}
+                    alt={t('properties.wizard.images.previewAlt', { n: index + 1 })}
                     className="w-full h-32 object-cover rounded-lg"
                   />
                   <div className="absolute left-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -120,7 +146,7 @@ export const Step3Images: React.FC<Step3ImagesProps> = ({
                   </div>
                   <div className="absolute left-2 bottom-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button size="sm" variant={primaryImageIndex === index ? 'default' : 'secondary'} onClick={() => onSetPrimaryImage(index)}>
-                      {primaryImageIndex === index ? 'Principal' : 'Hacer principal'}
+                      {primaryImageIndex === index ? t('properties.wizard.images.primary') : t('properties.wizard.images.makePrimary')}
                     </Button>
                   </div>
                   <Button
@@ -134,21 +160,21 @@ export const Step3Images: React.FC<Step3ImagesProps> = ({
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">Mínimo 1 y máximo 20 fotos. Máximo 5MB por foto.</p>
+            <p className="text-xs text-muted-foreground mt-2">{t('properties.wizard.images.limits')}</p>
           </div>
         )}
 
         {/* Virtual Tour */}
         <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4">Tour Virtual (Opcional)</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('properties.wizard.images.virtualTour')}</h3>
           <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
             <Play className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground mb-4">
-              Sube un video o enlace de tour virtual 360°
+              {t('properties.wizard.images.virtualTourHint')}
             </p>
             <Button variant="outline">
               <Upload className="h-4 w-4 mr-2" />
-              Subir Tour Virtual
+              {t('properties.wizard.images.uploadVirtualTour')}
             </Button>
           </div>
         </div>

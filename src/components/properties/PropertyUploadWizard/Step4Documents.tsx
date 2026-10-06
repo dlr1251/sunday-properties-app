@@ -1,142 +1,97 @@
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Upload, FileText, AlertCircle, CheckCircle, Loader2, Eye, Download } from 'lucide-react';
-import { documentAnalysisService, DocumentData } from '../../../services/documentAnalysis';
+import { Upload, FileText, CheckCircle, Loader2, Zap } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface UploadedDocs {
   [key: string]: { path: string; file: File };
-}
-
-interface AnalyzedDocs {
-  [key: string]: DocumentData;
 }
 
 interface Step4DocumentsProps {
   uploadedDocs: UploadedDocs;
   submitting: boolean;
   onDocUpload: (docType: string, file: File) => void;
-  onDocumentAnalyzed?: (docType: string, data: DocumentData) => void;
 }
 
-// Helper function to download an image
-const downloadImage = (base64DataUrl: string, filename: string) => {
-  try {
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = base64DataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (error) {
-    console.error('Error downloading image:', error);
-  }
+// PDFs de prueba en public/ai_food (ejecutar: node scripts/copy-ai-food-to-public.mjs)
+const SAMPLE_DOCS: Record<string, string> = {
+  clyt: '/ai_food/CLYT_APTO_POBLADO_MI_001-1429919_17_OCT_2025_ANGELA_LAMBARRI.pdf',
+  escritura: '/ai_food/EP_COMPRAVENTA_ZOCALO_04_FEB_2013_DOLF_ANDRINGA.pdf',
+  cedula: '/ai_food/CC_JOSEFINA_GOMEZ_DOLF_ANDRINGA.pdf',
 };
 
 export const Step4Documents: React.FC<Step4DocumentsProps> = ({
   uploadedDocs,
   submitting,
   onDocUpload,
-  onDocumentAnalyzed,
 }) => {
-  const [analyzingDocs, setAnalyzingDocs] = useState<Set<string>>(new Set());
-  const [analyzedDocs, setAnalyzedDocs] = useState<AnalyzedDocs>({});
-  const [testingVision, setTestingVision] = useState(false);
+  const { t } = useTranslation();
+  const [loadingSampleDocs, setLoadingSampleDocs] = useState(false);
 
-  console.log('📄 Step4Documents rendering with docs:', uploadedDocs);
-
-  const testVisionCapabilities = useCallback(async () => {
-    setTestingVision(true);
-    try {
-      console.log('🧪 Testing Grok vision capabilities...');
-      const result = await documentAnalysisService.testVisionCapabilities();
-      console.log('✅ Vision test result:', result);
-      alert('Vision test completed! Check console for results.');
-    } catch (error) {
-      console.error('❌ Vision test failed:', error);
-      alert('Vision test failed! Check console for details.');
-    } finally {
-      setTestingVision(false);
-    }
-  }, []);
-
-  const handleFileUpload = useCallback(async (docType: string, file: File) => {
-    console.log(`📎 Uploading ${docType}:`, file.name);
+  const handleFileUpload = useCallback((docType: string, file: File) => {
     onDocUpload(docType, file);
+  }, [onDocUpload]);
 
-    // Start analysis immediately after upload
-    setAnalyzingDocs(prev => new Set(prev).add(docType));
-
+  const loadSampleDocs = useCallback(async () => {
+    setLoadingSampleDocs(true);
     try {
-      console.log(`🤖 Starting AI analysis for ${docType}...`);
-      const analysisResult = await documentAnalysisService.analyzeDocument(
-        docType as 'clyt' | 'escritura' | 'cedula',
-        file
-      );
-
-      setAnalyzedDocs(prev => ({
-        ...prev,
-        [docType]: analysisResult
-      }));
-
-      // Notify parent component
-      onDocumentAnalyzed?.(docType, analysisResult);
-
-      console.log(`✅ Analysis complete for ${docType}:`, analysisResult);
-    } catch (error) {
-      console.error(`❌ Analysis failed for ${docType}:`, error);
+      for (const [docType, url] of Object.entries(SAMPLE_DOCS)) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(t('properties.wizard.documents.sampleMissing', { url }));
+        const blob = await res.blob();
+        const filename = url.split('/').pop() || `${docType}.pdf`;
+        const file = new File([blob], filename, { type: 'application/pdf' });
+        onDocUpload(docType, file);
+      }
+      toast.success(t('properties.wizard.documents.sampleLoaded'));
+    } catch (err: any) {
+      console.error('Error loading sample docs:', err);
+      toast.error(err.message || t('properties.wizard.documents.sampleError'));
     } finally {
-      setAnalyzingDocs(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(docType);
-        return newSet;
-      });
+      setLoadingSampleDocs(false);
     }
-  }, [onDocUpload, onDocumentAnalyzed]);
+  }, [onDocUpload, t]);
 
   const handleFileChange = useCallback((docType: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(docType, file);
-    }
+    if (file) handleFileUpload(docType, file);
   }, [handleFileUpload]);
+
+  const allSamplesLoaded = Object.keys(SAMPLE_DOCS).every((k) => uploadedDocs[k]);
 
   const getDocumentLabel = (docType: string) => {
     switch (docType) {
-      case 'clyt': return 'Libertad y Tradición *';
-      case 'escritura': return 'Escrituras Públicas';
-      case 'cedula': return 'Cédula del Propietario';
+      case 'clyt': return t('properties.wizard.documents.clyt');
+      case 'escritura': return t('properties.wizard.documents.escritura');
+      case 'cedula': return t('properties.wizard.documents.cedula');
       default: return docType.toUpperCase();
     }
   };
-
-  const isAnalyzing = (docType: string) => analyzingDocs.has(docType);
-  const isAnalyzed = (docType: string) => !!analyzedDocs[docType];
 
   return (
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Documentos Legales</h3>
+          <h3 className="text-lg font-semibold">{t('properties.wizard.documents.title')}</h3>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={testVisionCapabilities}
-            disabled={testingVision}
+            onClick={loadSampleDocs}
+            disabled={loadingSampleDocs || allSamplesLoaded}
             className="text-xs"
           >
-            {testingVision ? (
+            {loadingSampleDocs ? (
               <>
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                Probando...
+                {t('common.loading')}
               </>
             ) : (
               <>
-                <Eye className="h-3 w-3 mr-1" />
-                Probar IA
+                <Zap className="h-3 w-3 mr-1" />
+                {t('properties.wizard.documents.useSample')}
               </>
             )}
           </Button>
@@ -149,20 +104,11 @@ export const Step4Documents: React.FC<Step4DocumentsProps> = ({
                 <Label htmlFor={docType} className="text-sm font-medium">
                   {getDocumentLabel(docType)}
                 </Label>
-                <div className="flex items-center gap-2">
-                  {isAnalyzing(docType) && (
-                    <Badge variant="secondary" className="text-xs">
-                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      Analizando...
-                    </Badge>
-                  )}
-                  {isAnalyzed(docType) && !isAnalyzing(docType) && (
-                    <Badge variant="default" className="text-xs bg-green-600">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Analizado
-                    </Badge>
-                  )}
-                </div>
+                {uploadedDocs[docType] && (
+                  <span className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" /> {t('properties.wizard.documents.uploaded')}
+                  </span>
+                )}
               </div>
 
               <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
@@ -171,9 +117,7 @@ export const Step4Documents: React.FC<Step4DocumentsProps> = ({
                   : 'border-muted-foreground/25'
               }`}>
                 <div className="flex items-center justify-center mb-2">
-                  {isAnalyzing(docType) ? (
-                    <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-                  ) : isAnalyzed(docType) ? (
+                  {uploadedDocs[docType] ? (
                     <CheckCircle className="h-8 w-8 text-green-500" />
                   ) : (
                     <FileText className="h-8 w-8 text-muted-foreground" />
@@ -183,7 +127,7 @@ export const Step4Documents: React.FC<Step4DocumentsProps> = ({
                 <p className="text-sm mb-4">
                   {uploadedDocs[docType]
                     ? `✅ ${uploadedDocs[docType].file.name}`
-                    : `Sube el documento de ${docType.toUpperCase()}`
+                    : t('properties.wizard.documents.uploadDocType', { type: docType.toUpperCase() })
                   }
                 </p>
 
@@ -193,122 +137,16 @@ export const Step4Documents: React.FC<Step4DocumentsProps> = ({
                   className="hidden"
                   id={docType}
                   onChange={handleFileChange(docType)}
-                  disabled={isAnalyzing(docType)}
                 />
-                <Button asChild disabled={submitting || isAnalyzing(docType)}>
+                <Button asChild disabled={submitting}>
                   <label htmlFor={docType} className="cursor-pointer">
                     <Upload className="h-4 w-4 mr-2" />
-                    {uploadedDocs[docType] ? 'Cambiar' : 'Subir Documento'}
+                    {uploadedDocs[docType] ? t('properties.wizard.documents.change') : t('properties.wizard.documents.uploadDocument')}
                   </label>
                 </Button>
               </div>
-
-              {/* Mostrar datos extraídos */}
-              {isAnalyzed(docType) && analyzedDocs[docType] && (
-                <Card className="p-4 bg-blue-50 border-blue-200">
-                  <div className="flex items-start gap-3">
-                    <Eye className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-blue-900 text-sm">
-                          Datos Extraídos por IA
-                        </h4>
-                        {analyzedDocs[docType].processedImages && analyzedDocs[docType].processedImages.length > 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              analyzedDocs[docType].processedImages?.forEach((img, idx) => {
-                                downloadImage(img, `${docType}-page-${idx + 1}.jpg`);
-                              });
-                            }}
-                            className="text-xs"
-                          >
-                            <Download className="h-3 w-3 mr-1" />
-                            Descargar Imágenes Procesadas
-                          </Button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-1 gap-1 text-xs">
-                        {Object.entries(analyzedDocs[docType].extractedData)
-                          .filter(([key, value]) => value !== undefined && value !== null && value !== '')
-                          .map(([key, value]) => (
-                            <div key={key} className="flex justify-between">
-                              <span className="text-blue-700 capitalize">
-                                {key.replace(/([A-Z])/g, ' $1').toLowerCase()}:
-                              </span>
-                              <span className="text-blue-900 font-medium">
-                                {typeof value === 'number' && key.includes('area')
-                                  ? `${value} m²`
-                                  : typeof value === 'number' && key.includes('Value')
-                                  ? `$${value.toLocaleString()}`
-                                  : key === 'annotations' && Array.isArray(value)
-                                  ? `${value.length} anotación(es)`
-                                  : typeof value === 'object' && value !== null
-                                  ? JSON.stringify(value, null, 2)
-                                  : String(value)
-                                }
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                      
-                      {/* Show annotations separately if they exist */}
-                      {analyzedDocs[docType].extractedData.annotations && 
-                       Array.isArray(analyzedDocs[docType].extractedData.annotations) &&
-                       analyzedDocs[docType].extractedData.annotations.length > 0 && (
-                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded">
-                          <h5 className="font-medium text-green-900 text-xs mb-2">
-                            Anotaciones Encontradas ({analyzedDocs[docType].extractedData.annotations.length})
-                          </h5>
-                          <div className="space-y-1 text-xs">
-                            {analyzedDocs[docType].extractedData.annotations.map((annotation: any, idx: number) => (
-                              <div key={idx} className="p-2 bg-white border border-green-200 rounded">
-                                {Object.entries(annotation).map(([key, value]) => (
-                                  <div key={key} className="flex justify-between">
-                                    <span className="text-green-700 capitalize">
-                                      {key.replace(/([A-Z])/g, ' $1').toLowerCase()}:
-                                    </span>
-                                    <span className="text-green-900 font-medium">
-                                      {String(value)}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {analyzedDocs[docType].warnings.length > 0 && (
-                        <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs">
-                          <strong className="text-yellow-800">Advertencias:</strong>
-                          <ul className="text-yellow-700 mt-1">
-                            {analyzedDocs[docType].warnings.map((warning, idx) => (
-                              <li key={idx}>• {warning}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              )}
             </div>
           ))}
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-blue-900">Extracción Automática de Datos</h4>
-                <p className="text-blue-700 text-sm mt-1">
-                  Nuestro sistema extraerá automáticamente la información legal del documento para acelerar el proceso.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

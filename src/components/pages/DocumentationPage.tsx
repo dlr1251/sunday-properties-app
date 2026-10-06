@@ -112,7 +112,7 @@ Una plataforma inmobiliaria moderna y completa para Medellín, construida con Re
 ### Opción 1: Setup Automático (Recomendado)
 \`\`\`bash
 # Ejecutar script de configuración completa
-./setup-complete.sh
+./scripts/setup/setup-complete.sh
 \`\`\`
 
 ### Opción 2: Setup Manual
@@ -154,7 +154,7 @@ supabase link --project-ref YOUR_PROJECT_REF
 #### 4. Variables de Entorno
 \`\`\`bash
 # Copiar archivo de ejemplo
-cp env.example .env.local
+cp .env.example .env.local
 
 # Configurar variables requeridas
 VITE_SUPABASE_URL=https://your-project.supabase.co

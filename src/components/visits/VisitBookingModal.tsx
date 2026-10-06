@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -18,8 +19,9 @@ import {
 import { useVisitAvailability } from '../../hooks/useVisitAvailability';
 import { supabase } from '../../lib/supabase';
 import { useVisits } from '../../hooks/useVisits';
-import { format, addDays, isSameDay, parse } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { format, addDays, isSameDay } from 'date-fns';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
+import { formatCurrency } from '../../utils/format';
 
 interface VisitBookingModalProps {
   isOpen: boolean;
@@ -30,8 +32,6 @@ interface VisitBookingModalProps {
   visitPrice?: number;
 }
 
-const DAYS_OF_WEEK = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
 export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
   isOpen,
   onClose,
@@ -40,6 +40,8 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
   propertyAddress,
   visitPrice = 49000
 }) => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const { availability, blockedDates, fetchAvailability, fetchBlockedDates } = useVisitAvailability(propertyId);
   const { createVisitRequest } = useVisits();
 
@@ -164,7 +166,7 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Agendar Visita</DialogTitle>
+          <DialogTitle>{t('visits.schedule')}</DialogTitle>
           <DialogDescription>
             {propertyTitle} - {propertyAddress}
           </DialogDescription>
@@ -175,7 +177,7 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Esta propiedad no tiene horarios de visita configurados. Por favor contacta al propietario.
+                {t('visits.noAvailability')}
               </AlertDescription>
             </Alert>
           ) : (
@@ -184,27 +186,23 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
               <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
-                  <span className="font-semibold">Costo de la visita:</span>
+                  <span className="font-semibold">{t('visits.visitCost')}</span>
                 </div>
                 <span className="text-lg font-bold">
-                  {new Intl.NumberFormat('es-CO', {
-                    style: 'currency',
-                    currency: 'COP',
-                    minimumFractionDigits: 0
-                  }).format(visitPrice)}
+                  {formatCurrency(visitPrice)}
                 </span>
               </div>
 
               {/* Available Days Info */}
               <div className="space-y-2">
-                <Label>Días Disponibles</Label>
+                <Label>{t('visits.availableDays')}</Label>
                 <div className="flex flex-wrap gap-2">
                   {availability
                     .filter(a => a.is_active)
                     .sort((a, b) => a.day_of_week - b.day_of_week)
                     .map((slot) => (
                       <Badge key={slot.id} variant="outline">
-                        {DAYS_OF_WEEK[slot.day_of_week]}: {slot.start_time} - {slot.end_time}
+                        {format(new Date(2023, 0, 1 + slot.day_of_week), 'EEEE', { locale: dateLocale })}: {slot.start_time} - {slot.end_time}
                       </Badge>
                     ))}
                 </div>
@@ -212,12 +210,12 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
 
               {/* Date Selection */}
               <div className="space-y-2">
-                <Label>Selecciona una Fecha</Label>
+                <Label>{t('visits.selectADate')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start">
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, 'PPP', { locale: es }) : 'Seleccionar fecha'}
+                      {selectedDate ? format(selectedDate, 'PPP', { locale: dateLocale }) : t('visits.selectDate')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -225,7 +223,7 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      locale={es}
+                      locale={dateLocale}
                       disabled={(date) => !isDateAvailable(date)}
                       initialFocus
                     />
@@ -236,7 +234,7 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
               {/* Time Selection */}
               {selectedDate && availableTimes.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Selecciona una Hora</Label>
+                  <Label>{t('visits.selectATime')}</Label>
                   <div className="grid grid-cols-4 gap-2">
                     {availableTimes.map((time) => (
                       <Button
@@ -257,7 +255,7 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    No hay horarios disponibles para la fecha seleccionada.
+                    {t('visits.noTimesForDate')}
                   </AlertDescription>
                 </Alert>
               )}
@@ -268,11 +266,9 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
                   <div className="flex items-start gap-3">
                     <FileText className="h-5 w-5 mt-0.5 text-muted-foreground" />
                     <div className="space-y-2 flex-1">
-                      <h4 className="font-semibold">Acuerdo de Confidencialidad (NDA)</h4>
+                      <h4 className="font-semibold">{t('visits.ndaTitle')}</h4>
                       <p className="text-sm text-muted-foreground">
-                        Al agendar esta visita, acepto mantener la confidencialidad de toda la información
-                        que obtenga sobre la propiedad, incluyendo pero no limitado a: precio, condiciones,
-                        documentos legales y cualquier detalle compartido por el propietario.
+                        {t('visits.ndaBody')}
                       </p>
                       <div className="flex items-center space-x-2">
                         <Checkbox
@@ -284,7 +280,7 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
                           htmlFor="nda"
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          Acepto el acuerdo de confidencialidad
+                          {t('visits.ndaAccept')}
                         </label>
                       </div>
                     </div>
@@ -297,15 +293,11 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
                 <Alert>
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Resumen de tu visita:</strong>
+                    <strong>{t('visits.summaryTitle')}</strong>
                     <br />
-                    Fecha: {format(selectedDate, 'PPP', { locale: es })} a las {selectedTime}
+                    {t('visits.summaryDate', { date: format(selectedDate, 'PPP', { locale: dateLocale }), time: selectedTime })}
                     <br />
-                    Costo: {new Intl.NumberFormat('es-CO', {
-                      style: 'currency',
-                      currency: 'COP',
-                      minimumFractionDigits: 0
-                    }).format(visitPrice)}
+                    {t('visits.summaryCost', { amount: formatCurrency(visitPrice) })}
                   </AlertDescription>
                 </Alert>
               )}
@@ -315,13 +307,13 @@ export const VisitBookingModal: React.FC<VisitBookingModalProps> = ({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleBookVisit}
             disabled={!selectedDate || !selectedTime || !ndaAccepted || loading || !hasAvailability}
           >
-            {loading ? 'Agendando...' : 'Confirmar Visita'}
+            {loading ? t('visits.booking') : t('visits.confirmVisit')}
           </Button>
         </DialogFooter>
       </DialogContent>

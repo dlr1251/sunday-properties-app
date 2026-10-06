@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
 import { ApprovalChecklist } from '../admin/ApprovalChecklist';
+import { formatCurrency, formatDate, formatDateTime } from '../../utils/format';
 
 interface Property {
   id: string;
@@ -50,6 +52,7 @@ interface PropertyApprovalPanelProps {
 export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
   isDarkMode = true
 }) => {
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -84,7 +87,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
 
       if (error) {
         console.error('Error fetching properties:', error);
-        toast.error('Error al cargar propiedades');
+        toast.error(t('admin.loadPropertiesToast'));
         return;
       }
 
@@ -96,7 +99,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
       setProperties(formattedProperties);
     } catch (err) {
       console.error('Error:', err);
-      toast.error('Error inesperado al cargar propiedades');
+      toast.error(t('admin.unexpectedLoadProperties'));
     } finally {
       setLoading(false);
     }
@@ -115,13 +118,13 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="warning" className="dark:bg-yellow-900 dark:text-yellow-100">Pendiente</Badge>;
+        return <Badge variant="warning" className="dark:bg-yellow-900 dark:text-yellow-100">{t('admin.status.pending')}</Badge>;
       case 'published':
-        return <Badge variant="success" className="dark:bg-green-900 dark:text-green-100">Publicado</Badge>;
+        return <Badge variant="success" className="dark:bg-green-900 dark:text-green-100">{t('admin.status.published')}</Badge>;
       case 'rejected':
-        return <Badge variant="destructive" className="dark:bg-red-900 dark:text-red-100">Rechazado</Badge>;
+        return <Badge variant="destructive" className="dark:bg-red-900 dark:text-red-100">{t('admin.rejected')}</Badge>;
       default:
-        return <Badge variant="secondary">Desconocido</Badge>;
+        return <Badge variant="secondary">{t('common.unknown')}</Badge>;
     }
   };
 
@@ -137,24 +140,24 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
 
       if (error) {
         console.error('Error approving property:', error);
-        toast.error('Error al aprobar la propiedad');
+        toast.error(t('admin.approvePropertyError'));
         return;
       }
 
-      toast.success('Propiedad aprobada y publicada');
+      toast.success(t('admin.propertyApprovedPublished'));
       setShowDetailsDialog(false);
       setSelectedProperty(null);
       setReviewNotes('');
       fetchProperties();
     } catch (err) {
       console.error('Error:', err);
-      toast.error('Error inesperado al aprobar');
+      toast.error(t('admin.unexpectedApprove'));
     }
   };
 
   const handleReject = async (propertyId: string) => {
     if (!reviewNotes.trim()) {
-      toast.error('Debe proporcionar una razón para el rechazo');
+      toast.error(t('admin.rejectReasonRequired'));
       return;
     }
 
@@ -168,29 +171,21 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
 
       if (error) {
         console.error('Error rejecting property:', error);
-        toast.error('Error al rechazar la propiedad');
+        toast.error(t('admin.rejectPropertyError'));
         return;
       }
 
       // TODO: Send notification to property owner with rejection reason
 
-      toast.success('Propiedad rechazada');
+      toast.success(t('admin.propertyRejected'));
       setShowDetailsDialog(false);
       setSelectedProperty(null);
       setReviewNotes('');
       fetchProperties();
     } catch (err) {
       console.error('Error:', err);
-      toast.error('Error inesperado al rechazar');
+      toast.error(t('admin.unexpectedRejectRequest'));
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   const stats = {
@@ -207,7 +202,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           </div>
-          <p className={`text-center mt-4 ${textPrimary}`}>Cargando propiedades...</p>
+          <p className={`text-center mt-4 ${textPrimary}`}>{t('admin.loadingProperties')}</p>
         </CardContent>
       </Card>
     );
@@ -218,8 +213,8 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
       {/* Header */}
       <Card className={cardClasses}>
         <CardHeader>
-          <CardTitle className={textPrimary}>Panel de Aprobación de Propiedades</CardTitle>
-          <p className={textSecondary}>Revisa y aprueba las propiedades enviadas por los usuarios</p>
+          <CardTitle className={textPrimary}>{t('admin.propertyApprovalTitle')}</CardTitle>
+          <p className={textSecondary}>{t('admin.propertyApprovalDescription')}</p>
         </CardHeader>
       </Card>
 
@@ -229,7 +224,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${textSecondary}`}>Total</p>
+                <p className={`text-sm ${textSecondary}`}>{t('admin.total')}</p>
                 <p className={`text-2xl font-bold ${textPrimary}`}>{stats.total}</p>
               </div>
               <FileText className={`h-8 w-8 ${textSecondary}`} />
@@ -241,7 +236,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${textSecondary}`}>Pendientes</p>
+                <p className={`text-sm ${textSecondary}`}>{t('admin.pendingPlural')}</p>
                 <p className={`text-2xl font-bold ${textPrimary}`}>{stats.pending}</p>
               </div>
               <AlertCircle className="h-8 w-8 text-yellow-500" />
@@ -265,7 +260,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`text-sm ${textSecondary}`}>Rechazadas</p>
+                <p className={`text-sm ${textSecondary}`}>{t('admin.rejectedPlural')}</p>
                 <p className={`text-2xl font-bold ${textPrimary}`}>{stats.rejected}</p>
               </div>
               <XCircle className="h-8 w-8 text-red-500" />
@@ -282,7 +277,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${textSecondary}`} />
               <input
                 type="text"
-                placeholder="Buscar por título, propietario o email..."
+                placeholder={t('admin.searchByTitleOwnerEmail')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-md border ${inputClasses}`}
@@ -296,10 +291,10 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                 onChange={(e) => setFilterStatus(e.target.value as any)}
                 className={`px-3 py-2 rounded-md border ${inputClasses}`}
               >
-                <option value="all">Todas</option>
-                <option value="pending">Pendientes</option>
-                <option value="published">Aprobadas</option>
-                <option value="rejected">Rechazadas</option>
+                <option value="all">{t('common.all')}</option>
+                <option value="pending">{t('admin.pendingPlural')}</option>
+                <option value="published">{t('admin.approvedPlural')}</option>
+                <option value="rejected">{t('admin.rejectedPlural')}</option>
               </select>
 
               <Button
@@ -308,7 +303,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                 className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Actualizar
+                {t('common.refresh')}
               </Button>
             </div>
           </div>
@@ -329,7 +324,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                     <div className="flex items-center gap-3">
                       <div>
                         <h3 className={`font-semibold ${textPrimary}`}>{property.title}</h3>
-                        <p className={`text-sm ${textSecondary}`}>{property.owner_profile?.full_name || 'Propietario desconocido'}</p>
+                        <p className={`text-sm ${textSecondary}`}>{property.owner_profile?.full_name || t('common.unnamed')}</p>
                         <p className={`text-sm ${textSecondary}`}>{property.owner_profile?.email}</p>
                       </div>
                       {getStatusBadge(property.status)}
@@ -346,11 +341,11 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                       </div>
                       <div className="flex items-center">
                         <ImageIcon className="w-4 h-4 mr-1" />
-                        {property.images?.length || 0} fotos
+                        {t('admin.photosCount', { count: property.images?.length || 0 })}
                       </div>
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(property.created_at).toLocaleDateString('es-CO')}
+                        {formatDate(property.created_at)}
                       </div>
                     </div>
                   </div>
@@ -366,7 +361,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                       className={isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''}
                     >
                       <Eye className="w-4 h-4 mr-1" />
-                      Revisar
+                      {t('admin.review')}
                     </Button>
                   </div>
                 </div>
@@ -376,7 +371,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
             {filteredProperties.length === 0 && (
               <div className="text-center py-8">
                 <FileText className={`w-12 h-12 mx-auto mb-4 ${textSecondary}`} />
-                <p className={textPrimary}>No hay propiedades que coincidan con los filtros</p>
+                <p className={textPrimary}>{t('admin.noMatchingProperties')}</p>
               </div>
             )}
           </div>
@@ -389,42 +384,42 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
           <DialogContent className={isDarkMode ? 'bg-gray-800 border-gray-700 max-w-4xl max-h-[90vh] overflow-y-auto' : 'max-w-4xl max-h-[90vh] overflow-y-auto'}>
             <DialogHeader>
               <DialogTitle className={textPrimary}>
-                Revisar Propiedad: {selectedProperty.title}
+                {t('admin.review')}: {selectedProperty.title}
               </DialogTitle>
             </DialogHeader>
 
             <div className="space-y-6">
               {/* Property Info */}
               <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <h3 className={`font-semibold mb-3 ${textPrimary}`}>Información de la Propiedad</h3>
+                <h3 className={`font-semibold mb-3 ${textPrimary}`}>{t('admin.propertyDetails')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p><span className={textSecondary}>Título:</span> {selectedProperty.title}</p>
-                    <p><span className={textSecondary}>Dirección:</span> {selectedProperty.address}</p>
-                    <p><span className={textSecondary}>Ciudad:</span> {selectedProperty.city}</p>
-                    <p><span className={textSecondary}>Precio:</span> {formatCurrency(selectedProperty.price)}</p>
+                    <p><span className={textSecondary}>{t('admin.recordTitle')}:</span> {selectedProperty.title}</p>
+                    <p><span className={textSecondary}>{t('admin.address')}:</span> {selectedProperty.address}</p>
+                    <p><span className={textSecondary}>{t('admin.city')}:</span> {selectedProperty.city}</p>
+                    <p><span className={textSecondary}>{t('lawyer.price')}</span> {formatCurrency(selectedProperty.price)}</p>
                   </div>
                   <div>
-                    <p><span className={textSecondary}>Propietario:</span> {selectedProperty.owner_profile?.full_name || 'N/A'}</p>
-                    <p><span className={textSecondary}>Email:</span> {selectedProperty.owner_profile?.email || 'N/A'}</p>
-                    <p><span className={textSecondary}>Fecha de envío:</span> {new Date(selectedProperty.created_at).toLocaleString('es-CO')}</p>
-                    <p><span className={textSecondary}>Estado:</span> {getStatusBadge(selectedProperty.status)}</p>
+                    <p><span className={textSecondary}>{t('admin.owner')}:</span> {selectedProperty.owner_profile?.full_name || t('common.notAvailable')}</p>
+                    <p><span className={textSecondary}>Email:</span> {selectedProperty.owner_profile?.email || t('common.notAvailable')}</p>
+                    <p><span className={textSecondary}>{t('admin.requestDate')}:</span> {formatDateTime(selectedProperty.created_at)}</p>
+                    <p><span className={textSecondary}>{t('admin.reviewStatus')}:</span> {getStatusBadge(selectedProperty.status)}</p>
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className={textSecondary}>Descripción:</p>
+                  <p className={textSecondary}>{t('admin.description')}:</p>
                   <p className={`mt-1 ${textPrimary}`}>{selectedProperty.description}</p>
                 </div>
               </div>
 
               {/* Media */}
               <div>
-                <h3 className={`font-semibold mb-3 ${textPrimary}`}>Multimedia</h3>
+                <h3 className={`font-semibold mb-3 ${textPrimary}`}>{t('admin.mediaSection')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={`p-3 rounded-lg border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
                     <div className="flex items-center mb-2">
                       <ImageIcon className={`w-5 h-5 mr-2 ${textSecondary}`} />
-                      <span className={`text-sm ${textPrimary}`}>Fotos ({selectedProperty.images?.length || 0})</span>
+                      <span className={`text-sm ${textPrimary}`}>{t('admin.photosCount', { count: selectedProperty.images?.length || 0 })}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       {selectedProperty.images?.slice(0, 6).map((image, index) => (
@@ -445,7 +440,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                   <div className={`p-3 rounded-lg border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
                     <div className="flex items-center mb-2">
                       <FileText className={`w-5 h-5 mr-2 ${textSecondary}`} />
-                      <span className={`text-sm ${textPrimary}`}>Documentos Legales ({selectedProperty.legal_documents?.length || 0})</span>
+                      <span className={`text-sm ${textPrimary}`}>{t('admin.legalDocuments')} ({selectedProperty.legal_documents?.length || 0})</span>
                     </div>
                     <div className="space-y-2">
                       {selectedProperty.legal_documents?.map((doc, index) => (
@@ -455,7 +450,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                         </div>
                       ))}
                       {(!selectedProperty.legal_documents || selectedProperty.legal_documents.length === 0) && (
-                        <p className={`text-sm ${textSecondary}`}>No hay documentos legales</p>
+                        <p className={`text-sm ${textSecondary}`}>{t('admin.noLegalDocuments')}</p>
                       )}
                     </div>
                   </div>
@@ -465,14 +460,14 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
                   <div className={`p-3 rounded-lg border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} mt-4`}>
                     <div className="flex items-center">
                       <Video className={`w-5 h-5 mr-2 ${textSecondary}`} />
-                      <span className={`text-sm ${textPrimary}`}>Tour Virtual: </span>
+                      <span className={`text-sm ${textPrimary}`}>{t('admin.virtualTour')}: </span>
                       <a
                         href={selectedProperty.virtual_tour}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:text-blue-600 ml-2"
                       >
-                        Ver Tour
+                        {t('admin.viewTour')}
                       </a>
                     </div>
                   </div>
@@ -497,7 +492,7 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
 
               {selectedProperty.status !== 'pending' && (
                 <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                  <h3 className={`font-semibold mb-2 ${textPrimary}`}>Estado de la Revisión</h3>
+                  <h3 className={`font-semibold mb-2 ${textPrimary}`}>{t('admin.reviewStatus')}</h3>
                   <div className="flex items-center gap-2 mb-2">
                     {getStatusBadge(selectedProperty.status)}
                   </div>

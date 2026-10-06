@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { GoogleMap } from '@react-google-maps/api';
@@ -26,6 +27,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   onLocationSelect,
   address,
 }) => {
+  const { t } = useTranslation();
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(
     initialCoordinates || null
@@ -86,7 +88,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         map,
         position: newLocation,
         content: pinElement.element,
-        title: 'Ubicación seleccionada',
+        title: t('properties.maps.selectedLocation'),
       });
 
       setMarker(newMarker);
@@ -101,7 +103,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         });
       }
     }
-  }, [map, marker]);
+  }, [map, marker, t]);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim() || !map || !google.maps?.Geocoder) return;
@@ -142,14 +144,14 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             map,
             position: newLocation,
             content: pinElement.element,
-            title: 'Ubicación seleccionada',
+            title: t('properties.maps.selectedLocation'),
           });
 
           setMarker(newMarker);
         }
       }
     });
-  }, [searchQuery, map, marker]);
+  }, [searchQuery, map, marker, t]);
 
   const handleConfirm = useCallback(() => {
     if (selectedLocation && isValidCoordinates(selectedLocation)) {
@@ -174,14 +176,14 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         map,
         position: initialCoordinates,
         content: pinElement.element,
-        title: 'Ubicación seleccionada',
+        title: t('properties.maps.selectedLocation'),
       });
 
       setMarker(newMarker);
       map.setCenter(initialCoordinates);
       map.setZoom(15);
     }
-  }, [map, isLoaded, initialCoordinates]);
+  }, [map, isLoaded, initialCoordinates, t]);
 
   // Cleanup marker on unmount
   useEffect(() => {
@@ -210,7 +212,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Seleccionar Ubicación en el Mapa
+            {t('properties.maps.selectLocation')}
           </DialogTitle>
         </DialogHeader>
 
@@ -218,7 +220,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           {/* Search Bar */}
           <div className="flex gap-2">
             <div className="flex-1">
-              <Label htmlFor="address-search">Buscar dirección</Label>
+              <Label htmlFor="address-search">{t('properties.maps.searchAddress')}</Label>
               <Input
                 id="address-search"
                 value={searchQuery}
@@ -228,7 +230,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                     handleSearch();
                   }
                 }}
-                placeholder="Buscar dirección o lugar..."
+                placeholder={t('properties.maps.searchAddressPlaceholder')}
               />
             </div>
             <div className="flex items-end">
@@ -239,10 +241,10 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 {isGeocoding ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Buscando...
+                    {t('common.searching')}
                   </>
                 ) : (
-                  'Buscar'
+                  t('common.search')
                 )}
               </Button>
             </div>
@@ -255,7 +257,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Google Maps no está configurado. Por favor, configura VITE_MAPS_API_KEY en tu archivo .env
+                    {t('properties.maps.notConfiguredAlert')}
                   </AlertDescription>
                 </Alert>
               </div>
@@ -263,7 +265,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
                   <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Cargando mapa...</p>
+                  <p className="text-sm text-muted-foreground">{t('properties.maps.loading')}</p>
                 </div>
               </div>
             ) : loadError ? (
@@ -292,7 +294,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1">Coordenadas seleccionadas</Label>
+                  <Label className="text-xs text-muted-foreground mb-1">{t('properties.maps.selectedCoordinates')}</Label>
                   <p className="font-mono text-sm">
                     Lat: {selectedLocation.lat.toFixed(6)}, Lng: {selectedLocation.lng.toFixed(6)}
                   </p>
@@ -311,7 +313,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           <Alert>
             <MapPin className="h-4 w-4" />
             <AlertDescription>
-              Haz clic en el mapa para seleccionar la ubicación exacta, o busca una dirección en el campo de búsqueda.
+              {t('properties.maps.pickerHint')}
             </AlertDescription>
           </Alert>
         </div>
@@ -319,11 +321,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             <X className="h-4 w-4 mr-2" />
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleConfirm} disabled={!canConfirm}>
             <Check className="h-4 w-4 mr-2" />
-            Confirmar Ubicación
+            {t('properties.maps.confirmLocation')}
           </Button>
         </DialogFooter>
       </DialogContent>

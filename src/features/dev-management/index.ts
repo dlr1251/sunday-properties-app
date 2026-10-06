@@ -1,0 +1,14 @@
+export { DevManagementPanel } from './DevManagementPanel';
+export { devManagementConfig } from './config/devManagementConfig';
+export { ModulesOverview } from './components/ModulesOverview';
+export { TaskBoard } from './components/TaskBoard';
+export { PromptBuilder } from './components/PromptBuilder';
+export { ProjectAnalyzer } from './components/ProjectAnalyzer';
+export { AutomationPanel } from './components/AutomationPanel';
+export { CreateTaskDialog } from './dialogs/CreateTaskDialog';
+export { EditTaskDialog } from './dialogs/EditTaskDialog';
+export { PromptPreviewDialog } from './dialogs/PromptPreviewDialog';
+export * from './types';
+export * from './hooks/useTaskManagement';
+export * from './hooks/usePromptGenerator';
+export * from './hooks/useProjectAnalysis';

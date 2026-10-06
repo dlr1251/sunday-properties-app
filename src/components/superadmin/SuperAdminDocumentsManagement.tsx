@@ -6,11 +6,12 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { FileText, Search, Download, Eye, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '../../utils/format';
 import { ResourceDetailDialog } from './ResourceDetailDialog';
 
 export function SuperAdminDocumentsManagement() {
+  const { t } = useTranslation();
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,14 +51,14 @@ export function SuperAdminDocumentsManagement() {
 
       setDocuments(allDocs);
     } catch (error: any) {
-      toast.error('Error al cargar documentos: ' + error.message);
+      toast.error(t('admin.loadDocumentsErrorMessage', { message: error.message }));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteDocument = async (docId: string, type: string) => {
-    if (!confirm('¿Está seguro de eliminar este documento?')) return;
+    if (!confirm(t('admin.confirmDeleteDocument'))) return;
 
     try {
       const table = type === 'legal' ? 'legal_documents' : 'case_documents';
@@ -67,19 +68,19 @@ export function SuperAdminDocumentsManagement() {
         .eq('id', docId);
 
       if (error) throw error;
-      toast.success('Documento eliminado exitosamente');
+      toast.success(t('admin.documentDeleted'));
       fetchDocuments();
     } catch (error: any) {
-      toast.error('Error al eliminar documento: ' + error.message);
+      toast.error(t('admin.deleteDocumentError', { message: error.message }));
     }
   };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      signed: { label: 'Firmado', variant: 'default' as const },
-      draft: { label: 'Borrador', variant: 'outline' as const },
-      pending_signature: { label: 'Pendiente Firma', variant: 'secondary' as const },
-      completed: { label: 'Completado', variant: 'default' as const }
+      signed: { label: t('admin.status.signed'), variant: 'default' as const },
+      draft: { label: t('admin.status.draft'), variant: 'outline' as const },
+      pending_signature: { label: t('admin.status.pendingSignature'), variant: 'secondary' as const },
+      completed: { label: t('admin.status.completed'), variant: 'default' as const }
     };
     const config = variants[status] || { label: status, variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
@@ -93,9 +94,9 @@ export function SuperAdminDocumentsManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Gestión de Documentos</h2>
+        <h2 className="text-2xl font-bold">{t('admin.manageDocumentsTitle')}</h2>
         <p className="text-muted-foreground">
-          Ver y gestionar todos los documentos legales del sistema
+          {t('admin.manageDocumentsDescription')}
         </p>
       </div>
 
@@ -104,7 +105,7 @@ export function SuperAdminDocumentsManagement() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar documentos..."
+              placeholder={t('admin.searchDocumentsPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -115,8 +116,8 @@ export function SuperAdminDocumentsManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Documentos ({filteredDocuments.length})</CardTitle>
-          <CardDescription>Todos los documentos legales</CardDescription>
+          <CardTitle>{t('admin.documentsCountLabel', { count: filteredDocuments.length })}</CardTitle>
+          <CardDescription>{t('admin.documentsAllDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -126,19 +127,19 @@ export function SuperAdminDocumentsManagement() {
           ) : filteredDocuments.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron documentos</p>
+              <p className="text-muted-foreground">{t('admin.noDocumentsFound')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4">Título</th>
-                    <th className="text-left p-4">Tipo</th>
-                    <th className="text-left p-4">Versión</th>
-                    <th className="text-left p-4">Estado</th>
-                    <th className="text-left p-4">Creado</th>
-                    <th className="text-right p-4">Acciones</th>
+                    <th className="text-left p-4">{t('admin.recordTitle')}</th>
+                    <th className="text-left p-4">{t('properties.type')}</th>
+                    <th className="text-left p-4">{t('admin.version')}</th>
+                    <th className="text-left p-4">{t('properties.status')}</th>
+                    <th className="text-left p-4">{t('common.created')}</th>
+                    <th className="text-right p-4">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,7 +157,7 @@ export function SuperAdminDocumentsManagement() {
                       <td className="p-4">{doc.version || 1}</td>
                       <td className="p-4">{getStatusBadge(doc.status)}</td>
                       <td className="p-4 text-sm text-muted-foreground">
-                        {doc.created_at ? format(new Date(doc.created_at), 'dd/MM/yyyy', { locale: es }) : '-'}
+                        {doc.created_at ? formatDate(doc.created_at) : '-'}
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-end gap-2">

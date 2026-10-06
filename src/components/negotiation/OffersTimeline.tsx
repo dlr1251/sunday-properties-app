@@ -216,18 +216,18 @@ export const OffersTimeline: React.FC<OffersTimelineProps> = ({ negotiationId, c
   const negotiationStartDate = negotiationData?.created_at;
 
   return (
-    <section className={`bg-white border border-gray-200 rounded-xl shadow-sm p-4 lg:p-6 ${className ?? ''}`}>
+    <section className={`bg-card border border-border rounded-xl shadow-sm p-4 lg:p-6 ${className ?? ''}`}>
       <header className="mb-4">
         {negotiationLoading ? (
           <div className="animate-pulse">
-            <div className="h-7 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-7 bg-muted rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-gray-900">{propertyTitle}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{propertyTitle}</h1>
             {negotiationStartDate && (
-              <div className="mt-2 text-sm text-gray-600">
+              <div className="mt-2 text-sm text-muted-foreground">
                 <span>{formatDate(negotiationStartDate)}</span>
                 <span className="mx-2">•</span>
                 <span>{formatRelativeTime(negotiationStartDate)}</span>
@@ -235,15 +235,15 @@ export const OffersTimeline: React.FC<OffersTimelineProps> = ({ negotiationId, c
             )}
           </>
         )}
-        <h2 className="text-lg font-semibold text-gray-900 mt-4">Historial de ofertas</h2>
+        <h2 className="text-lg font-semibold text-foreground mt-4">Historial de ofertas</h2>
       </header>
       {canEdit && (
         <form onSubmit={handleSubmit} className="mb-4 flex items-end gap-2">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Nueva oferta (precio)</label>
+            <label className="block text-sm font-medium text-muted-foreground">Nueva oferta (precio)</label>
             <input
               type="number"
-              className="mt-1 block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-border focus:border-blue-500 focus:ring-blue-500"
               value={price}
               onChange={(e) => setPrice(Number(e.target.value || 0))}
               placeholder="350000000"
@@ -262,7 +262,7 @@ export const OffersTimeline: React.FC<OffersTimelineProps> = ({ negotiationId, c
         {loading && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="ml-2 text-sm text-gray-600">Cargando ofertas...</span>
+            <span className="ml-2 text-sm text-muted-foreground">Cargando ofertas...</span>
           </div>
         )}
         {error && (
@@ -273,36 +273,36 @@ export const OffersTimeline: React.FC<OffersTimelineProps> = ({ negotiationId, c
         )}
         {!loading && !error && offers.length === 0 && (
           <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">
+            <div className="text-muted-foreground/70 mb-2">
               <svg className="mx-auto h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <div className="text-sm font-medium text-gray-900">Sin ofertas todavía</div>
-            <div className="text-sm text-gray-600 mt-1">Las ofertas aparecerán aquí cuando se envíen</div>
+            <div className="text-sm font-medium text-foreground">Sin ofertas todavía</div>
+            <div className="text-sm text-muted-foreground mt-1">Las ofertas aparecerán aquí cuando se envíen</div>
           </div>
         )}
         {!loading && !error && offers.map((o) => (
-          <div key={o.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <div key={o.id} className="bg-muted/30 rounded-lg p-3 border border-border">
             <div className="flex items-start gap-3">
               <div className={`h-3 w-3 rounded-full mt-1 ${o.status === 'accepted' ? 'bg-green-500' : o.status === 'rejected' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 capitalize">{o.kind === 'counter' ? 'Contraoferta' : o.status}</span>
+                    <span className="text-sm font-medium text-foreground capitalize">{o.kind === 'counter' ? 'Contraoferta' : o.status}</span>
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                       v{o.version || 1}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500">{new Date(o.created_at).toLocaleString('es-CO')}</div>
+                  <div className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString('es-CO')}</div>
                 </div>
                 {(o.price ?? o.payload?.price) && (
-                  <div className="text-sm font-semibold text-gray-700 mt-1">
+                  <div className="text-sm font-semibold text-muted-foreground mt-1">
                     $ {Number(o.price ?? o.payload?.price).toLocaleString('es-CO')}
                   </div>
                 )}
                 {(o.down_payment ?? o.payload?.downPayment) && (
-                  <div className="text-xs text-gray-600 mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     Cuota inicial: $ {Number(o.down_payment ?? o.payload?.downPayment).toLocaleString('es-CO')}
                   </div>
                 )}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../ui/dialog';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -21,6 +22,7 @@ export const RescheduleDialog: React.FC<RescheduleDialogProps> = ({
   onClose,
   onReschedule
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     scheduledDate: '',
     scheduledTime: '',
@@ -61,7 +63,7 @@ export const RescheduleDialog: React.FC<RescheduleDialogProps> = ({
         });
         setErrors(fieldErrors);
       } else {
-        setErrors({ general: error.message || 'Error al reprogramar la visita' });
+        setErrors({ general: error.message || t('visits.toast.rescheduleError') });
       }
     } finally {
       setLoading(false);
@@ -82,12 +84,12 @@ export const RescheduleDialog: React.FC<RescheduleDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Reprogramar Visita</DialogTitle>
+          <DialogTitle>{t('visits.rescheduleTitle')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="scheduledDate">Nueva Fecha</Label>
+            <Label htmlFor="scheduledDate">{t('visits.newDate')}</Label>
             <Input
               id="scheduledDate"
               type="date"
@@ -103,7 +105,7 @@ export const RescheduleDialog: React.FC<RescheduleDialogProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="scheduledTime">Nueva Hora</Label>
+            <Label htmlFor="scheduledTime">{t('visits.newTime')}</Label>
             <Input
               id="scheduledTime"
               type="time"
@@ -118,12 +120,12 @@ export const RescheduleDialog: React.FC<RescheduleDialogProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="reason">Razón (opcional)</Label>
+            <Label htmlFor="reason">{t('visits.reasonOptional')}</Label>
             <Textarea
               id="reason"
               value={formData.reason}
               onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-              placeholder="Explica por qué necesitas reprogramar la visita..."
+              placeholder={t('visits.reschedulePlaceholder')}
               rows={3}
             />
           </div>
@@ -136,10 +138,10 @@ export const RescheduleDialog: React.FC<RescheduleDialogProps> = ({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Reprogramando...' : 'Reprogramar Visita'}
+              {loading ? t('visits.rescheduling') : t('visits.rescheduleVisit')}
             </Button>
           </DialogFooter>
         </form>

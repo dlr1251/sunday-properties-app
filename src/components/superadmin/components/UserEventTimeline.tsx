@@ -1,8 +1,9 @@
 import React from 'react';
 import { useUserEvents, UserEvent } from '../../../hooks/superadmin/useUserEvents';
 import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../../i18n/useDateFnsLocale';
 import { 
   UserPlus, 
   Shield, 
@@ -56,6 +57,8 @@ const getEventColor = (type: UserEvent['type']) => {
 };
 
 export function UserEventTimeline({ userId }: UserEventTimelineProps) {
+  const { t } = useTranslation();
+  const dateFnsLocale = useDateFnsLocale();
   const { events, loading, error } = useUserEvents(userId);
 
   if (loading) {
@@ -78,7 +81,7 @@ export function UserEventTimeline({ userId }: UserEventTimelineProps) {
     return (
       <div className="text-center py-8 text-sm text-muted-foreground">
         <AlertCircle className="h-5 w-5 mx-auto mb-2" />
-        <p>Error al cargar eventos: {error}</p>
+        <p>{t('admin.loadEventsError', { error })}</p>
       </div>
     );
   }
@@ -87,7 +90,7 @@ export function UserEventTimeline({ userId }: UserEventTimelineProps) {
     return (
       <div className="text-center py-8 text-sm text-muted-foreground">
         <Clock className="h-5 w-5 mx-auto mb-2 opacity-50" />
-        <p>No hay eventos registrados</p>
+        <p>{t('admin.noEvents')}</p>
       </div>
     );
   }
@@ -115,7 +118,7 @@ export function UserEventTimeline({ userId }: UserEventTimelineProps) {
                     
                     {event.performedBy && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Por: {event.performedBy.name} ({event.performedBy.email})
+                        {t('admin.performedBy', { name: event.performedBy.name, email: event.performedBy.email })}
                       </p>
                     )}
                     
@@ -132,12 +135,12 @@ export function UserEventTimeline({ userId }: UserEventTimelineProps) {
                   
                   <div className="ml-4 text-right">
                     <div className="text-xs font-medium">
-                      {format(new Date(event.timestamp), 'dd/MM/yyyy', { locale: es })}
+                      {format(new Date(event.timestamp), 'dd/MM/yyyy', { locale: dateFnsLocale })}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(event.timestamp), { 
                         addSuffix: true, 
-                        locale: es 
+                        locale: dateFnsLocale 
                       })}
                     </div>
                   </div>

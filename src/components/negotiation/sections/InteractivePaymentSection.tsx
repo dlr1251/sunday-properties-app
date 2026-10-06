@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../../utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -251,6 +253,7 @@ export function InteractivePaymentSection({
   negotiationRules,
   className = ''
 }: InteractivePaymentSectionProps) {
+  const { t } = useTranslation();
   const [conditions, setConditions] = useState<NegotiationCondition[]>(DEFAULT_NEGOTIATION_CONDITIONS);
   const [negotiationMode, setNegotiationMode] = useState<'basic' | 'advanced'>('basic');
   const [showPreview, setShowPreview] = useState(false);
@@ -277,14 +280,6 @@ export function InteractivePaymentSection({
   const [initialPaymentPercentage, setInitialPaymentPercentage] = useState<number[]>([20]);
   const [promiseCommitment, setPromiseCommitment] = useState(false);
   const [intermediatePayments, setIntermediatePayments] = useState<PaymentSchedule[]>([]);
-
-  const formatCurrency = useCallback((amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  }, []);
 
   // Logging para debugging
   const logDebug = useCallback((message: string, data?: any) => {
@@ -543,7 +538,7 @@ export function InteractivePaymentSection({
               <div>
                 <CardTitle className="text-xl flex items-center gap-2">
                   <Calculator className="h-5 w-5 text-blue-600" />
-                  Negociación Interactiva de Pagos
+                  {t('negotiations.sections.interactivePayments')}
                 </CardTitle>
                 <p className="text-sm text-gray-600 mt-1">
                   Configura tu oferta de manera inteligente y atractiva
@@ -603,7 +598,7 @@ export function InteractivePaymentSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-gray-600" />
-            Modo de Negociación
+            {t('negotiations.sections.negotiationMode')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -688,7 +683,7 @@ export function InteractivePaymentSection({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-blue-600" />
-                    Calendario de Pagos Programados
+                    {t('negotiations.sections.paymentCalendar')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -861,7 +856,7 @@ export function InteractivePaymentSection({
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Settings className="h-5 w-5 text-orange-600" />
-                    Márgenes de Fechas para Condiciones
+                    {t('negotiations.sections.dateMargins')}
                   </CardTitle>
                   <p className="text-sm text-gray-600">
                     Configura plazos antes/después de eventos clave para las condiciones de pago
@@ -1083,7 +1078,7 @@ export function InteractivePaymentSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-green-600" />
-            Condiciones de Negociación
+            {t('negotiations.sections.negotiationConditions')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -1156,7 +1151,7 @@ export function InteractivePaymentSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-blue-600" />
-            Método de Pago Principal
+            {t('negotiations.sections.paymentMethod')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -1215,7 +1210,7 @@ export function InteractivePaymentSection({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-purple-900">
               <Eye className="h-5 w-5" />
-              Vista Previa de la Oferta
+              {t('negotiations.sections.offerPreview')}
             </CardTitle>
           </CardHeader>
           <CardContent>

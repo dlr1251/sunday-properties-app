@@ -1,7 +1,7 @@
 import React from 'react';
 
 export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
-  variant?: 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive' | 'premium';
+  variant?: 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'destructive' | 'premium' | 'verified';
 };
 
 // Premium badge design - no gradients, elegant opacity-based colors
@@ -21,7 +21,9 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       destructive: 
         'bg-destructive/10 text-destructive dark:text-red-400 border-transparent',
       premium: 
-        'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-transparent',
+        'bg-brand-gold/15 text-brand-gold border-brand-gold/20',
+      verified:
+        'bg-brand-sky/15 text-brand-sky border-brand-sky/20',
     }[variant];
 
     return (

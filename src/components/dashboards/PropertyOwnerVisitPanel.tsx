@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ import {
 import { useVisitManagement } from '../../hooks/useSupabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
+import { formatDate } from '../../utils/format';
 
 interface VisitResponseModalProps {
   visit: any;
@@ -28,6 +30,7 @@ interface VisitResponseModalProps {
 }
 
 function VisitResponseModal({ visit, onClose, onRespond }: VisitResponseModalProps) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'confirmed' | 'cancelled'>('confirmed');
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,10 +38,10 @@ function VisitResponseModal({ visit, onClose, onRespond }: VisitResponseModalPro
     setSubmitting(true);
     try {
       await onRespond(visit.id, status);
-      toast.success(`Visita ${status === 'confirmed' ? 'confirmada' : 'cancelada'} exitosamente`);
+      toast.success(status === 'confirmed' ? t('admin.visitConfirmed') : t('admin.visitCancelled'));
       onClose();
     } catch (error) {
-      toast.error('Error al procesar la respuesta');
+      toast.error(t('admin.visitResponseError'));
     } finally {
       setSubmitting(false);
     }
@@ -47,11 +50,11 @@ function VisitResponseModal({ visit, onClose, onRespond }: VisitResponseModalPro
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">Responder a Solicitud de Visita</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('admin.visitResponseTitle')}</h3>
 
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-sm font-medium mb-2">Decisión</label>
+            <label className="block text-sm font-medium mb-2">{t('admin.decision')}</label>
             <div className="flex gap-4">
               <label className="flex items-center">
                 <input
@@ -61,7 +64,7 @@ function VisitResponseModal({ visit, onClose, onRespond }: VisitResponseModalPro
                   onChange={(e) => setStatus(e.target.value as 'confirmed')}
                   className="mr-2"
                 />
-                Confirmar
+                {t('common.confirm')}
               </label>
               <label className="flex items-center">
                 <input
@@ -71,7 +74,7 @@ function VisitResponseModal({ visit, onClose, onRespond }: VisitResponseModalPro
                   onChange={(e) => setStatus(e.target.value as 'cancelled')}
                   className="mr-2"
                 />
-                Cancelar
+                {t('common.cancel')}
               </label>
             </div>
           </div>
@@ -79,10 +82,10 @@ function VisitResponseModal({ visit, onClose, onRespond }: VisitResponseModalPro
 
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={onClose} disabled={submitting}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? 'Procesando...' : 'Enviar Respuesta'}
+            {submitting ? t('common.processing') : t('admin.sendResponse')}
           </Button>
         </div>
       </div>
@@ -91,6 +94,7 @@ function VisitResponseModal({ visit, onClose, onRespond }: VisitResponseModalPro
 }
 
 export function PropertyOwnerVisitPanel() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { pendingVisits, allVisits, loading, respondToVisit, refreshVisits } = useVisitManagement(user?.id);
   const [selectedVisit, setSelectedVisit] = useState<any>(null);
@@ -119,15 +123,6 @@ export function PropertyOwnerVisitPanel() {
     };
   }, [user?.id, refreshVisits]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   if (loading) {
     return (
       <Card>
@@ -154,12 +149,12 @@ export function PropertyOwnerVisitPanel() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                {showAll ? 'Todas las Visitas' : 'Solicitudes de Visita Pendientes'}
+                {showAll ? t('admin.allVisitsTitle') : t('admin.pendingVisitRequests')}
               </CardTitle>
               <CardDescription>
                 {showAll 
-                  ? 'Todas las visitas agendadas para tus propiedades'
-                  : 'Gestiona las solicitudes de visita para tus propiedades'}
+                  ? t('admin.allScheduledVisitsDesc')
+                  : t('admin.manageVisitRequestsDesc')}
               </CardDescription>
             </div>
             <Button
@@ -167,7 +162,7 @@ export function PropertyOwnerVisitPanel() {
               size="sm"
               onClick={() => setShowAll(!showAll)}
             >
-              {showAll ? 'Ver Solo Pendientes' : 'Ver Todas'}
+              {showAll ? t('admin.viewPendingOnly') : t('admin.viewAll')}
             </Button>
           </div>
         </CardHeader>
@@ -177,13 +172,13 @@ export function PropertyOwnerVisitPanel() {
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">
                 {showAll 
-                  ? 'No tienes visitas agendadas'
-                  : 'No tienes solicitudes de visita pendientes'}
+                  ? t('admin.noScheduledVisits')
+                  : t('admin.noPendingVisitRequests')}
               </p>
               <p className="text-sm text-gray-400 mt-2">
                 {showAll
-                  ? 'Las visitas aparecerán aquí cuando alguien agende una visita a tus propiedades'
-                  : 'Las solicitudes aparecerán aquí cuando alguien quiera visitar tus propiedades'}
+                  ? t('admin.scheduledVisitsHint')
+                  : t('admin.pendingVisitsHint')}
               </p>
             </div>
           ) : (
@@ -202,11 +197,11 @@ export function PropertyOwnerVisitPanel() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h4 className="font-semibold text-gray-900">{visit.visitor?.full_name || 'Visitante'}</h4>
+                            <h4 className="font-semibold text-gray-900">{visit.visitor?.full_name || t('visits.visitor')}</h4>
                             <div className="flex items-center gap-4 text-sm text-gray-600">
                               <span className="flex items-center gap-1">
                                 <Mail className="h-3 w-3" />
-                                {visit.visitor?.email || 'No disponible'}
+                                {visit.visitor?.email || t('common.notAvailable')}
                               </span>
                               {visit.visitor?.phone && (
                                 <span className="flex items-center gap-1">
@@ -222,7 +217,7 @@ export function PropertyOwnerVisitPanel() {
                           <div>
                             <h5 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
                               <MapPin className="h-4 w-4" />
-                              {visit.properties?.title || 'Propiedad'}
+                              {visit.properties?.title || t('visits.property')}
                             </h5>
                             <div className="space-y-1 text-sm text-gray-600">
                               <div className="flex items-center gap-2">
@@ -244,7 +239,7 @@ export function PropertyOwnerVisitPanel() {
                             <div>
                               <h6 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
                                 <MessageSquare className="h-4 w-4" />
-                                Mensaje del visitante
+                                {t('admin.visitorMessage')}
                               </h6>
                               <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md border-l-2 border-gray-200">
                                 "{visit.notes}"
@@ -257,13 +252,11 @@ export function PropertyOwnerVisitPanel() {
                           {isPending ? (
                             <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                               <AlertCircle className="h-3 w-3 mr-1" />
-                              Pendiente de respuesta
+                              {t('admin.awaitingResponse')}
                             </Badge>
                           ) : (
                             <Badge variant={visit.status === 'confirmed' ? 'default' : visit.status === 'cancelled' ? 'destructive' : 'secondary'}>
-                              {visit.status === 'confirmed' ? 'Confirmada' : 
-                               visit.status === 'cancelled' ? 'Cancelada' : 
-                               visit.status === 'completed' ? 'Completada' : visit.status}
+                              {t(`admin.status.${visit.status}`, { defaultValue: visit.status })}
                             </Badge>
                           )}
                         </div>
@@ -278,7 +271,7 @@ export function PropertyOwnerVisitPanel() {
                             className="text-blue-600 border-blue-600 hover:bg-blue-50"
                           >
                             <Eye className="h-4 w-4 mr-1" />
-                            Responder
+                            {t('admin.respond')}
                           </Button>
                         )}
                       </div>

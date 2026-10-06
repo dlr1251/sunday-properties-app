@@ -8,8 +8,7 @@ import {
   ArrowRight,
   Building2,
   Shield,
-  TrendingUp,
-  Sparkles
+  TrendingUp
 } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -54,13 +53,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   ];
 
   return (
-    <section className={`relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background ${className}`}>
-      {/* Background Pattern - Subtle grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.5)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.5)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
-      
-      {/* Gradient Orbs - Subtle accent */}
-      <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+    <section className={`relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-hero ${className}`}>
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-blueprint mask-blueprint-fade opacity-30" />
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
@@ -70,30 +65,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           initial="hidden"
           animate="visible"
         >
-          {/* Announcement Badge */}
-          <motion.div variants={itemVariants}>
-            <Link 
-              to="/properties"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 text-sm font-medium text-primary hover:bg-primary/10 transition-colors group"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>{t('home.hero.announcement')}</span>
-              <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </motion.div>
-
           {/* Main Heading - Display typography */}
-          <motion.div variants={itemVariants} className="mt-8 space-y-4">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight text-balance">
+          <motion.div variants={itemVariants} className="space-y-4">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white tracking-tight text-balance font-display">
               {t('home.hero.title')}{' '}
-              <span className="text-primary">{t('home.hero.titleHighlight')}</span>
+              <span className="text-brand-gold-light">{t('home.hero.titleHighlight')}</span>
             </h1>
           </motion.div>
 
           {/* Subtitle */}
           <motion.p 
             variants={itemVariants}
-            className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl text-balance"
+            className="mt-6 text-lg sm:text-xl text-white/85 max-w-2xl text-balance"
           >
             {t('home.hero.subtitle')}
           </motion.p>
@@ -116,10 +99,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               return (
                 <div 
                   key={feature.label}
-                  className="flex items-center gap-2 text-sm text-muted-foreground"
+                  className="flex items-center gap-2 text-sm text-white/80"
                 >
-                  <div className="p-1.5 rounded-lg bg-secondary">
-                    <Icon className="h-4 w-4 text-foreground" />
+                  <div className="p-1.5 rounded-lg bg-white/10">
+                    <Icon className="h-4 w-4 text-brand-gold-light" />
                   </div>
                   <span>{feature.label}</span>
                 </div>
@@ -132,37 +115,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             variants={itemVariants}
             className="flex flex-col sm:flex-row items-center gap-4 mt-10"
           >
-            <Button size="lg" asChild className="h-12 px-8 text-base">
+            <Button size="lg" variant="accent" asChild className="h-12 px-8 text-base">
               <Link to="/properties">
                 {t('home.hero.exploreProperties')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" asChild className="h-12 px-8 text-base">
+            <Button variant="outline" size="lg" asChild className="h-12 px-8 text-base border-white/30 text-white hover:bg-white/10 hover:text-white">
               <Link to="/about">
                 {t('home.hero.learnMore')}
               </Link>
             </Button>
           </motion.div>
 
-          {/* Trust Indicators */}
-          <motion.div 
-            variants={itemVariants}
-            className="mt-16 pt-8 border-t border-border/50 w-full max-w-2xl"
-          >
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
-              {t('home.hero.trustedBy')}
-            </p>
-            <div className="flex items-center justify-center gap-8 opacity-50">
-              {/* Placeholder logos - would be actual partner logos */}
-              {[1, 2, 3, 4].map((i) => (
-                <div 
-                  key={i} 
-                  className="h-6 w-20 rounded bg-muted-foreground/20"
-                />
-              ))}
-            </div>
-          </motion.div>
         </motion.div>
       </div>
 
@@ -173,9 +138,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 1 }}
       >
-        <div className="w-6 h-10 border-2 border-border rounded-full flex justify-center p-1">
+        <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center p-1">
           <motion.div 
-            className="w-1.5 h-2.5 bg-muted-foreground rounded-full"
+            className="w-1.5 h-2.5 bg-brand-gold-light rounded-full"
             animate={{ y: [0, 12, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />

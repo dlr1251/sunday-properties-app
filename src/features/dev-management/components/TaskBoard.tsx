@@ -1,12 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, GripVertical, Pencil } from 'lucide-react';
-import { Button } from '../../../../components/ui/button';
-import { Badge } from '../../../../components/ui/badge';
-import { Card, CardContent, CardHeader } from '../../../../components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useTaskManagement } from '../hooks/useTaskManagement';
 import { KANBAN_COLUMNS } from '../config/taskConfig';
-import { STATUSES } from '../config/taskConfig';
 import { CreateTaskDialog } from '../dialogs/CreateTaskDialog';
 import { EditTaskDialog } from '../dialogs/EditTaskDialog';
 import type { DevTask, TaskStatus } from '../types';
@@ -152,7 +151,6 @@ export function TaskBoard() {
     create,
     update,
     updateStatus,
-    getById,
   } = useTaskManagement();
   const [createOpen, setCreateOpen] = useState(false);
   const [editTask, setEditTask] = useState<DevTask | null>(null);

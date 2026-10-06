@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +46,7 @@ export function OfferValiditySection({
   onValidityChange,
   className = ''
 }: OfferValiditySectionProps) {
+  const { t } = useTranslation();
 
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -119,7 +121,7 @@ export function OfferValiditySection({
         <CardTitle className="text-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-600" />
-            Validez de la Oferta
+            {t('negotiations.sections.offerValidity')}
           </div>
           <div className="flex items-center gap-2">
             <Button

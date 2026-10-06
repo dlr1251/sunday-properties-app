@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../../utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +49,7 @@ export function EarnestMoneySection({
   negotiationRules,
   className = ''
 }: EarnestMoneySectionProps) {
+  const { t } = useTranslation();
   const [localEarnestMoney, setLocalEarnestMoney] = useState<EarnestMoney>({
     amount: propertyPrice * 0.1, // 10% por defecto
     percentage: 10,
@@ -69,14 +72,6 @@ export function EarnestMoneySection({
       setLocalEarnestMoney(earnestMoney);
     }
   }, [earnestMoney]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const handleAmountChange = (value: string) => {
     const amount = Number(value);
@@ -141,7 +136,7 @@ export function EarnestMoneySection({
         <CardTitle className="text-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-green-600" />
-            Pago Inicial / Arras
+            {t('negotiations.sections.earnestMoney')}
           </div>
           <div className="flex items-center gap-2">
             <Button

@@ -8,7 +8,7 @@ import './styles/globals.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="sunday-theme">
+    <ThemeProvider defaultTheme="light" storageKey="sunday-theme">
       <AppRouter />
     </ThemeProvider>
   </React.StrictMode>

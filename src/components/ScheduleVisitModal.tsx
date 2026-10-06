@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Calendar } from "./ui/calendar";
@@ -22,6 +23,8 @@ import { VisitPaymentModal } from "./visits/VisitPaymentModal";
 import { SuccessModal } from "./ui/success-modal";
 import { useNavigate } from "react-router-dom";
 import { VISIT_PAYMENT_AMOUNT } from "../services/stripe";
+import { useIntlLocale } from "../i18n/useDateFnsLocale";
+import { formatDateTime } from "../utils/format";
 
 interface ScheduleVisitModalProps {
   open: boolean;
@@ -43,6 +46,8 @@ export function ScheduleVisitModal({
   propertyId,
   onVisitScheduled,
 }: ScheduleVisitModalProps) {
+  const { t } = useTranslation();
+  const intlLocale = useIntlLocale();
   const { user, profile } = useAuth();
   const { verificationStatus } = useVerification();
   const navigate = useNavigate();
@@ -132,13 +137,13 @@ export function ScheduleVisitModal({
     
     if (!selectedDate || !selectedTime) {
       console.log('❌ Missing date or time');
-      toast.error("Por favor selecciona fecha y hora");
+      toast.error(t("properties.detail.schedule.selectDateTime"));
       return;
     }
 
     if (!user) {
       console.log('❌ No user');
-      toast.error("Debes iniciar sesión para agendar una visita");
+      toast.error(t("properties.detail.schedule.mustLogin"));
       return;
     }
 
@@ -152,14 +157,14 @@ export function ScheduleVisitModal({
     
     if (!emailConfirmedAt) {
       console.log('❌ Email not verified');
-      toast.error("Debes verificar tu email antes de agendar visitas");
+      toast.error(t("properties.detail.schedule.mustVerifyEmail"));
       return;
     }
 
     // Check if user identity is verified
     if (verificationStatus !== 'verified') {
       console.log('❌ Identity not verified, status:', verificationStatus);
-      toast.error("Debes verificar tu identidad antes de agendar visitas");
+      toast.error(t("properties.detail.schedule.mustVerifyIdentity"));
       return;
     }
 
@@ -168,7 +173,7 @@ export function ScheduleVisitModal({
     try {
       // Ensure we have a profile - profiles.id should equal user.id (1:1 relationship)
       if (!user || !user.id) {
-        throw new Error('Usuario no autenticado');
+        throw new Error(t('properties.detail.schedule.userNotAuthenticated'));
       }
 
       // Use user.id as visitor_id (profiles.id = auth.users.id in the schema)
@@ -234,7 +239,7 @@ export function ScheduleVisitModal({
     } catch (err: any) {
       console.error('❌ Error creating pending visit:', err);
       console.error('Error stack:', err.stack);
-      toast.error(err.message || 'No se pudo crear la visita');
+      toast.error(err.message || t('properties.detail.schedule.createError'));
     } finally {
       setSubmitting(false);
     }
@@ -253,7 +258,7 @@ export function ScheduleVisitModal({
         .single();
 
       // Prepare payment info note
-      const paymentNote = `\n[PAYMENT] ID: ${paymentData.paymentIntentId}, Amount: ${paymentData.amount || VISIT_PAYMENT_AMOUNT} COP, Date: ${new Date().toLocaleString('es-CO')}`;
+      const paymentNote = `\n[PAYMENT] ID: ${paymentData.paymentIntentId}, Amount: ${paymentData.amount || VISIT_PAYMENT_AMOUNT} COP, Date: ${formatDateTime(new Date())}`;
       const existingNotes = (existingVisit as any)?.notes || '';
       const updatedNotes = existingNotes 
         ? `${existingNotes}${paymentNote}`
@@ -294,8 +299,12 @@ export function ScheduleVisitModal({
           .insert({
             user_id: propertyData.owner_id,
             type: 'visit_request',
-            title: 'Nueva visita agendada',
-            message: `Se ha agendado una visita para "${propertyTitle}" el ${pendingVisitData.scheduledDate} a las ${pendingVisitData.scheduledTime}`,
+            title: t('properties.detail.schedule.notificationTitle'),
+            message: t('properties.detail.schedule.notificationMessage', {
+              title: propertyTitle,
+              date: pendingVisitData.scheduledDate,
+              time: pendingVisitData.scheduledTime,
+            }),
             data: {
               visit_id: pendingVisitData.id,
               property_id: propertyId,
@@ -337,7 +346,7 @@ export function ScheduleVisitModal({
       setShowSuccessModal(true);
     } catch (error: any) {
       console.error('Error confirming visit after payment:', error);
-      toast.error(error.message || 'Error al confirmar la visita');
+      toast.error(error.message || t('properties.detail.schedule.confirmError'));
     } finally {
       setSubmitting(false);
     }
@@ -355,7 +364,7 @@ export function ScheduleVisitModal({
         <DialogContent className="max-w-[95vw] sm:max-w-6xl lg:max-w-7xl max-h-[95vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle className="font-['Inter:Black',_sans-serif] font-black text-xl sm:text-2xl">
-              Agendar Visita
+              {t("visits.schedule")}
             </DialogTitle>
             <p className="text-muted-foreground text-sm sm:text-base">{propertyTitle}</p>
           </DialogHeader>
@@ -364,7 +373,7 @@ export function ScheduleVisitModal({
             {/* Left Column - Calendar */}
             <div className="space-y-4">
               <div>
-                <Label className="mb-3 block text-sm sm:text-base">Selecciona una fecha</Label>
+                <Label className="mb-3 block text-sm sm:text-base">{t("visits.selectDate")}</Label>
                 <Card className="p-2 sm:p-4">
                   <div className="flex justify-center">
                     <Calendar
@@ -382,7 +391,7 @@ export function ScheduleVisitModal({
               <div>
                 <Label className="mb-3 block flex items-center gap-2 text-sm sm:text-base">
                   <Clock className="h-4 w-4" />
-                  Horarios disponibles
+                  {t("properties.detail.schedule.availableTimes")}
                 </Label>
                 {loadingSlots ? (
                   <div className="flex justify-center py-4">
@@ -408,7 +417,7 @@ export function ScheduleVisitModal({
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  * Horarios en gris no están disponibles
+                  {t("properties.detail.schedule.unavailableHint")}
                 </p>
               </div>
             )}
@@ -421,9 +430,9 @@ export function ScheduleVisitModal({
                 <div className="flex items-start space-x-3">
                   <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-yellow-900">Inicio de sesión requerido</h4>
+                    <h4 className="font-semibold text-yellow-900">{t("properties.detail.schedule.loginRequiredTitle")}</h4>
                     <p className="text-yellow-700 text-sm mt-1">
-                      Debes iniciar sesión y verificar tu email para agendar visitas.
+                      {t("properties.detail.schedule.loginRequiredBody")}
                     </p>
                   </div>
                 </div>
@@ -431,19 +440,19 @@ export function ScheduleVisitModal({
             )}
 
             <div>
-              <Label className="mb-3 block">Información Adicional</Label>
+              <Label className="mb-3 block">{t("properties.detail.schedule.additionalInfo")}</Label>
 
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="notes" className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
-                    Notas adicionales (opcional)
+                    {t("properties.detail.schedule.notesOptional")}
                   </Label>
                   <Textarea
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="¿Algo que debamos saber sobre tu visita?"
+                    placeholder={t("properties.detail.schedule.notesPlaceholder")}
                     rows={4}
                   />
                 </div>
@@ -452,11 +461,11 @@ export function ScheduleVisitModal({
 
             {selectedDate && selectedTime && (
               <Card className="p-4 bg-[#f4f4f4]">
-                <p className="font-bold text-sm mb-2">Resumen de tu visita</p>
+                <p className="font-bold text-sm mb-2">{t("properties.detail.schedule.summary")}</p>
                 <div className="space-y-1 text-sm">
                   <p>
-                    <span className="text-muted-foreground">Fecha:</span>{" "}
-                    {selectedDate.toLocaleDateString('es-CO', {
+                    <span className="text-muted-foreground">{t("properties.detail.schedule.date")}</span>{" "}
+                    {selectedDate.toLocaleDateString(intlLocale, {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -464,14 +473,14 @@ export function ScheduleVisitModal({
                     })}
                   </p>
                   <p>
-                    <span className="text-muted-foreground">Hora:</span> {selectedTime}
+                    <span className="text-muted-foreground">{t("properties.detail.schedule.time")}</span> {selectedTime}
                   </p>
                   <p>
-                    <span className="text-muted-foreground">Propiedad:</span> {propertyTitle}
+                    <span className="text-muted-foreground">{t("properties.detail.schedule.property")}</span> {propertyTitle}
                   </p>
                 </div>
                 <Badge className="mt-3 bg-[#ff9b4e] text-black">
-                  Confirmación por email
+                  {t("properties.detail.schedule.emailConfirmation")}
                 </Badge>
               </Card>
             )}
@@ -485,14 +494,14 @@ export function ScheduleVisitModal({
               disabled={submitting}
               className="w-full sm:w-auto"
             >
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleSchedule}
               disabled={submitting || !user}
               className="bg-[#2dc97b] text-[#150f0f] hover:bg-[#26b36b] w-full sm:w-auto"
             >
-              {submitting ? "Agendando..." : "Confirmar Visita"}
+              {submitting ? t("properties.detail.schedule.scheduling") : t("visits.confirmVisit")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -512,10 +521,10 @@ export function ScheduleVisitModal({
       <SuccessModal
         open={showSuccessModal}
         onClose={handleSuccessModalClose}
-        title="¡Visita Agendada Exitosamente!"
-        message={`Tu visita a "${propertyTitle}" ha sido confirmada. Recibirás los detalles por email y podrás gestionarla desde tu dashboard.`}
+        title={t("properties.detail.schedule.successTitle")}
+        message={t("properties.detail.schedule.successMessage", { title: propertyTitle })}
         redirectTo="/dashboard?tab=visits"
-        redirectLabel="Ir a Mis Visitas"
+        redirectLabel={t("properties.detail.schedule.goToVisits")}
       />
     </>
   );

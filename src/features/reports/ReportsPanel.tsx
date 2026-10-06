@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ReportsFilters } from './ReportsFilters';
 import { ReportsTable } from './ReportsTable';
 import { ReportsStats } from './ReportsStats';
@@ -8,6 +9,7 @@ import ReportDetailsDialog from './dialogs/ReportDetailsDialog';
 import ResolutionDialog from './dialogs/ResolutionDialog';
 
 export function ReportsPanel() {
+  const { t } = useTranslation();
   const [filters, setFilters] = React.useState<ReportsFilterValues>(defaultReportsFilters);
   const [page] = React.useState(1);
   const [limit] = React.useState(20);
@@ -26,7 +28,7 @@ export function ReportsPanel() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Reports Management</h2>
+        <h2 className="text-lg font-semibold">{t('admin.reportsManagement')}</h2>
       </div>
 
       <ReportsStats stats={stats as any} />
@@ -47,5 +49,3 @@ export function ReportsPanel() {
 }
 
 export default ReportsPanel;
-
-

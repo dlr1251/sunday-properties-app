@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import es from './locales/es.json';
 import en from './locales/en.json';
+import { setDetectedLanguage, syncDocumentLang } from './locale';
 
 export const resources = {
   es: { translation: es },
@@ -21,6 +22,9 @@ i18n
   .init({
     resources,
     fallbackLng: 'es',
+    supportedLngs: ['es', 'en'],
+    nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
     defaultNS: 'translation',
     debug: import.meta.env.DEV,
     
@@ -34,5 +38,16 @@ i18n
       lookupLocalStorage: 'sunday-language',
     },
   });
+
+const applyLanguage = (lng?: string) => {
+  setDetectedLanguage(lng);
+  syncDocumentLang(lng);
+};
+
+i18n.on('initialized', () => {
+  applyLanguage(i18n.resolvedLanguage);
+});
+i18n.on('languageChanged', applyLanguage);
+applyLanguage(i18n.resolvedLanguage || i18n.language);
 
 export default i18n;

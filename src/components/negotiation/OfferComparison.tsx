@@ -24,13 +24,23 @@ import {
   XCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatDate } from '../../utils/format';
 
 interface Offer {
   id: string;
   buyer_name: string;
-  offer_price: number;
+  transaction_type?: 'sale' | 'rental';
+  offer_price?: number;
+  monthly_rent?: number;
   payment_method: string;
-  closing_date: string;
+  closing_date?: string;
+  lease_start_date?: string;
+  lease_term_months?: number;
+  deposit?: number;
+  admin_fee?: number;
+  utilities_included?: string[];
+  pets_policy?: string;
   conditions: string;
   down_payment?: number;
   created_at: string;
@@ -55,36 +65,13 @@ export function OfferComparison({
   onOfferReject,
   selectedOfferIds = []
 }: OfferComparisonProps) {
+  const { t } = useTranslation();
   const [sortBy, setSortBy] = useState<'price' | 'date' | 'progress'>('price');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [priorityOfferId, setPriorityOfferId] = useState<string | null>(null);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CO', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
   const getPaymentMethodLabel = (method: string) => {
-    const labels: Record<string, string> = {
-      cash: 'Efectivo',
-      bank_transfer: 'Transferencia',
-      financing: 'Financiación',
-      crypto: 'Cripto',
-      installments: 'Cuotas',
-      mixed: 'Mixto'
-    };
-    return labels[method] || method;
+    return t(`negotiations.paymentMethods.${method}`, { defaultValue: method });
   };
 
   const getPriceVsProperty = (offerPrice: number) => {
@@ -92,11 +79,17 @@ export function OfferComparison({
     return `${percentage}%`;
   };
 
+  const getOfferAmount = (offer: Offer) => {
+    if (offer.transaction_type === 'rental') return Number(offer.monthly_rent ?? 0);
+    return Number(offer.offer_price ?? 0);
+  };
+
   const getOfferScore = (offer: Offer) => {
     let score = 0;
 
     // Price score (40 points max)
-    const priceRatio = offer.offer_price / propertyPrice;
+    const offerAmount = getOfferAmount(offer);
+    const priceRatio = offerAmount / propertyPrice;
     if (priceRatio >= 0.95) score += 40;
     else if (priceRatio >= 0.90) score += 30;
     else if (priceRatio >= 0.85) score += 20;
@@ -109,13 +102,15 @@ export function OfferComparison({
     else if (offer.payment_method === 'mixed') score += 10;
 
     // Closing date score (20 points max)
-    const closingDate = new Date(offer.closing_date);
-    const today = new Date();
-    const daysToClose = Math.ceil((closingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (offer.transaction_type !== 'rental' && offer.closing_date) {
+      const closingDate = new Date(offer.closing_date);
+      const today = new Date();
+      const daysToClose = Math.ceil((closingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (daysToClose <= 30) score += 20;
-    else if (daysToClose <= 60) score += 15;
-    else if (daysToClose <= 90) score += 10;
+      if (daysToClose <= 30) score += 20;
+      else if (daysToClose <= 60) score += 15;
+      else if (daysToClose <= 90) score += 10;
+    }
 
     // Conditions score (20 points max)
     if (!offer.conditions || offer.conditions.trim().length === 0) score += 20;
@@ -131,8 +126,8 @@ export function OfferComparison({
 
     switch (sortBy) {
       case 'price':
-        aValue = a.offer_price;
-        bValue = b.offer_price;
+        aValue = getOfferAmount(a);
+        bValue = getOfferAmount(b);
         break;
       case 'date':
         aValue = new Date(a.created_at).getTime();
@@ -155,7 +150,7 @@ export function OfferComparison({
 
   const handleExportComparison = () => {
     // In a real implementation, this would generate a PDF or Excel file
-    toast.info('Función de exportación próximamente disponible');
+    toast.info(t('negotiations.compare.exportSoon'));
   };
 
   const handleBulkReject = () => {
@@ -164,12 +159,12 @@ export function OfferComparison({
     );
 
     if (offersToReject.length === 0) {
-      toast.error('Selecciona ofertas para rechazar');
+      toast.error(t('negotiations.compare.selectToReject'));
       return;
     }
 
     // In a real implementation, this would call an API to reject multiple offers
-    toast.success(`${offersToReject.length} ofertas rechazadas`);
+    toast.success(t('negotiations.compare.rejectedCount', { count: offersToReject.length }));
   };
 
   if (offers.length === 0) {
@@ -177,9 +172,9 @@ export function OfferComparison({
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No hay ofertas para comparar</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('negotiations.compare.emptyTitle')}</h3>
           <p className="text-muted-foreground text-center">
-            Espera a que los compradores envíen sus ofertas para poder compararlas.
+            {t('negotiations.compare.emptyHint')}
           </p>
         </CardContent>
       </Card>
@@ -191,20 +186,20 @@ export function OfferComparison({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xl font-semibold">Comparación de Ofertas</h3>
+          <h3 className="text-xl font-semibold">{t('negotiations.comparisonTitle')}</h3>
           <p className="text-muted-foreground">
-            Comparando {offers.length} oferta{offers.length !== 1 ? 's' : ''} • Precio de lista: {formatCurrency(propertyPrice)}
+            {t('negotiations.compare.comparing', { count: offers.length, price: formatCurrency(propertyPrice) })}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportComparison}>
             <Download className="h-4 w-4 mr-2" />
-            Exportar
+            {t('negotiations.compare.export')}
           </Button>
           {selectedOfferIds.length > 1 && (
             <Button variant="outline" onClick={handleBulkReject}>
               <XCircle className="h-4 w-4 mr-2" />
-              Rechazar Seleccionadas
+              {t('negotiations.compare.rejectSelected')}
             </Button>
           )}
         </div>
@@ -212,7 +207,7 @@ export function OfferComparison({
 
       {/* Sort Controls */}
       <div className="flex items-center gap-4">
-        <Label>Ordenar por:</Label>
+        <Label>{t('negotiations.compare.sortBy')}</Label>
         <select
           value={`${sortBy}-${sortOrder}`}
           onChange={(e) => {
@@ -222,12 +217,12 @@ export function OfferComparison({
           }}
           className="px-3 py-2 border border-input bg-background rounded-md"
         >
-          <option value="price-desc">Precio (mayor primero)</option>
-          <option value="price-asc">Precio (menor primero)</option>
-          <option value="date-desc">Fecha (más reciente)</option>
-          <option value="date-asc">Fecha (más antigua)</option>
-          <option value="progress-desc">Progreso (mayor primero)</option>
-          <option value="progress-asc">Progreso (menor primero)</option>
+          <option value="price-desc">{t('negotiations.compare.sortPriceDesc')}</option>
+          <option value="price-asc">{t('negotiations.compare.sortPriceAsc')}</option>
+          <option value="date-desc">{t('negotiations.compare.sortDateDesc')}</option>
+          <option value="date-asc">{t('negotiations.compare.sortDateAsc')}</option>
+          <option value="progress-desc">{t('negotiations.compare.sortProgressDesc')}</option>
+          <option value="progress-asc">{t('negotiations.compare.sortProgressAsc')}</option>
         </select>
       </div>
 
@@ -249,15 +244,15 @@ export function OfferComparison({
                     }}
                   />
                 </TableHead>
-                <TableHead>Comprador</TableHead>
-                <TableHead className="text-right">Precio Ofertado</TableHead>
-                <TableHead className="text-center">% vs Lista</TableHead>
-                <TableHead>Método de Pago</TableHead>
-                <TableHead>Fecha de Cierre</TableHead>
-                <TableHead className="text-center">Puntuación</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-center">Prioridad</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead>{t('negotiations.compare.buyer')}</TableHead>
+                <TableHead className="text-right">{t('negotiations.compare.offeredPrice')}</TableHead>
+                <TableHead className="text-center">{t('negotiations.compare.vsList')}</TableHead>
+                <TableHead>{t('negotiations.paymentMethod')}</TableHead>
+                <TableHead>{t('negotiations.details.closingDate')}</TableHead>
+                <TableHead className="text-center">{t('negotiations.compare.score')}</TableHead>
+                <TableHead>{t('negotiations.compare.status')}</TableHead>
+                <TableHead className="text-center">{t('negotiations.compare.priority')}</TableHead>
+                <TableHead className="text-right">{t('negotiations.compare.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -315,10 +310,10 @@ export function OfferComparison({
                           'destructive'
                         }
                       >
-                        {offer.status === 'pending' ? 'Pendiente' :
-                         offer.status === 'accepted' ? 'Aceptada' :
-                         offer.status === 'rejected' ? 'Rechazada' :
-                         'Otro'}
+                        {offer.status === 'pending' ? t('negotiations.status.pending') :
+                         offer.status === 'accepted' ? t('negotiations.status.accepted') :
+                         offer.status === 'rejected' ? t('negotiations.status.rejected') :
+                         t('common.other')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
@@ -367,7 +362,7 @@ export function OfferComparison({
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Precio Promedio</p>
+              <p className="text-sm text-muted-foreground">{t('negotiations.compare.avgPrice')}</p>
               <p className="text-2xl font-bold">
                 {formatCurrency(offers.reduce((sum, o) => sum + o.offer_price, 0) / offers.length)}
               </p>
@@ -378,7 +373,7 @@ export function OfferComparison({
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Mejor Oferta</p>
+              <p className="text-sm text-muted-foreground">{t('negotiations.compare.bestOffer')}</p>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(Math.max(...offers.map(o => o.offer_price)))}
               </p>
@@ -389,7 +384,7 @@ export function OfferComparison({
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Puntuación Promedio</p>
+              <p className="text-sm text-muted-foreground">{t('negotiations.compare.avgScore')}</p>
               <p className="text-2xl font-bold">
                 {Math.round(offers.reduce((sum, o) => sum + getOfferScore(o), 0) / offers.length)}/100
               </p>
@@ -400,9 +395,9 @@ export function OfferComparison({
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Oferta Prioritaria</p>
+              <p className="text-sm text-muted-foreground">{t('negotiations.compare.priorityOffer')}</p>
               <p className="text-2xl font-bold text-blue-600">
-                {priorityOfferId ? 'Seleccionada' : 'Ninguna'}
+                {priorityOfferId ? t('negotiations.compare.selected') : t('negotiations.compare.none')}
               </p>
             </div>
           </CardContent>

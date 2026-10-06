@@ -22,8 +22,10 @@ import {
   Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
+import { formatCurrency } from '../../utils/format';
 import { CounterOfferForm } from './CounterOfferForm';
 import { OfferComparison } from './OfferComparison';
 import { useNavigate } from 'react-router-dom';
@@ -83,6 +85,8 @@ interface Offer {
 }
 
 export const NegotiationsView: React.FC = () => {
+  const { t } = useTranslation();
+  const dateLocale = useDateFnsLocale();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [negotiations, setNegotiations] = useState<Negotiation[]>([]);
@@ -132,32 +136,24 @@ export const NegotiationsView: React.FC = () => {
       setNegotiations(data || []);
     } catch (error: any) {
       console.error('Error fetching negotiations:', error);
-      toast.error('Error al cargar las negociaciones');
+      toast.error(t('negotiations.loadListError'));
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-      active: { label: 'Activa', variant: 'default' },
-      pending_lawyer: { label: 'Pendiente Abogado', variant: 'secondary' },
-      pending_documents: { label: 'Pendiente Documentos', variant: 'secondary' },
-      completed: { label: 'Completada', variant: 'default' },
-      cancelled: { label: 'Cancelada', variant: 'destructive' },
-      expired: { label: 'Expirada', variant: 'outline' },
+    const statusConfig: Record<string, { labelKey: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+      active: { labelKey: 'negotiations.status.active', variant: 'default' },
+      pending_lawyer: { labelKey: 'negotiations.status.pendingLawyer', variant: 'secondary' },
+      pending_documents: { labelKey: 'negotiations.status.pendingDocuments', variant: 'secondary' },
+      completed: { labelKey: 'negotiations.status.completed', variant: 'default' },
+      cancelled: { labelKey: 'negotiations.status.cancelled', variant: 'destructive' },
+      expired: { labelKey: 'negotiations.status.expired', variant: 'outline' },
     };
 
-    const config = statusConfig[status] || { label: status, variant: 'outline' };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = statusConfig[status] || { labelKey: status, variant: 'outline' };
+    return <Badge variant={config.variant}>{t(config.labelKey, { defaultValue: status })}</Badge>;
   };
 
   const getUserRole = (negotiation: Negotiation): 'buyer' | 'seller' | 'lawyer' | 'agent' => {
@@ -188,7 +184,7 @@ export const NegotiationsView: React.FC = () => {
         <CardContent className="p-6">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Cargando negociaciones...</p>
+            <p className="text-muted-foreground">{t('negotiations.loading')}</p>
           </div>
         </CardContent>
       </Card>
@@ -201,27 +197,27 @@ export const NegotiationsView: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            Mis Negociaciones
+            {t('dashboard.myNegotiations')}
           </CardTitle>
           <CardDescription>
-            Gestiona todas tus negociaciones activas y pasadas
+            {t('negotiations.viewAllSubtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="all">Todas</TabsTrigger>
-              <TabsTrigger value="active">Activas</TabsTrigger>
-              <TabsTrigger value="pending_lawyer">Pendiente Abogado</TabsTrigger>
-              <TabsTrigger value="pending_documents">Pendiente Docs</TabsTrigger>
-              <TabsTrigger value="completed">Completadas</TabsTrigger>
+              <TabsTrigger value="all">{t('negotiations.all')}</TabsTrigger>
+              <TabsTrigger value="active">{t('negotiations.activePlural')}</TabsTrigger>
+              <TabsTrigger value="pending_lawyer">{t('negotiations.pendingLawyer')}</TabsTrigger>
+              <TabsTrigger value="pending_documents">{t('negotiations.pendingDocsShort')}</TabsTrigger>
+              <TabsTrigger value="completed">{t('negotiations.completedPlural')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="space-y-4 mt-4">
               {filteredNegotiations.length === 0 ? (
                 <div className="text-center py-12">
-                  <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No hay negociaciones en esta categoría</p>
+                  <MessageSquare className="w-12 h-12 text-muted-foreground/70 mx-auto mb-4" />
+                  <p className="text-muted-foreground">{t('negotiations.emptyCategory')}</p>
                 </div>
               ) : (
                 filteredNegotiations.map((negotiation) => {
@@ -237,19 +233,19 @@ export const NegotiationsView: React.FC = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <Building2 className="w-5 h-5 text-gray-400" />
+                              <Building2 className="w-5 h-5 text-muted-foreground/70" />
                               <CardTitle className="text-lg">{negotiation.property?.title}</CardTitle>
                               {getStatusBadge(negotiation.status)}
                             </div>
                             <CardDescription className="flex items-center gap-4 mt-2">
                               <span className="flex items-center gap-1">
                                 <User className="w-4 h-4" />
-                                {isBuyer ? 'Vendedor' : 'Comprador'}: {isBuyer ? negotiation.seller?.full_name : negotiation.buyer?.full_name}
+                                {isBuyer ? t('negotiations.roles.seller') : t('negotiations.roles.buyer')}: {isBuyer ? negotiation.seller?.full_name : negotiation.buyer?.full_name}
                               </span>
                               {negotiation.lawyer && (
                                 <span className="flex items-center gap-1">
                                   <Scale className="w-4 h-4" />
-                                  Abogado: {negotiation.lawyer.full_name}
+                                  {t('negotiations.roles.lawyer')}: {negotiation.lawyer.full_name}
                                 </span>
                               )}
                             </CardDescription>
@@ -260,22 +256,22 @@ export const NegotiationsView: React.FC = () => {
                         {/* Financial Metrics */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div className="space-y-1">
-                            <p className="text-sm text-gray-600">Precio Actual</p>
+                            <p className="text-sm text-muted-foreground">{t('negotiations.currentPrice')}</p>
                             <p className="text-xl font-bold">{formatCurrency(negotiation.current_price)}</p>
                           </div>
                           <div className="space-y-1">
-                            <p className="text-sm text-gray-600">Precio Original</p>
+                            <p className="text-sm text-muted-foreground">{t('negotiations.originalPrice')}</p>
                             <p className="text-lg">{formatCurrency(negotiation.original_price)}</p>
                           </div>
                           <div className="space-y-1">
-                            <p className="text-sm text-gray-600">Diferencia</p>
+                            <p className="text-sm text-muted-foreground">{t('negotiations.difference')}</p>
                             <div className="flex items-center gap-2">
                               {priceTrend === 'up' && <TrendingUp className="w-4 h-4 text-green-600" />}
                               {priceTrend === 'down' && <TrendingDown className="w-4 h-4 text-red-600" />}
-                              <p className={`text-lg font-semibold ${priceTrend === 'up' ? 'text-green-600' : priceTrend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
+                              <p className={`text-lg font-semibold ${priceTrend === 'up' ? 'text-green-600' : priceTrend === 'down' ? 'text-red-600' : 'text-muted-foreground'}`}>
                                 {priceTrend === 'up' ? '+' : ''}{formatCurrency(Math.abs(negotiation.price_difference))}
                               </p>
-                              <span className={`text-sm ${priceTrend === 'up' ? 'text-green-600' : priceTrend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
+                              <span className={`text-sm ${priceTrend === 'up' ? 'text-green-600' : priceTrend === 'down' ? 'text-red-600' : 'text-muted-foreground'}`}>
                                 ({negotiation.price_change_percentage > 0 ? '+' : ''}{negotiation.price_change_percentage.toFixed(2)}%)
                               </span>
                             </div>
@@ -285,17 +281,17 @@ export const NegotiationsView: React.FC = () => {
                         {/* Negotiation Stats */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
                           <div>
-                            <p className="text-sm text-gray-600">Ofertas</p>
+                            <p className="text-sm text-muted-foreground">{t('negotiations.offers')}</p>
                             <p className="text-lg font-semibold">{negotiation.offer_count}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Contraofertas</p>
+                            <p className="text-sm text-muted-foreground">{t('negotiations.counters')}</p>
                             <p className="text-lg font-semibold">{negotiation.counter_offer_count}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Progreso</p>
+                            <p className="text-sm text-muted-foreground">{t('negotiations.progress')}</p>
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                              <div className="flex-1 bg-muted rounded-full h-2">
                                 <div
                                   className="bg-blue-600 h-2 rounded-full"
                                   style={{ width: `${negotiation.negotiation_progress}%` }}
@@ -305,9 +301,9 @@ export const NegotiationsView: React.FC = () => {
                             </div>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Última Actualización</p>
+                            <p className="text-sm text-muted-foreground">{t('negotiations.details.lastUpdate')}</p>
                             <p className="text-sm">
-                              {format(new Date(negotiation.updated_at), "d MMM yyyy", { locale: es })}
+                              {format(new Date(negotiation.updated_at), 'd MMM yyyy', { locale: dateLocale })}
                             </p>
                           </div>
                         </div>
@@ -315,16 +311,16 @@ export const NegotiationsView: React.FC = () => {
                         {/* Latest Offer Info */}
                         {latestOffer && (
                           <div className="pt-4 border-t">
-                            <p className="text-sm text-gray-600 mb-2">Última Oferta</p>
+                            <p className="text-sm text-muted-foreground mb-2">{t('negotiations.lastOffer')}</p>
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-semibold">{formatCurrency(latestOffer.offer_price)}</p>
-                                <p className="text-sm text-gray-500">
-                                  Cierre: {format(new Date(latestOffer.closing_date), "d MMM yyyy", { locale: es })}
+                                <p className="text-sm text-muted-foreground">
+                                  {t('negotiations.closingDateLabel', { date: format(new Date(latestOffer.closing_date), 'd MMM yyyy', { locale: dateLocale }) })}
                                 </p>
                               </div>
                               <Badge variant={latestOffer.status === 'pending' ? 'secondary' : 'default'}>
-                                {latestOffer.status}
+                                {t(`negotiations.status.${latestOffer.status}`, { defaultValue: latestOffer.status })}
                               </Badge>
                             </div>
                           </div>
@@ -338,7 +334,7 @@ export const NegotiationsView: React.FC = () => {
                             onClick={() => handleViewNegotiation(negotiation)}
                           >
                             <Eye className="w-4 h-4 mr-2" />
-                            Ver Detalles
+                            {t('negotiations.viewDetails')}
                           </Button>
                           {isSeller && negotiation.status === 'active' && (
                             <Button
@@ -347,7 +343,7 @@ export const NegotiationsView: React.FC = () => {
                               onClick={() => handleCounterOffer(negotiation)}
                             >
                               <TrendingUp className="w-4 h-4 mr-2" />
-                              Hacer Contraoferta
+                              {t('negotiations.makeCounter')}
                             </Button>
                           )}
                           {isBuyer && negotiation.status === 'active' && latestOffer?.status === 'countered' && (
@@ -357,7 +353,7 @@ export const NegotiationsView: React.FC = () => {
                               onClick={() => handleCounterOffer(negotiation)}
                             >
                               <TrendingUp className="w-4 h-4 mr-2" />
-                              Responder Contraoferta
+                              {t('negotiations.respondCounter')}
                             </Button>
                           )}
                         </div>

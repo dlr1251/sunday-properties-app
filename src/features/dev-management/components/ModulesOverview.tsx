@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { Badge } from '../../../../components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { MODULES } from '../config/modulesConfig';
 import { useTaskManagement } from '../hooks/useTaskManagement';
 import { useProjectAnalysis } from '../hooks/useProjectAnalysis';

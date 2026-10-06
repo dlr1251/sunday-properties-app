@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,17 +31,32 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { formatCurrency } from '../../utils/format';
+import { isPropertyUuid, propertyPath } from '../../utils/propertyPath';
+
+interface OfferedTimeline {
+  deedSigningDate?: string;
+  propertyDeliveryDate?: string;
+  paymentReceptionDate?: string;
+}
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   description: string;
   address: string;
   neighborhood: string;
   city: string;
   property_type: string;
-  transaction_type: string;
-  price: number;
+  listing_type: 'sale' | 'rental';
+  price: number | null;
+  rent_monthly?: number | null;
+  lease_term_months?: number | null;
+  deposit?: number | null;
+  admin_fee?: number | null;
+  utilities_included?: string[] | null;
+  pets_policy?: string | null;
   area: number;
   bedrooms: number;
   bathrooms: number;
@@ -53,9 +69,14 @@ interface Property {
   images: string[];
   status: string;
   owner_id: string;
+  negotiation_terms?: {
+    offeredTimeline?: OfferedTimeline;
+    [key: string]: unknown;
+  } | null;
 }
 
 export const PropertyEditPage: React.FC = () => {
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -78,24 +99,26 @@ export const PropertyEditPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('properties')
-        .select('*')
-        .eq('id', propertyId)
-        .single();
+        .select('*');
+      query = isPropertyUuid(propertyId)
+        ? query.eq('id', propertyId)
+        : query.eq('slug', propertyId);
+      const { data, error } = await query.single();
 
       if (error) throw error;
 
       if (!data) {
-        toast.error('Propiedad no encontrada');
+        toast.error(t('properties.edit.notFound'));
         navigate('/properties');
         return;
       }
 
       // Check if user owns this property
       if (!user || user.id !== data.owner_id) {
-        toast.error('No tienes permiso para editar esta propiedad');
-        navigate(`/properties/${propertyId}`);
+        toast.error(t('properties.edit.noPermission'));
+        navigate(propertyPath(data));
         return;
       }
 
@@ -103,7 +126,7 @@ export const PropertyEditPage: React.FC = () => {
       setFormData(data);
     } catch (error: any) {
       console.error('Error fetching property:', error);
-      toast.error('Error al cargar la propiedad');
+      toast.error(t('properties.edit.loadError'));
       navigate('/properties');
     } finally {
       setLoading(false);
@@ -128,8 +151,20 @@ export const PropertyEditPage: React.FC = () => {
     }) : null);
   };
 
+  const offeredTimeline = formData?.negotiation_terms?.offeredTimeline ?? {};
+  const setOfferedTimeline = (field: keyof OfferedTimeline, value: string) => {
+    if (!formData) return;
+    setFormData(prev => prev ? ({
+      ...prev,
+      negotiation_terms: {
+        ...(prev.negotiation_terms ?? {}),
+        offeredTimeline: { ...(prev.negotiation_terms?.offeredTimeline ?? {}), [field]: value || undefined }
+      }
+    }) : null);
+  };
+
   const handleSaveProperty = async () => {
-    if (!formData || !propertyId) return;
+    if (!formData || !property) return;
 
     setSaving(true);
     try {
@@ -142,8 +177,14 @@ export const PropertyEditPage: React.FC = () => {
           neighborhood: formData.neighborhood,
           city: formData.city,
           property_type: formData.property_type,
-          transaction_type: formData.transaction_type,
-          price: formData.price,
+          listing_type: formData.listing_type,
+          price: formData.listing_type === 'sale' ? formData.price : null,
+          rent_monthly: formData.listing_type === 'rental' ? (formData.rent_monthly ?? null) : null,
+          lease_term_months: formData.listing_type === 'rental' ? (formData.lease_term_months ?? null) : null,
+          deposit: formData.listing_type === 'rental' ? (formData.deposit ?? null) : null,
+          admin_fee: formData.listing_type === 'rental' ? (formData.admin_fee ?? null) : null,
+          utilities_included: formData.listing_type === 'rental' ? (formData.utilities_included ?? []) : [],
+          pets_policy: formData.listing_type === 'rental' ? (formData.pets_policy ?? null) : null,
           area: formData.area,
           bedrooms: formData.bedrooms,
           bathrooms: formData.bathrooms,
@@ -153,20 +194,21 @@ export const PropertyEditPage: React.FC = () => {
           year_built: formData.year_built,
           strata: formData.strata,
           features: formData.features,
+          negotiation_terms: formData.negotiation_terms ?? undefined,
           updated_at: new Date().toISOString()
         })
-        .eq('id', propertyId)
+        .eq('id', property.id)
         .eq('owner_id', user?.id) // Extra security check
         .select()
         .single();
 
       if (error) throw error;
 
-      toast.success('Propiedad actualizada exitosamente');
-      navigate(`/properties/${propertyId}`);
+      toast.success(t('properties.edit.saveSuccess'));
+      navigate(propertyPath({ id: property.id, slug: data?.slug || property.slug }));
     } catch (error: any) {
       console.error('Error updating property:', error);
-      toast.error(error.message || 'Error al actualizar la propiedad');
+      toast.error(error.message || t('properties.edit.saveError'));
     } finally {
       setSaving(false);
     }
@@ -178,16 +220,16 @@ export const PropertyEditPage: React.FC = () => {
   ];
 
   const propertyTypes = [
-    { value: 'apartment', label: 'Apartamento' },
-    { value: 'house', label: 'Casa' },
-    { value: 'townhouse', label: 'Casa en conjunto' },
-    { value: 'office', label: 'Oficina' },
-    { value: 'commercial', label: 'Local comercial' }
+    { value: 'apartment', label: t('properties.types.apartment') },
+    { value: 'house', label: t('properties.types.house') },
+    { value: 'townhouse', label: t('properties.types.townhouse') },
+    { value: 'office', label: t('properties.types.office') },
+    { value: 'commercial', label: t('properties.types.commercial') }
   ];
 
   const transactionTypes = [
-    { value: 'sale', label: 'Venta' },
-    { value: 'rent', label: 'Arriendo' }
+    { value: 'sale', label: t('properties.listingTypes.sale') },
+    { value: 'rental', label: t('properties.listingTypes.rental') }
   ];
 
   if (loading) {
@@ -207,7 +249,7 @@ export const PropertyEditPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-600">Propiedad no encontrada</p>
+              <p className="text-red-600">{t('properties.edit.notFound')}</p>
             </div>
           </CardContent>
         </Card>
@@ -223,35 +265,35 @@ export const PropertyEditPage: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(`/properties/${propertyId}`)}
+            onClick={() => navigate(propertyPath(property))}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Edit className="h-7 w-7" />
-              Editar Propiedad
+              {t('properties.edit.title')}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Modifica los detalles de tu propiedad y configura la disponibilidad para visitas
+              {t('properties.edit.subtitle')}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => navigate(`/properties/${propertyId}`)}
+            onClick={() => navigate(propertyPath(property))}
             disabled={saving}
           >
             <X className="h-4 w-4 mr-2" />
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleSaveProperty}
             disabled={saving}
           >
             <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Guardando...' : 'Guardar Cambios'}
+            {saving ? t('common.saving') : t('properties.edit.saveChanges')}
           </Button>
         </div>
       </div>
@@ -260,11 +302,11 @@ export const PropertyEditPage: React.FC = () => {
         <TabsList className="grid w-full grid-cols-2 h-12">
           <TabsTrigger value="details" className="flex items-center gap-2">
             <Home className="h-4 w-4" />
-            Detalles de la Propiedad
+            {t('properties.edit.tabDetails')}
           </TabsTrigger>
           <TabsTrigger value="availability" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Disponibilidad de Visitas
+            {t('properties.edit.tabAvailability')}
           </TabsTrigger>
         </TabsList>
 
@@ -273,32 +315,32 @@ export const PropertyEditPage: React.FC = () => {
             {/* Basic Information */}
             <Card className="lg:col-span-2 xl:col-span-1">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Información Básica</CardTitle>
+                <CardTitle className="text-lg">{t('properties.edit.basicInfo')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="title">Título de la Propiedad</Label>
+                    <Label htmlFor="title">{t('properties.edit.titleLabel')}</Label>
                     <FormFieldHelper
                       fieldId="title"
-                      content="El título es lo primero que ven los usuarios. Sé descriptivo y atractivo. Ejemplo: 'Hermoso apartamento en el centro con vista a la montaña'"
+                      content={t('properties.edit.helpers.title')}
                     />
                   </div>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Ej: Hermoso apartamento en el centro"
+                    placeholder={t('properties.edit.titlePlaceholder')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="property_type">Tipo de Propiedad</Label>
+                      <Label htmlFor="property_type">{t('properties.edit.propertyType')}</Label>
                       <FormFieldHelper
                         fieldId="property_type"
-                        content="Selecciona el tipo de inmueble. Esto ayuda a los usuarios a filtrar y encontrar lo que buscan."
+                        content={t('properties.edit.helpers.propertyType')}
                       />
                     </div>
                     <select
@@ -317,17 +359,17 @@ export const PropertyEditPage: React.FC = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="transaction_type">Tipo de Transacción</Label>
+                      <Label htmlFor="listing_type">{t('properties.edit.listingType')}</Label>
                       <FormFieldHelper
-                        fieldId="transaction_type"
-                        content="¿Vas a vender o arrendar la propiedad? Esto determina cómo se mostrará en las búsquedas."
+                        fieldId="listing_type"
+                        content={t('properties.edit.helpers.listingType')}
                       />
                     </div>
                     <select
-                      id="transaction_type"
+                      id="listing_type"
                       className="w-full border rounded-md p-2 bg-background"
-                      value={formData.transaction_type}
-                      onChange={(e) => handleInputChange('transaction_type', e.target.value)}
+                      value={formData.listing_type}
+                      onChange={(e) => handleInputChange('listing_type', e.target.value)}
                     >
                       {transactionTypes.map(type => (
                         <option key={type.value} value={type.value}>
@@ -340,17 +382,17 @@ export const PropertyEditPage: React.FC = () => {
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="description">Descripción</Label>
+                    <Label htmlFor="description">{t('properties.edit.description')}</Label>
                     <FormFieldHelper
                       fieldId="description"
-                      content="Describe las características principales de tu propiedad. Incluye detalles sobre ubicación, características especiales, cercanías importantes, y cualquier información que pueda interesar a los compradores o arrendatarios."
+                      content={t('properties.edit.helpers.description')}
                     />
                   </div>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Describe las características principales de tu propiedad..."
+                    placeholder={t('properties.edit.descriptionPlaceholder')}
                     rows={4}
                     className="resize-none"
                   />
@@ -363,56 +405,56 @@ export const PropertyEditPage: React.FC = () => {
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Ubicación
+                  {t('properties.edit.location')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="address">Dirección</Label>
+                    <Label htmlFor="address">{t('properties.edit.address')}</Label>
                     <FormFieldHelper
                       fieldId="address"
-                      content="Ingresa la dirección completa de la propiedad. Esto se mostrará en el mapa y ayudará a los usuarios a ubicarla."
+                      content={t('properties.edit.helpers.address')}
                     />
                   </div>
                   <Input
                     id="address"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="Ej: Calle 10 # 20-30"
+                    placeholder={t('properties.edit.addressPlaceholder')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="neighborhood">Barrio</Label>
+                      <Label htmlFor="neighborhood">{t('properties.edit.neighborhood')}</Label>
                       <FormFieldHelper
                         fieldId="neighborhood"
-                        content="El barrio es importante para la búsqueda. Usa el nombre oficial del barrio."
+                        content={t('properties.edit.helpers.neighborhood')}
                       />
                     </div>
                     <Input
                       id="neighborhood"
                       value={formData.neighborhood}
                       onChange={(e) => handleInputChange('neighborhood', e.target.value)}
-                      placeholder="Ej: El Poblado"
+                      placeholder={t('properties.edit.neighborhoodPlaceholder')}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="city">Ciudad</Label>
+                      <Label htmlFor="city">{t('properties.edit.city')}</Label>
                       <FormFieldHelper
                         fieldId="city"
-                        content="La ciudad donde se encuentra la propiedad."
+                        content={t('properties.edit.helpers.city')}
                       />
                     </div>
                     <Input
                       id="city"
                       value={formData.city}
                       onChange={(e) => handleInputChange('city', e.target.value)}
-                      placeholder="Ej: Medellín"
+                      placeholder={t('properties.edit.cityPlaceholder')}
                     />
                   </div>
                 </div>
@@ -424,17 +466,17 @@ export const PropertyEditPage: React.FC = () => {
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Precio y Área
+                  {t('properties.edit.priceAndArea')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="price">Precio (COP)</Label>
+                      <Label htmlFor="price">{t('properties.edit.priceCop')}</Label>
                       <FormFieldHelper
                         fieldId="price"
-                        content="Ingresa el precio en pesos colombianos sin puntos ni comas. Ejemplo: 300000000 para 300 millones."
+                        content={t('properties.edit.helpers.price')}
                       />
                     </div>
                     <Input
@@ -442,16 +484,16 @@ export const PropertyEditPage: React.FC = () => {
                       type="number"
                       value={formData.price}
                       onChange={(e) => handleInputChange('price', parseInt(e.target.value) || 0)}
-                      placeholder="Ej: 300000000"
+                      placeholder={t('common.example', { value: '300000000' })}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="area">Área (m²)</Label>
+                      <Label htmlFor="area">{t('properties.edit.areaM2')}</Label>
                       <FormFieldHelper
                         fieldId="area"
-                        content="El área total de la propiedad en metros cuadrados. Incluye todos los espacios habitables."
+                        content={t('properties.edit.helpers.area')}
                       />
                     </div>
                     <Input
@@ -459,9 +501,59 @@ export const PropertyEditPage: React.FC = () => {
                       type="number"
                       value={formData.area}
                       onChange={(e) => handleInputChange('area', parseInt(e.target.value) || 0)}
-                      placeholder="Ej: 80"
+                      placeholder={t('common.example', { value: '80' })}
                     />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Condiciones mínimas de negociación */}
+            <Card className="lg:col-span-2 xl:col-span-1">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  {t('properties.edit.negotiationTitle')}
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  {t('properties.edit.negotiationDescription')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm">{t('properties.edit.totalValue')}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('properties.edit.totalValueHint')}
+                  </p>
+                  <p className="text-lg font-semibold text-foreground">
+                    {formatCurrency(Number(formData.price ?? 0))}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="deedSigningDate" className="text-sm flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {t('properties.edit.deedSigningDate')}
+                  </Label>
+                  <Input
+                    id="deedSigningDate"
+                    type="date"
+                    value={offeredTimeline.deedSigningDate ?? ''}
+                    onChange={(e) => setOfferedTimeline('deedSigningDate', e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">{t('properties.edit.deedSigningHint')}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="propertyDeliveryDate" className="text-sm flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {t('properties.edit.deliveryDate')}
+                  </Label>
+                  <Input
+                    id="propertyDeliveryDate"
+                    type="date"
+                    value={offeredTimeline.propertyDeliveryDate ?? ''}
+                    onChange={(e) => setOfferedTimeline('propertyDeliveryDate', e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">{t('properties.edit.deliveryHint')}</p>
                 </div>
               </CardContent>
             </Card>
@@ -469,7 +561,7 @@ export const PropertyEditPage: React.FC = () => {
             {/* Specifications */}
             <Card className="lg:col-span-2 xl:col-span-2">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Especificaciones</CardTitle>
+                <CardTitle className="text-lg">{t('properties.edit.specifications')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -477,11 +569,11 @@ export const PropertyEditPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Label htmlFor="bedrooms" className="flex items-center gap-2">
                         <Bed className="h-4 w-4" />
-                        Habitaciones
+                        {t('properties.bedrooms')}
                       </Label>
                       <FormFieldHelper
                         fieldId="bedrooms"
-                        content="Número de habitaciones o dormitorios de la propiedad."
+                        content={t('properties.edit.helpers.bedrooms')}
                       />
                     </div>
                     <Input
@@ -497,11 +589,11 @@ export const PropertyEditPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Label htmlFor="bathrooms" className="flex items-center gap-2">
                         <Bath className="h-4 w-4" />
-                        Baños
+                        {t('properties.bathrooms')}
                       </Label>
                       <FormFieldHelper
                         fieldId="bathrooms"
-                        content="Número de baños completos de la propiedad."
+                        content={t('properties.edit.helpers.bathrooms')}
                       />
                     </div>
                     <Input
@@ -519,11 +611,11 @@ export const PropertyEditPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <Label htmlFor="parking" className="flex items-center gap-2">
                         <Car className="h-4 w-4" />
-                        Parqueaderos
+                        {t('properties.parking')}
                       </Label>
                       <FormFieldHelper
                         fieldId="parking"
-                        content="Número de espacios de parqueo disponibles."
+                        content={t('properties.edit.helpers.parking')}
                       />
                     </div>
                     <Input
@@ -537,10 +629,10 @@ export const PropertyEditPage: React.FC = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="strata">Estrato</Label>
+                      <Label htmlFor="strata">{t('properties.edit.strata')}</Label>
                       <FormFieldHelper
                         fieldId="strata"
-                        content="Estrato socioeconómico según clasificación de Colombia (1-6). Esto afecta los costos de servicios públicos."
+                        content={t('properties.edit.helpers.strata')}
                       />
                     </div>
                     <select
@@ -549,10 +641,10 @@ export const PropertyEditPage: React.FC = () => {
                       value={formData.strata || ''}
                       onChange={(e) => handleInputChange('strata', parseInt(e.target.value) || undefined)}
                     >
-                      <option value="">Seleccionar</option>
+                      <option value="">{t('properties.edit.select')}</option>
                       {[1, 2, 3, 4, 5, 6].map(strata => (
                         <option key={strata} value={strata}>
-                          Estrato {strata}
+                          {t('properties.edit.strataOption', { n: strata })}
                         </option>
                       ))}
                     </select>
@@ -562,10 +654,10 @@ export const PropertyEditPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="floor">Piso</Label>
+                      <Label htmlFor="floor">{t('properties.edit.floor')}</Label>
                       <FormFieldHelper
                         fieldId="floor"
-                        content="Si es un apartamento, indica en qué piso está ubicado."
+                        content={t('properties.edit.helpers.floor')}
                       />
                     </div>
                     <Input
@@ -574,16 +666,16 @@ export const PropertyEditPage: React.FC = () => {
                       value={formData.floor || ''}
                       onChange={(e) => handleInputChange('floor', parseInt(e.target.value) || undefined)}
                       min="0"
-                      placeholder="Opcional"
+                      placeholder={t('common.optional')}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="total_floors">Total de Pisos</Label>
+                      <Label htmlFor="total_floors">{t('properties.edit.totalFloors')}</Label>
                       <FormFieldHelper
                         fieldId="total_floors"
-                        content="Total de pisos del edificio o conjunto residencial."
+                        content={t('properties.edit.helpers.totalFloors')}
                       />
                     </div>
                     <Input
@@ -592,7 +684,7 @@ export const PropertyEditPage: React.FC = () => {
                       value={formData.total_floors || ''}
                       onChange={(e) => handleInputChange('total_floors', parseInt(e.target.value) || undefined)}
                       min="1"
-                      placeholder="Opcional"
+                      placeholder={t('common.optional')}
                     />
                   </div>
                 </div>
@@ -603,9 +695,9 @@ export const PropertyEditPage: React.FC = () => {
           {/* Features */}
           <Card>
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Características Adicionales</CardTitle>
+              <CardTitle className="text-lg">{t('properties.edit.additionalFeatures')}</CardTitle>
               <CardDescription>
-                Selecciona las características que tiene tu propiedad
+                {t('properties.edit.featuresHint')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -620,17 +712,7 @@ export const PropertyEditPage: React.FC = () => {
                       className="rounded"
                     />
                     <Label htmlFor={feature} className="capitalize">
-                      {feature === 'pool' ? 'Piscina' :
-                       feature === 'gym' ? 'Gimnasio' :
-                       feature === 'security' ? 'Seguridad' :
-                       feature === 'elevator' ? 'Ascensor' :
-                       feature === 'garden' ? 'Jardín' :
-                       feature === 'terrace' ? 'Terraza' :
-                       feature === 'parking' ? 'Parqueadero' :
-                       feature === 'storage' ? 'Bodega' :
-                       feature === 'laundry' ? 'Lavandería' :
-                       feature === 'internet' ? 'Internet' :
-                       feature === 'furnished' ? 'Amueblado' : feature}
+                      {t(`properties.features.${feature}`, { defaultValue: feature })}
                     </Label>
                   </div>
                 ))}
@@ -643,7 +725,7 @@ export const PropertyEditPage: React.FC = () => {
           <VisitAvailabilityConfig
             propertyId={property.id}
             onComplete={() => {
-              toast.success('Disponibilidad de visitas actualizada');
+              toast.success(t('properties.wizard.availability.updated'));
             }}
           />
         </TabsContent>

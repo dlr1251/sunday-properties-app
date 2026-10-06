@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../ui/dialog';
 import { Label } from '../../ui/label';
@@ -14,21 +15,23 @@ interface Props {
   onConfirm: () => Promise<void> | void;
 }
 
-export const BulkRoleDialog: React.FC<Props> = ({ open, onOpenChange, count, newRole, setNewRole, onConfirm }) => {
+export const BulkRoleDialog: React.FC<Props> = ({
+  open, onOpenChange, count, newRole, setNewRole, onConfirm }) => {
+    const { t } = useTranslation();
   const availableRoles = getAvailableRoles();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Cambiar Rol Masivamente</DialogTitle>
+          <DialogTitle>{t('admin.changeRoleBulk')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Nuevo Rol para {count} usuario{count !== 1 ? 's' : ''}</Label>
+            <Label>{t('admin.bulkRoleNewLabel', { count })}</Label>
             <Select value={newRole} onValueChange={setNewRole}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona un rol..." />
+                <SelectValue placeholder={t('admin.selectRole')} />
               </SelectTrigger>
               <SelectContent>
                 {availableRoles.map((role) => (
@@ -44,18 +47,16 @@ export const BulkRoleDialog: React.FC<Props> = ({ open, onOpenChange, count, new
           </div>
           <div className="bg-red-50 border border-red-200 rounded p-3">
             <p className="text-sm text-red-800">
-              <strong>Advertencia crítica:</strong> Esta acción afectará a {count} usuario{count !== 1 ? 's' : ''}.
-              Los usuarios recibirán una notificación sobre el cambio de rol.
-              Esta acción no se puede deshacer fácilmente.
+              <strong>{t('admin.criticalWarning')}</strong> {t('admin.bulkRoleCriticalBody', { count })}
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={() => onConfirm()} disabled={!newRole} variant="destructive">
-            Aplicar Cambio Masivo
+            {t('admin.applyBulkChange')}
           </Button>
         </DialogFooter>
       </DialogContent>

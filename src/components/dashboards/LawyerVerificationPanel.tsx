@@ -23,6 +23,8 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useVerificationFlow } from '../../hooks/verification/useVerificationFlow';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatDate, formatDateTime } from '../../utils/format';
 
 interface VerificationRequest {
   id: string;
@@ -46,6 +48,7 @@ interface VerificationRequest {
 }
 
 export const LawyerVerificationPanel: React.FC = () => {
+  const { t } = useTranslation();
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
@@ -72,7 +75,7 @@ export const LawyerVerificationPanel: React.FC = () => {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      toast.error('Error descargando documento');
+      toast.error(t('admin.downloadDocumentError'));
       console.error(error);
     }
   };
@@ -82,7 +85,7 @@ export const LawyerVerificationPanel: React.FC = () => {
       const url = await getSignedUrl(path);
       window.open(url, '_blank');
     } catch (error) {
-      toast.error('Error abriendo documento');
+      toast.error(t('admin.openDocumentError'));
       console.error(error);
     }
   };
@@ -110,7 +113,7 @@ export const LawyerVerificationPanel: React.FC = () => {
       if (error) throw error;
       setRequests(data || []);
     } catch (error: any) {
-      toast.error('Error cargando solicitudes: ' + error.message);
+      toast.error(t('admin.loadRequestsErrorMessage', { message: error.message }));
       console.error(error);
     } finally {
       setLoading(false);
@@ -189,9 +192,9 @@ export const LawyerVerificationPanel: React.FC = () => {
 
       setNewMessage('');
       await fetchMessages(selectedRequest.id);
-      toast.success('Mensaje enviado');
+      toast.success(t('admin.messageSent'));
     } catch (error: any) {
-      toast.error('Error enviando mensaje: ' + error.message);
+      toast.error(t('admin.sendMessageError', { message: error.message }));
     }
   };
 
@@ -245,11 +248,11 @@ export const LawyerVerificationPanel: React.FC = () => {
         console.error('Error creating notification:', notificationError);
       }
 
-      toast.success('Solicitud aprobada correctamente');
+      toast.success(t('admin.requestApprovedOk'));
       setSelectedRequest(null);
       await fetchRequests();
     } catch (error: any) {
-      toast.error('Error aprobando solicitud: ' + error.message);
+      toast.error(t('admin.approveRequestErrorMessage', { message: error.message }));
     } finally {
       setIsProcessing(false);
     }
@@ -257,7 +260,7 @@ export const LawyerVerificationPanel: React.FC = () => {
 
   const rejectRequest = async () => {
     if (!selectedRequest || !rejectReason.trim()) {
-      toast.error('Debes proporcionar una razón para el rechazo');
+      toast.error(t('admin.rejectReasonRequired'));
       return;
     }
 
@@ -298,13 +301,13 @@ export const LawyerVerificationPanel: React.FC = () => {
         console.error('Error creating notification:', notificationError);
       }
 
-      toast.success('Solicitud rechazada correctamente');
+      toast.success(t('admin.requestRejectedOk'));
       setSelectedRequest(null);
       setShowRejectDialog(false);
       setRejectReason('');
       await fetchRequests();
     } catch (error: any) {
-      toast.error('Error rechazando solicitud: ' + error.message);
+      toast.error(t('admin.rejectRequestErrorMessage', { message: error.message }));
     } finally {
       setIsProcessing(false);
     }
@@ -320,7 +323,7 @@ export const LawyerVerificationPanel: React.FC = () => {
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <Clock className="h-6 w-6 animate-spin mr-2" />
-            Cargando solicitudes...
+            {t('admin.loadingRequests')}
           </div>
         </CardContent>
       </Card>
@@ -333,7 +336,7 @@ export const LawyerVerificationPanel: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Solicitudes de Verificación Pendientes
+            {t('admin.pendingVerificationRequests')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -341,7 +344,7 @@ export const LawyerVerificationPanel: React.FC = () => {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                No hay solicitudes de verificación pendientes.
+                {t('admin.noPendingVerificationRequests')}
               </AlertDescription>
             </Alert>
           ) : (
@@ -353,7 +356,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-semibold">
-                            {request.user_profile?.full_name || 'Usuario sin nombre'}
+                            {request.user_profile?.full_name || t('common.unnamed')}
                           </h4>
                           <Badge variant="outline">
                             {request.is_owner ? 'Dueño' : 'Intermediario'}
@@ -363,7 +366,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                           {request.user_profile?.email}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Solicitado el {new Date(request.created_at).toLocaleDateString('es-CO')}
+                          {t('admin.submitted', { date: formatDate(request.created_at) })}
                         </p>
                       </div>
 
@@ -378,47 +381,47 @@ export const LawyerVerificationPanel: React.FC = () => {
                         </Button>
                         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Revisar Solicitud de Verificación</DialogTitle>
+                            <DialogTitle>{t('admin.reviewRequest')}</DialogTitle>
                           </DialogHeader>
 
                           {selectedRequest && (
                             <Tabs defaultValue="details" className="w-full">
                               <TabsList className="grid w-full grid-cols-4">
-                                <TabsTrigger value="details">Detalles</TabsTrigger>
-                                <TabsTrigger value="documents">Documentos</TabsTrigger>
-                                <TabsTrigger value="messages">Mensajes</TabsTrigger>
-                                <TabsTrigger value="actions">Acciones</TabsTrigger>
+                                <TabsTrigger value="details">{t('lawyer.details')}</TabsTrigger>
+                                <TabsTrigger value="documents">{t('lawyer.documents')}</TabsTrigger>
+                                <TabsTrigger value="messages">{t('admin.messagesTab')}</TabsTrigger>
+                                <TabsTrigger value="actions">{t('lawyer.actions')}</TabsTrigger>
                               </TabsList>
 
                               <TabsContent value="details" className="space-y-4">
                                 <Card>
                                   <CardHeader>
-                                    <CardTitle className="text-lg">Información del Usuario</CardTitle>
+                                    <CardTitle className="text-lg">{t('admin.userInfo')}</CardTitle>
                                   </CardHeader>
                                   <CardContent className="space-y-2">
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                       <div>
-                                        <span className="font-medium">Nombre:</span> {selectedRequest.user_profile?.full_name}
+                                        <span className="font-medium">{t('admin.name')}:</span> {selectedRequest.user_profile?.full_name}
                                       </div>
                                       <div>
                                         <span className="font-medium">Email:</span> {selectedRequest.user_profile?.email}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Teléfono:</span> {selectedRequest.data?.phone || 'No proporcionado'}
+                                        <span className="font-medium">{t('admin.phone')}:</span> {selectedRequest.data?.phone || t('common.notSpecified')}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Tipo:</span> {selectedRequest.is_owner ? 'Dueño directo' : 'Intermediario'}
+                                        <span className="font-medium">{t('lawyer.type')}</span> {selectedRequest.is_owner ? t('admin.directOwner') : t('admin.intermediary')}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Ubicación:</span> {selectedRequest.data?.location}
+                                        <span className="font-medium">{t('admin.locationSection')}:</span> {selectedRequest.data?.location}
                                       </div>
                                       <div>
-                                        <span className="font-medium">Nacionalidad:</span> {selectedRequest.data?.nationality}
+                                        <span className="font-medium">{t('admin.nationality')}:</span> {selectedRequest.data?.nationality}
                                       </div>
                                     </div>
                                     {selectedRequest.data?.bio && (
                                       <div className="mt-4">
-                                        <span className="font-medium">Biografía:</span>
+                                        <span className="font-medium">{t('admin.bio')}:</span>
                                         <p className="text-sm text-muted-foreground mt-1">{selectedRequest.data.bio}</p>
                                       </div>
                                     )}
@@ -431,12 +434,12 @@ export const LawyerVerificationPanel: React.FC = () => {
                                   {selfieUrl && (
                                     <Card>
                                       <CardHeader>
-                                        <CardTitle className="text-sm">Selfie</CardTitle>
+                                        <CardTitle className="text-sm">{t('verification.dashboard.facePhoto')}</CardTitle>
                                       </CardHeader>
                                       <CardContent>
                                         <img
                                           src={selfieUrl}
-                                          alt="Selfie"
+                                          alt={t('verification.dashboard.facePhoto')}
                                           className="w-full h-48 object-cover rounded"
                                         />
                                         <div className="flex gap-2 mt-2">
@@ -447,7 +450,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                             onClick={() => previewDocument(selectedRequest.selfie_path!)}
                                           >
                                             <Eye className="h-4 w-4 mr-2" />
-                                            Ver Completo
+                                            {t('properties.viewDetails')}
                                           </Button>
                                           <Button
                                             variant="outline"
@@ -456,7 +459,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                             onClick={() => downloadDocument(selectedRequest.selfie_path!, 'selfie.jpg')}
                                           >
                                             <Download className="h-4 w-4 mr-2" />
-                                            Descargar
+                                            {t('common.download')}
                                           </Button>
                                         </div>
                                       </CardContent>
@@ -466,13 +469,13 @@ export const LawyerVerificationPanel: React.FC = () => {
                                   {idDocUrl && (
                                     <Card>
                                       <CardHeader>
-                                        <CardTitle className="text-sm">Cédula de Ciudadanía</CardTitle>
+                                        <CardTitle className="text-sm">{t('admin.idDocument')}</CardTitle>
                                       </CardHeader>
                                       <CardContent>
                                         {isImageFile(selectedRequest.id_doc_path!) ? (
                                           <img
                                             src={idDocUrl}
-                                            alt="Cédula de Ciudadanía"
+                                            alt={t('admin.idDocument')}
                                             className="w-full h-48 object-cover rounded"
                                           />
                                         ) : (
@@ -488,7 +491,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                             onClick={() => previewDocument(selectedRequest.id_doc_path!)}
                                           >
                                             <Eye className="h-4 w-4 mr-2" />
-                                            Ver Documento
+                                            {t('admin.viewDocuments')}
                                           </Button>
                                           <Button
                                             variant="outline"
@@ -497,7 +500,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                             onClick={() => downloadDocument(selectedRequest.id_doc_path!, 'cedula.pdf')}
                                           >
                                             <Download className="h-4 w-4 mr-2" />
-                                            Descargar
+                                            {t('common.download')}
                                           </Button>
                                         </div>
                                       </CardContent>
@@ -507,13 +510,13 @@ export const LawyerVerificationPanel: React.FC = () => {
                                   {poaDocUrl && (
                                     <Card>
                                       <CardHeader>
-                                        <CardTitle className="text-sm">Poder Notarial</CardTitle>
+                                        <CardTitle className="text-sm">{t('admin.powerOfAttorney')}</CardTitle>
                                       </CardHeader>
                                       <CardContent>
                                         {isImageFile(selectedRequest.poa_doc_path!) ? (
                                           <img
                                             src={poaDocUrl}
-                                            alt="Poder Notarial"
+                                            alt={t('admin.powerOfAttorney')}
                                             className="w-full h-48 object-cover rounded"
                                           />
                                         ) : (
@@ -529,7 +532,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                             onClick={() => previewDocument(selectedRequest.poa_doc_path!)}
                                           >
                                             <Eye className="h-4 w-4 mr-2" />
-                                            Ver Documento
+                                            {t('admin.viewDocuments')}
                                           </Button>
                                           <Button
                                             variant="outline"
@@ -538,7 +541,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                             onClick={() => downloadDocument(selectedRequest.poa_doc_path!, 'poder_notarial.pdf')}
                                           >
                                             <Download className="h-4 w-4 mr-2" />
-                                            Descargar
+                                            {t('common.download')}
                                           </Button>
                                         </div>
                                       </CardContent>
@@ -550,12 +553,12 @@ export const LawyerVerificationPanel: React.FC = () => {
                               <TabsContent value="messages" className="space-y-4">
                                 <Card>
                                   <CardHeader>
-                                    <CardTitle className="text-lg">Mensajes</CardTitle>
+                                    <CardTitle className="text-lg">{t('admin.messagesTab')}</CardTitle>
                                   </CardHeader>
                                   <CardContent>
                                     <div className="space-y-4 max-h-60 overflow-y-auto mb-4">
                                       {messages.length === 0 ? (
-                                        <p className="text-muted-foreground text-center">No hay mensajes</p>
+                                        <p className="text-muted-foreground text-center">{t('admin.noMessages')}</p>
                                       ) : (
                                         messages.map((msg: any) => (
                                           <div key={msg.id} className="border rounded p-3">
@@ -564,7 +567,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                                 {msg.sender?.full_name || msg.sender?.email}
                                               </span>
                                               <span className="text-xs text-muted-foreground">
-                                                {new Date(msg.created_at).toLocaleString('es-CO')}
+                                                {formatDateTime(msg.created_at)}
                                               </span>
                                             </div>
                                             <p className="text-sm">{msg.body}</p>
@@ -575,7 +578,7 @@ export const LawyerVerificationPanel: React.FC = () => {
 
                                     <div className="flex gap-2">
                                       <Textarea
-                                        placeholder="Escribe un mensaje..."
+                                        placeholder={t('admin.writeMessagePlaceholder')}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         rows={2}
@@ -591,11 +594,11 @@ export const LawyerVerificationPanel: React.FC = () => {
                               <TabsContent value="actions" className="space-y-4">
                                 <Card>
                                   <CardHeader>
-                                    <CardTitle className="text-lg">Notas de Revisión</CardTitle>
+                                    <CardTitle className="text-lg">{t('admin.reviewNotesTitle')}</CardTitle>
                                   </CardHeader>
                                   <CardContent>
                                     <Textarea
-                                      placeholder="Notas internas de la revisión..."
+                                      placeholder={t('admin.internalReviewNotes')}
                                       value={reviewNotes}
                                       onChange={(e) => setReviewNotes(e.target.value)}
                                       rows={3}
@@ -610,7 +613,7 @@ export const LawyerVerificationPanel: React.FC = () => {
                                     className="flex-1 bg-green-600 hover:bg-green-700"
                                   >
                                     <CheckCircle className="h-4 w-4 mr-2" />
-                                    Aprobar Verificación
+                                    {t('admin.approveVerification')}
                                   </Button>
 
                                   <Button
@@ -620,17 +623,17 @@ export const LawyerVerificationPanel: React.FC = () => {
                                     onClick={() => setShowRejectDialog(true)}
                                   >
                                     <XCircle className="h-4 w-4 mr-2" />
-                                    Rechazar
+                                    {t('common.reject')}
                                   </Button>
 
                                   <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
                                     <DialogContent>
                                       <DialogHeader>
-                                        <DialogTitle>Rechazar Solicitud</DialogTitle>
+                                        <DialogTitle>{t('admin.rejectRequest')}</DialogTitle>
                                       </DialogHeader>
                                       <div className="space-y-4">
                                         <Textarea
-                                          placeholder="Razón del rechazo..."
+                                          placeholder={t('admin.rejectReasonPlaceholder')}
                                           value={rejectReason}
                                           onChange={(e) => setRejectReason(e.target.value)}
                                           rows={4}

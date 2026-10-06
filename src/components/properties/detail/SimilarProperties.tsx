@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
@@ -17,10 +18,11 @@ interface SimilarPropertiesProps {
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   price?: number | null;
+  listing_type?: 'sale' | 'rental' | null;
   rent_monthly?: number | null;
-  listing_type?: string | null;
   address: string;
   neighborhood: string;
   city: string;
@@ -38,6 +40,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
   priceRange,
   onPropertyClick,
 }) => {
+  const { t } = useTranslation();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -55,6 +58,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
         .from('properties')
         .select(`
           id,
+          slug,
           title,
           price,
           rent_monthly,
@@ -150,7 +154,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
     <Card className="p-6">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Propiedades Similares</h2>
+          <h2 className="text-xl font-bold">{t('properties.detail.similarTitle')}</h2>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -175,7 +179,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                onClick={() => onPropertyClick?.(property.id)}
+                onClick={() => onPropertyClick?.(property.slug || property.id)}
                 className="group cursor-pointer"
               >
                 <div className="overflow-hidden rounded-lg border border-gray-200 hover:shadow-lg transition-all">
@@ -188,7 +192,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
                     />
                     {property.verified && (
                       <Badge className="absolute top-2 left-2 bg-white/90 text-green-800 border-0">
-                        ✓ Verificado
+                        ✓ {t('properties.verified')}
                       </Badge>
                     )}
                   </div>

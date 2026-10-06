@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '../../lib/supabase';
 import { useLegalDocs } from '../../hooks/useLegalDocs';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../utils/format';
 
 interface PropertyRow {
   id: string;
@@ -19,6 +21,7 @@ interface PropertyRow {
 }
 
 export function LawyerApprovalPanel() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState<PropertyRow[]>([]);
   const [selected, setSelected] = useState<PropertyRow | null>(null);
@@ -35,7 +38,7 @@ export function LawyerApprovalPanel() {
       if (error) throw error;
       setProperties(data || []);
     } catch (e: any) {
-      toast.error(e.message || 'Error cargando propiedades');
+      toast.error(e.message || t('admin.loadPropertiesToast'));
     } finally {
       setLoading(false);
     }
@@ -66,10 +69,10 @@ export function LawyerApprovalPanel() {
         read: false
       });
 
-      toast.success('Propiedad aprobada');
+      toast.success(t('admin.propertyApproved'));
       fetchSubmitted();
     } catch (error: any) {
-      toast.error(error.message || 'Error al aprobar propiedad');
+      toast.error(error.message || t('admin.approvePropertyError'));
     }
   };
 
@@ -98,10 +101,10 @@ export function LawyerApprovalPanel() {
         read: false
       });
 
-      toast.success('Propiedad publicada');
+      toast.success(t('admin.propertyPublished'));
       fetchSubmitted();
     } catch (error: any) {
-      toast.error(error.message || 'Error al publicar propiedad');
+      toast.error(error.message || t('admin.unpublishError'));
     }
   };
 
@@ -133,10 +136,10 @@ export function LawyerApprovalPanel() {
         read: false
       });
 
-      toast.success('Cambios solicitados');
+      toast.success(t('admin.changesRequested'));
       fetchSubmitted();
     } catch (error: any) {
-      toast.error(error.message || 'Error al solicitar cambios');
+      toast.error(error.message || t('admin.unexpectedApprove'));
     }
   };
 
@@ -146,14 +149,14 @@ export function LawyerApprovalPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Propiedades enviadas</CardTitle>
-          <CardDescription>Revisa CLYT y documentos, aprueba o publica</CardDescription>
+          <CardTitle>{t('admin.submittedProperties')}</CardTitle>
+          <CardDescription>{t('admin.reviewClytDocs')}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p>Cargando...</p>
+            <p>{t('common.loading')}</p>
           ) : properties.length === 0 ? (
-            <p>No hay propiedades en revisión</p>
+            <p>{t('admin.noPropertiesInReview')}</p>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {properties.map((p) => (
@@ -164,14 +167,14 @@ export function LawyerApprovalPanel() {
                         <h3 className="font-semibold">{p.title}</h3>
                         <p className="text-sm text-gray-600">{p.address}{p.neighborhood ? `, ${p.neighborhood}` : ''}</p>
                         <div className="mt-2 flex gap-2">
-                          <Badge variant="secondary">Enviado</Badge>
-                          {p.price ? <Badge variant="secondary">${p.price.toLocaleString()}</Badge> : null}
+                          <Badge variant="secondary">{t('admin.submittedStatus')}</Badge>
+                          {p.price ? <Badge variant="secondary">{formatCurrency(p.price)}</Badge> : null}
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setSelected(p)}>Ver</Button>
-                        <Button size="sm" onClick={() => approve(p.id)}>Aprobar</Button>
-                        <Button size="sm" variant="secondary" onClick={() => publish(p.id)}>Publicar</Button>
+                        <Button size="sm" variant="outline" onClick={() => setSelected(p)}>{t('admin.review')}</Button>
+                        <Button size="sm" onClick={() => approve(p.id)}>{t('common.approve')}</Button>
+                        <Button size="sm" variant="secondary" onClick={() => publish(p.id)}>{t('admin.publish')}</Button>
                       </div>
                     </div>
                   </CardContent>
@@ -190,7 +193,7 @@ export function LawyerApprovalPanel() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <h4 className="font-medium">Documentos</h4>
+              <h4 className="font-medium">{t('lawyer.documents')}</h4>
               <div className="flex gap-2">
                 {['clyt','escritura','cedula'].map((type) => (
                   <Button
@@ -200,25 +203,25 @@ export function LawyerApprovalPanel() {
                     onClick={async () => {
                       try {
                         const list = (selected.legal_docs?.[type] || []) as string[];
-                        if (!list.length) return toast.info('Sin documentos');
+                        if (!list.length) return toast.info(t('admin.noDocuments'));
                         const url = await getSignedUrl(list[0]);
                         window.open(url, '_blank');
                       } catch (e: any) {
-                        toast.error(e.message || 'Error abriendo documento');
+                        toast.error(e.message || t('admin.openDocumentError'));
                       }
                     }}
                   >
-                    Ver {type.toUpperCase()}
+                    {t('admin.viewDocType', { type: type.toUpperCase() })}
                   </Button>
                 ))}
               </div>
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={() => publish(selected.id)}>Publicar</Button>
-              <Button variant="outline" onClick={() => approve(selected.id)}>Aprobar</Button>
-              <Button variant="secondary" onClick={() => requestChanges(selected.id, 'Falta nitidez en CLYT')}>Solicitar cambios</Button>
-              <Button variant="ghost" onClick={() => setSelected(null)}>Cerrar</Button>
+              <Button onClick={() => publish(selected.id)}>{t('admin.publish')}</Button>
+              <Button variant="outline" onClick={() => approve(selected.id)}>{t('common.approve')}</Button>
+              <Button variant="secondary" onClick={() => requestChanges(selected.id, 'Falta nitidez en CLYT')}>{t('admin.requestChanges')}</Button>
+              <Button variant="ghost" onClick={() => setSelected(null)}>{t('common.close')}</Button>
             </div>
           </CardContent>
         </Card>

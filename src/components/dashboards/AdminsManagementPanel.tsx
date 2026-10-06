@@ -6,12 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { useUsers } from '../../hooks/useUsers';
 import { Crown, Briefcase, RefreshCw, Search, UserPlus, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatDate } from '../../utils/format';
 
 interface AdminsManagementPanelProps {
   isDarkMode?: boolean;
 }
 
 export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPanelProps) => {
+  const { t } = useTranslation();
   const { users, loading, error, refetch, updateRole } = useUsers();
   const [search, setSearch] = useState('');
 
@@ -32,13 +35,13 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
     try {
       const success = await updateRole({ userId, role: 'super_admin' as any });
       if (success) {
-        toast.success('Usuario promovido a Super Admin');
+        toast.success(t('admin.promoteSuperAdmin'));
         refetch();
       } else {
-        toast.error('Error al promover usuario');
+        toast.error(t('admin.promoteError'));
       }
     } catch (error) {
-      toast.error('Error al promover usuario');
+      toast.error(t('admin.promoteError'));
     }
   };
 
@@ -46,13 +49,13 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
     try {
       const success = await updateRole({ userId, role: 'admin' as any });
       if (success) {
-        toast.success('Usuario degradado a Admin');
+        toast.success(t('admin.demoteAdmin'));
         refetch();
       } else {
-        toast.error('Error al degradar usuario');
+        toast.error(t('admin.demoteError'));
       }
     } catch (error) {
-      toast.error('Error al degradar usuario');
+      toast.error(t('admin.demoteError'));
     }
   };
 
@@ -60,13 +63,13 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
     try {
       const success = await updateRole({ userId, role: 'registered' as any });
       if (success) {
-        toast.success('Usuario removido de rol administrativo');
+        toast.success(t('admin.removedAdmin'));
         refetch();
       } else {
-        toast.error('Error al remover permisos administrativos');
+        toast.error(t('admin.removeAdminError'));
       }
     } catch (error) {
-      toast.error('Error al remover permisos administrativos');
+      toast.error(t('admin.removeAdminError'));
     }
   };
 
@@ -74,7 +77,7 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
     <div className="space-y-6">
       <Card className={darkCard}>
         <CardHeader className={darkCard}>
-          <CardTitle className={textPrimary}>Administradores</CardTitle>
+          <CardTitle className={textPrimary}>{t('admin.manageAdminsTitle')}</CardTitle>
         </CardHeader>
         <CardContent className={darkCard}>
           <div className="flex items-center gap-3 mb-4">
@@ -83,17 +86,17 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar admin por nombre o email"
+                placeholder={t('admin.searchNameOrEmail')}
                 className={`pl-9 ${inputClasses}`}
               />
             </div>
             <Button variant="outline" onClick={() => refetch()} className={isDarkMode ? 'border-gray-600 hover:bg-gray-700 dark:text-white' : ''}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Actualizar
+              {t('common.refresh')}
             </Button>
             <Button className={isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}>
               <UserPlus className="h-4 w-4 mr-2" />
-              Crear Admin
+              {t('admin.createAdmin')}
             </Button>
           </div>
 
@@ -105,14 +108,14 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className={`text-sm ${textSecondary} truncate`}>{u.email}</div>
-                        <div className={`text-lg font-semibold ${textPrimary} truncate`}>{u.name || 'Sin nombre'}</div>
+                        <div className={`text-lg font-semibold ${textPrimary} truncate`}>{u.name || t('common.unnamed')}</div>
                         <div className={`text-xs ${textSecondary} mt-1`}>
-                          Creado: {new Date(u.created_at).toLocaleDateString('es-CO')}
+                          {t('admin.createdAt')}: {formatDate(u.created_at)}
                         </div>
                       </div>
                       <Badge variant={u.role === 'super_admin' ? 'default' : 'secondary'} className="ml-2 shrink-0">
                         {u.role === 'super_admin' ? <Crown className="h-3 w-3 mr-1" /> : <Briefcase className="h-3 w-3 mr-1" />}
-                        {u.role.replace('_', ' ')}
+                        {t(`profile.roles.${u.role}`, { defaultValue: u.role })}
                       </Badge>
                     </div>
 
@@ -124,7 +127,7 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
                           className={`${isDarkMode ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-600 hover:bg-purple-700'} flex-1`}
                         >
                           <ChevronUp className="h-3 w-3 mr-1" />
-                          Super Admin
+                          {t('admin.promoteToSuperAdmin')}
                         </Button>
                       )}
 
@@ -136,7 +139,7 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
                           className={`${isDarkMode ? 'border-gray-600 hover:bg-gray-700' : ''} flex-1`}
                         >
                           <ChevronDown className="h-3 w-3 mr-1" />
-                          Admin
+                          {t('admin.demoteToAdmin')}
                         </Button>
                       )}
 
@@ -146,7 +149,7 @@ export const AdminsManagementPanel = ({ isDarkMode = true }: AdminsManagementPan
                         onClick={() => removeAdmin(u.id)}
                         className={`${isDarkMode ? 'border-red-600 text-red-400 hover:bg-red-950' : 'border-red-300 text-red-600 hover:bg-red-50'} flex-1`}
                       >
-                        Remover
+                        {t('admin.remove')}
                       </Button>
                     </div>
                   </div>

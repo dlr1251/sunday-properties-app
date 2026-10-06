@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../../../../i18n';
 import React from 'react';
 import { Button } from '../../../ui/button';
 import { PropertyFormData } from '../PropertyWizard';
@@ -19,7 +20,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({
   const cardClasses = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat(getIntlLocale(), {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,

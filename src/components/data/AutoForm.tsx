@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 
 export type AutoFormField = {
   name: string;
@@ -22,7 +23,8 @@ export type AutoFormProps<TSchema extends z.ZodTypeAny> = {
 };
 
 export function AutoForm<TSchema extends z.ZodTypeAny>(props: AutoFormProps<TSchema>) {
-  const { schema, defaultValues, onSubmit, fields, submitting, submitLabel = 'Save', className } = props;
+  const { t } = useTranslation();
+  const { schema, defaultValues, onSubmit, fields, submitting, submitLabel = t('common.save'), className } = props;
   const { register, handleSubmit, formState: { errors } } = useForm<z.infer<TSchema>>({
     resolver: zodResolver(schema),
     defaultValues: defaultValues as any,
@@ -63,7 +65,7 @@ export function AutoForm<TSchema extends z.ZodTypeAny>(props: AutoFormProps<TSch
       </div>
       <div className="mt-4 flex items-center justify-end">
         <button type="submit" disabled={submitting} className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-muted disabled:opacity-50">
-          {submitting ? 'Saving…' : submitLabel}
+          {submitting ? t('common.saving') : submitLabel}
         </button>
       </div>
     </form>

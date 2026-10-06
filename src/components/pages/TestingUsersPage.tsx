@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import { Loader2, AlertCircle, Crown, Briefcase, Gavel, Award, User } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTestingUsers } from './testing-users/useTestingUsers';
 import { TestingUsersHeader } from './testing-users/TestingUsersHeader';
-import { UserGroupSection } from './testing-users/UserGroupSection';
+import { TestingUsersTable } from './testing-users/TestingUsersTable';
 import { ExtendedUserProfile, GroupedUsers } from './testing-users/types';
-import { getRoleIcon } from './testing-users/utils';
 
 export const TestingUsersPage: React.FC = () => {
   const { signIn, signOut, loading, user, profile } = useAuth();
@@ -92,61 +91,16 @@ export const TestingUsersPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <TestingUsersHeader usersCount={users.length} groupedUsers={groupedUsers} />
 
-        <UserGroupSection
-          title="Super Admin"
-          users={groupedUsers.superAdmin}
-          icon={getRoleIcon('super_admin')}
-          currentUserId={profile?.id}
-          isLoggingIn={isLoggingIn}
-          selectedUserId={selectedUser?.id}
-          onLogin={handleLogin}
-          loading={loading}
-        />
-
-        <UserGroupSection
-          title="Admins"
-          users={groupedUsers.admins}
-          icon={getRoleIcon('admin')}
-          currentUserId={profile?.id}
-          isLoggingIn={isLoggingIn}
-          selectedUserId={selectedUser?.id}
-          onLogin={handleLogin}
-          loading={loading}
-        />
-
-        <UserGroupSection
-          title="Lawyers"
-          users={groupedUsers.lawyers}
-          icon={getRoleIcon('lawyer')}
-          currentUserId={profile?.id}
-          isLoggingIn={isLoggingIn}
-          selectedUserId={selectedUser?.id}
-          onLogin={handleLogin}
-          loading={loading}
-        />
-
-        <UserGroupSection
-          title="Real Estate Agents"
-          users={groupedUsers.agents}
-          icon={getRoleIcon('agent')}
-          currentUserId={profile?.id}
-          isLoggingIn={isLoggingIn}
-          selectedUserId={selectedUser?.id}
-          onLogin={handleLogin}
-          loading={loading}
-        />
-
-        <UserGroupSection
-          title="Regular Users"
-          users={groupedUsers.users}
-          icon={getRoleIcon('user')}
-          gridCols="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-          currentUserId={profile?.id}
-          isLoggingIn={isLoggingIn}
-          selectedUserId={selectedUser?.id}
-          onLogin={handleLogin}
-          loading={loading}
-        />
+        <div className="mt-6">
+          <TestingUsersTable
+            users={users}
+            currentUserId={profile?.id}
+            isLoggingIn={isLoggingIn}
+            selectedUserId={selectedUser?.id}
+            onLogin={handleLogin}
+            loading={loading}
+          />
+        </div>
       </div>
     </div>
   );

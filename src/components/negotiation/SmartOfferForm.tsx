@@ -25,11 +25,14 @@ import {
   Zap,
   CreditCard,
   DollarSign,
-  Scale
+  Scale,
+  Home
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '../../utils/format';
 
 // Importar todos los subcomponentes
 import { InteractivePaymentSection } from './sections/InteractivePaymentSection';
@@ -45,6 +48,7 @@ import { PaymentValidationService } from '../../services/paymentValidation.servi
 interface SmartOfferFormProps {
   propertyId: string;
   propertyPrice: number;
+  transactionType?: 'sale' | 'rental';
   negotiationRules?: any;
   onSubmit?: (offer: any) => void;
   onCancel?: () => void;
@@ -96,15 +100,17 @@ interface LegalDocument {
 export function SmartOfferForm({
   propertyId,
   propertyPrice,
+  transactionType = 'sale',
   negotiationRules,
   onSubmit,
   onCancel,
   isOpen,
   onOpenChange
 }: SmartOfferFormProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('payment');
+  const [activeTab, setActiveTab] = useState(transactionType === 'rental' ? 'rental' : 'payment');
 
   // Estados para cada sección
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<ColombianPaymentStructure['method']>('transferencia_bancaria');
@@ -120,9 +126,19 @@ export function SmartOfferForm({
     autoExtendConditions: [],
     notifyBeforeExpiry: true,
     notificationDays: 7,
-    expiryActions: ['Marcar oferta como expirada', 'Notificar a ambas partes']
+    expiryActions: [],
   });
   const [legalDocuments, setLegalDocuments] = useState<LegalDocument[]>([]);
+
+  // Rental-specific terms (for transactionType === 'rental')
+  const [monthlyRent, setMonthlyRent] = useState<number>(propertyPrice || 0);
+  const [leaseStartDate, setLeaseStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [leaseTermMonths, setLeaseTermMonths] = useState<number>(12);
+  const [deposit, setDeposit] = useState<number>(0);
+  const [adminFee, setAdminFee] = useState<number>(0);
+  const [utilitiesIncluded, setUtilitiesIncluded] = useState<string[]>([]);
+  const [petsPolicy, setPetsPolicy] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
 
   // Estado para validaciones
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -131,40 +147,59 @@ export function SmartOfferForm({
   // Validar oferta completa
   useEffect(() => {
     validateOffer();
-  }, [selectedPaymentMethod, paymentSchedule, earnestMoney, offerValidity, legalDocuments]);
+  }, [
+    transactionType,
+    selectedPaymentMethod,
+    paymentSchedule,
+    earnestMoney,
+    offerValidity,
+    legalDocuments,
+    monthlyRent,
+    leaseStartDate,
+    leaseTermMonths,
+  ]);
 
   const validateOffer = () => {
     const errors: string[] = [];
 
+    if (transactionType === 'rental') {
+      if (!monthlyRent || monthlyRent <= 0) errors.push(t('negotiations.smartOffer.errMonthlyRent'));
+      if (!leaseStartDate) errors.push(t('negotiations.smartOffer.errLeaseStart'));
+      if (!leaseTermMonths || leaseTermMonths < 1) errors.push(t('negotiations.smartOffer.errLeaseTerm'));
+      setValidationErrors(errors);
+      setCanProceed(errors.length === 0);
+      return;
+    }
+
     // Validar método de pago
     if (!selectedPaymentMethod) {
-      errors.push('Debe seleccionar un método de pago');
+      errors.push(t('negotiations.smartOffer.errPaymentMethod'));
     }
 
     // Validar cronograma de pagos
     if (paymentSchedule.length === 0) {
-      errors.push('Debe configurar al menos un pago en el cronograma');
+      errors.push(t('negotiations.smartOffer.errSchedule'));
     }
 
     const totalScheduled = paymentSchedule.reduce((sum, p) => sum + p.amount, 0);
     if (Math.abs(totalScheduled - propertyPrice) > 1000) {
-      errors.push('La suma de los pagos no coincide con el precio de la propiedad');
+      errors.push(t('negotiations.smartOffer.errScheduleTotal'));
     }
 
     // Validar arras
     if (!earnestMoney) {
-      errors.push('Debe configurar el pago inicial/arras');
+      errors.push(t('negotiations.smartOffer.errEarnest'));
     }
 
     // Validar documentos legales
     const requiredDocs = legalDocuments.filter(d => d.required);
     if (requiredDocs.length === 0) {
-      errors.push('Debe configurar al menos los documentos legales requeridos');
+      errors.push(t('negotiations.smartOffer.errLegalDocs'));
     }
 
     // Validar validez de la oferta
     if (offerValidity.durationDays < 7) {
-      errors.push('La oferta debe tener al menos 7 días de validez');
+      errors.push(t('negotiations.smartOffer.errValidity'));
     }
 
     setValidationErrors(errors);
@@ -176,20 +211,45 @@ export function SmartOfferForm({
 
     setLoading(true);
     try {
-      // Crear oferta completa con todos los componentes
-      const completeOffer = {
-        property_id: propertyId,
-        buyer_id: user.id,
-        offer_price: propertyPrice,
-        payment_method: selectedPaymentMethod,
-        payment_schedule: paymentSchedule,
-        earnest_money: earnestMoney,
-        offer_validity: offerValidity,
-        legal_documents: legalDocuments,
-        status: 'draft',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      const completeOffer =
+        transactionType === 'rental'
+          ? {
+              property_id: propertyId,
+              buyer_id: user.id,
+              transaction_type: 'rental',
+              monthly_rent: monthlyRent,
+              lease_start_date: leaseStartDate,
+              lease_term_months: leaseTermMonths,
+              deposit,
+              admin_fee: adminFee,
+              utilities_included: utilitiesIncluded,
+              pets_policy: petsPolicy,
+              message,
+              status: 'draft',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          : {
+              property_id: propertyId,
+              buyer_id: user.id,
+              transaction_type: 'sale',
+              offer_price: propertyPrice,
+              original_price: propertyPrice,
+              payment_method: selectedPaymentMethod,
+              financing_details: null,
+              crypto_details: null,
+              closing_date: offerValidity.endDate,
+              conditions: [],
+              metrics: {
+                payment_schedule: paymentSchedule,
+                earnest_money: earnestMoney,
+                offer_validity: offerValidity,
+                legal_documents: legalDocuments,
+              },
+              status: 'pending',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
 
       const { data: offerResult, error } = await supabase
         .from('offers')
@@ -199,24 +259,16 @@ export function SmartOfferForm({
 
       if (error) throw error;
 
-      toast.success('Oferta completa guardada exitosamente');
+      toast.success(t('negotiations.smartOffer.saved'));
       onSubmit?.(offerResult);
       onOpenChange(false);
 
     } catch (err: any) {
       console.error('Error submitting complete offer:', err);
-      toast.error(err.message || 'Error al guardar la oferta completa');
+      toast.error(err.message || t('negotiations.smartOffer.saveError'));
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   return (
@@ -225,15 +277,17 @@ export function SmartOfferForm({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5 text-blue-600" />
-            Formulario de Oferta Inteligente Completo
+            {transactionType === 'rental' ? t('negotiations.smartOffer.rentalTitle') : t('negotiations.smartOffer.title')}
           </DialogTitle>
           <div className="flex items-center justify-between">
-            <p className="text-gray-700 font-medium">
-              Precio de referencia: {formatCurrency(propertyPrice)}
+            <p className="text-muted-foreground font-medium">
+              {transactionType === 'rental'
+                ? t('negotiations.smartOffer.referenceRent', { price: formatCurrency(propertyPrice) })
+                : t('negotiations.smartOffer.referencePrice', { price: formatCurrency(propertyPrice) })}
             </p>
             <div className="flex items-center gap-2">
               <Badge variant={canProceed ? 'default' : 'destructive'}>
-                {canProceed ? 'Lista para enviar' : 'Requiere corrección'}
+                {canProceed ? t('negotiations.smartOffer.readyToSend') : t('negotiations.smartOffer.needsCorrection')}
               </Badge>
             </div>
           </div>
@@ -241,24 +295,136 @@ export function SmartOfferForm({
 
         {/* Sistema de Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${transactionType === 'rental' ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="payment" className="text-xs">
               <CreditCard className="h-4 w-4 mr-1" />
-              Pagos
+              {t('negotiations.smartOffer.tabPayments')}
             </TabsTrigger>
             <TabsTrigger value="legal" className="text-xs">
               <Scale className="h-4 w-4 mr-1" />
-              Legal
+              {t('negotiations.smartOffer.tabLegal')}
             </TabsTrigger>
             <TabsTrigger value="documents" className="text-xs">
               <FileText className="h-4 w-4 mr-1" />
-              Documentos
+              {t('negotiations.smartOffer.tabDocuments')}
             </TabsTrigger>
             <TabsTrigger value="analysis" className="text-xs">
               <Brain className="h-4 w-4 mr-1" />
-              Análisis
+              {t('negotiations.smartOffer.tabAnalysis')}
             </TabsTrigger>
+            {transactionType === 'rental' && (
+              <TabsTrigger value="rental" className="text-xs">
+                <Home className="h-4 w-4 mr-1" />
+                {t('negotiations.smartOffer.tabRental')}
+              </TabsTrigger>
+            )}
           </TabsList>
+
+          {transactionType === 'rental' && (
+            <TabsContent value="rental" className="mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    {t('negotiations.smartOffer.rentalTerms')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t('negotiations.smartOffer.monthlyRent')}</label>
+                      <input
+                        className="w-full border border-input bg-background rounded-md px-3 py-2"
+                        type="number"
+                        min="0"
+                        value={monthlyRent}
+                        onChange={(e) => setMonthlyRent(parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t('negotiations.smartOffer.leaseStart')}</label>
+                      <input
+                        className="w-full border border-input bg-background rounded-md px-3 py-2"
+                        type="date"
+                        value={leaseStartDate}
+                        onChange={(e) => setLeaseStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t('negotiations.smartOffer.termMonths')}</label>
+                      <input
+                        className="w-full border border-input bg-background rounded-md px-3 py-2"
+                        type="number"
+                        min="1"
+                        value={leaseTermMonths}
+                        onChange={(e) => setLeaseTermMonths(parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t('negotiations.smartOffer.deposit')}</label>
+                      <input
+                        className="w-full border border-input bg-background rounded-md px-3 py-2"
+                        type="number"
+                        min="0"
+                        value={deposit}
+                        onChange={(e) => setDeposit(parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">{t('negotiations.smartOffer.adminFee')}</label>
+                      <input
+                        className="w-full border border-input bg-background rounded-md px-3 py-2"
+                        type="number"
+                        min="0"
+                        value={adminFee}
+                        onChange={(e) => setAdminFee(parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">{t('negotiations.smartOffer.utilitiesIncluded')}</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['agua', 'luz', 'gas', 'internet', 'administracion'].map((u) => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() =>
+                            setUtilitiesIncluded((prev) => (prev.includes(u) ? prev.filter((x) => x !== u) : [...prev, u]))
+                          }
+                          className={`px-3 py-1 rounded-full border text-sm ${
+                            utilitiesIncluded.includes(u) ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground'
+                          }`}
+                        >
+                          {t(`negotiations.smartOffer.utilities.${u}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">{t('negotiations.smartOffer.petsPolicy')}</label>
+                    <input
+                      className="w-full border border-input bg-background rounded-md px-3 py-2"
+                      value={petsPolicy}
+                      onChange={(e) => setPetsPolicy(e.target.value)}
+                      placeholder={t('negotiations.smartOffer.petsPlaceholder')}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">{t('negotiations.smartOffer.messageConditions')}</label>
+                    <textarea
+                      className="w-full border border-input bg-background rounded-md px-3 py-2 min-h-[90px]"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder={t('negotiations.smartOffer.messagePlaceholder')}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           {/* Contenido de cada tab */}
           <TabsContent value="payment" className="space-y-4">
@@ -339,7 +505,7 @@ export function SmartOfferForm({
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <div className="space-y-1">
-              <div className="font-medium">Errores de validación:</div>
+              <div className="font-medium">{t('negotiations.smartOffer.validationErrors')}</div>
               <ul className="list-disc list-inside text-sm">
                 {validationErrors.map((error, index) => (
                   <li key={index}>{error}</li>
@@ -352,16 +518,16 @@ export function SmartOfferForm({
         {/* Footer con acciones */}
         <DialogFooter className="flex gap-3">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             variant="outline"
             onClick={() => {/* Guardar como borrador */}}
             disabled={loading}
-            className="bg-gray-100 hover:bg-gray-200"
+            className="bg-muted hover:bg-muted"
           >
             <Save className="h-4 w-4 mr-2" />
-            Guardar Borrador
+            {t('negotiations.smartOffer.saveDraft')}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -371,12 +537,12 @@ export function SmartOfferForm({
             {loading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Procesando...
+                {t('common.processing')}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />
-                Enviar Oferta Completa
+                {t('negotiations.smartOffer.sendComplete')}
               </>
             )}
           </Button>

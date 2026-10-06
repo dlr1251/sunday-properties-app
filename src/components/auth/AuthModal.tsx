@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -54,9 +55,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+        <div className="bg-brand-hero px-6 pt-8 pb-6 text-center">
+          <BrandLogo to={null} heightClassName="h-14" variant="onDark" className="justify-center" />
+        </div>
+        <div className="px-6 pb-6">
+        <DialogHeader className="pt-4">
+          <DialogTitle className="text-center text-foreground">
             {currentMode === 'login' ? t('auth.loginTitle') : t('auth.registerTitle')}
           </DialogTitle>
         </DialogHeader>
@@ -72,6 +77,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             onSwitchToLogin={switchToLogin}
           />
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

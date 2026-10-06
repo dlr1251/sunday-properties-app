@@ -8,6 +8,15 @@ yarn-error.log*
 dist/
 build/
 
+# Generated docs (from npm run copy-docs; source: docs/_legacy)
+public/docs/
+
+# Generated Notion sync batches (scripts/bootstrap-notion-sync-batches.mjs)
+scripts/.notion-sync-batches/
+
+# Generated from data/ai_food via npm run copy:ai-food
+public/ai_food/
+
 # Environment variables
 .env
 .env.local
@@ -65,4 +74,5 @@ jspm_packages/
 # Temporary files
 *.tmp
 *.temp
+.tmp/
 .vercel

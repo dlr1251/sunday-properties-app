@@ -28,6 +28,8 @@ import {
   Minus
 } from 'lucide-react';
 import { Offer } from '../../types/database';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency, formatDate } from '../../utils/format';
 
 interface CounterOfferDialogProps {
   isOpen: boolean;
@@ -58,6 +60,7 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
   onSubmit,
   loading = false
 }) => {
+  const { t } = useTranslation();
   // Calculate improved NPV values when dialog opens
   const getImprovedValues = () => {
     if (!offer) return null;
@@ -180,31 +183,24 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
   };
 
   const getPriceChangeIcon = () => {
-    if (!offer) return <Minus className="h-4 w-4 text-gray-500" />;
+    if (!offer) return <Minus className="h-4 w-4 text-muted-foreground" />;
     
     const change = counterOffer.offerPrice - offer.offer_price;
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />;
     if (change < 0) return <TrendingDown className="h-4 w-4 text-red-500" />;
-    return <Minus className="h-4 w-4 text-gray-500" />;
+    return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getPriceChangeColor = () => {
-    if (!offer) return 'text-gray-500';
+    if (!offer) return 'text-muted-foreground';
     
     const change = counterOffer.offerPrice - offer.offer_price;
     if (change > 0) return 'text-green-600';
     if (change < 0) return 'text-red-600';
-    return 'text-gray-500';
+    return 'text-muted-foreground';
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  const formatPrice = formatCurrency;
 
   const hasChanges = Object.values(counterOffer.changes).some(Boolean);
 
@@ -218,14 +214,14 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
   };
 
   const availableConditions = [
-    'Incluye muebles y electrodomésticos',
-    'Venta condicionada a estudio de títulos satisfactorio',
-    'Entrega tras remodelación menor',
-    'Pago condicionado a aprobación de crédito',
-    'Incluye gastos notariales',
-    'Entrega inmediata',
-    'Permuta aceptada',
-    'Financiación directa del vendedor'
+    t('negotiations.counter.presets.furniture'),
+    t('negotiations.counter.presets.titleStudy'),
+    t('negotiations.counter.presets.afterRemodel'),
+    t('negotiations.counter.presets.creditApproval'),
+    t('negotiations.counter.presets.notaryFees'),
+    t('negotiations.counter.presets.immediateDelivery'),
+    t('negotiations.counter.presets.tradeIn'),
+    t('negotiations.counter.presets.sellerFinancing'),
   ];
 
   if (!offer) return null;
@@ -236,30 +232,30 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2 text-xl">
             <ArrowRight className="h-6 w-6 text-blue-600" />
-            <span className="text-gray-900">Crear Contraoferta</span>
+            <span className="text-foreground">{t('negotiations.counter.createTitle')}</span>
           </DialogTitle>
-          <DialogDescription className="text-base text-gray-700">
-            Modifica los términos de la oferta original y envía una contraoferta al comprador.
+          <DialogDescription className="text-base text-muted-foreground">
+            {t('negotiations.counter.createDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Original Offer Summary */}
-          <Card className="p-5 bg-gray-50 border-2 border-gray-200">
-            <h3 className="text-lg font-bold mb-4 text-gray-900">Oferta Original</h3>
+          <Card className="p-5 bg-muted/30 border-2 border-border">
+            <h3 className="text-lg font-bold mb-4 text-foreground">{t('negotiations.counter.originalOffer')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-base">
               <div>
-                <span className="text-sm font-semibold text-gray-700 block mb-1">Precio:</span>
-                <div className="text-lg font-bold text-gray-900">{formatPrice(offer.offer_price)}</div>
+                <span className="text-sm font-semibold text-muted-foreground block mb-1">{t('properties.price')}:</span>
+                <div className="text-lg font-bold text-foreground">{formatPrice(offer.offer_price)}</div>
               </div>
               <div>
-                <span className="text-sm font-semibold text-gray-700 block mb-1">Pago:</span>
-                <div className="text-lg font-bold text-gray-900 capitalize">{offer.payment_method}</div>
+                <span className="text-sm font-semibold text-muted-foreground block mb-1">{t('negotiations.details.payment')}:</span>
+                <div className="text-lg font-bold text-foreground capitalize">{t(`negotiations.paymentMethods.${offer.payment_method}`, { defaultValue: offer.payment_method })}</div>
               </div>
               <div>
-                <span className="text-sm font-semibold text-gray-700 block mb-1">Cierre:</span>
-                <div className="text-lg font-bold text-gray-900">
-                  {new Date(offer.closing_date).toLocaleDateString('es-CO')}
+                <span className="text-sm font-semibold text-muted-foreground block mb-1">{t('negotiations.closing')}:</span>
+                <div className="text-lg font-bold text-foreground">
+                  {formatDate(offer.closing_date)}
                 </div>
               </div>
             </div>
@@ -267,24 +263,24 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
 
           {/* NPV Improvement Info */}
           {improvedValues && (
-            <Card className="p-4 border-blue-200 bg-blue-50">
+            <Card className="p-4 border-brand-sky/30 bg-brand-sky/10">
               <div className="flex items-start gap-2">
                 <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-blue-900 mb-1">Mejoras sugeridas para optimizar el Valor Presente Neto (NPV)</h4>
+                  <h4 className="font-semibold text-blue-900 mb-1">{t('negotiations.counter.npvTitle')}</h4>
                   <ul className="text-sm text-blue-800 space-y-1">
                     {improvedValues.price !== offer.offer_price && (
-                      <li>• Precio sugerido: <strong>{formatPrice(improvedValues.price)}</strong> (+{Math.round(((improvedValues.price - offer.offer_price) / offer.offer_price) * 100)}%)</li>
+                      <li>• {t('negotiations.counter.suggestedPrice', { price: formatPrice(improvedValues.price), pct: Math.round(((improvedValues.price - offer.offer_price) / offer.offer_price) * 100) })}</li>
                     )}
                     {improvedValues.paymentMethod !== offer.payment_method && (
-                      <li>• Método de pago sugerido: <strong className="capitalize">{improvedValues.paymentMethod}</strong> (mejor flujo de caja)</li>
+                      <li>• {t('negotiations.counter.suggestedPayment', { method: t(`negotiations.paymentMethods.${improvedValues.paymentMethod}`, { defaultValue: improvedValues.paymentMethod }) })}</li>
                     )}
                     {improvedValues.closingDate !== offer.closing_date && (
-                      <li>• Fecha de cierre sugerida: <strong>{new Date(improvedValues.closingDate).toLocaleDateString('es-CO')}</strong> (recepción más rápida del pago)</li>
+                      <li>• {t('negotiations.counter.suggestedClosing', { date: formatDate(improvedValues.closingDate) })}</li>
                     )}
                   </ul>
                   <p className="text-xs text-blue-700 mt-2 italic">
-                    Los valores sugeridos están pre-cargados en el formulario. Puedes modificarlos según tus necesidades.
+                    {t('negotiations.counter.npvHint')}
                   </p>
                 </div>
               </div>
@@ -295,7 +291,7 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Price */}
             <div className="space-y-2">
-              <Label htmlFor="counter-price" className="text-base font-semibold text-gray-900">Precio de Contraoferta</Label>
+              <Label htmlFor="counter-price" className="text-base font-semibold text-foreground">{t('negotiations.counter.counterPrice')}</Label>
               <div className="relative">
                 <Input
                   id="counter-price"
@@ -320,7 +316,7 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
 
             {/* Payment Method */}
             <div className="space-y-2">
-              <Label htmlFor="counter-payment" className="text-base font-semibold text-gray-900">Método de Pago</Label>
+              <Label htmlFor="counter-payment" className="text-base font-semibold text-foreground">{t('negotiations.paymentMethod')}</Label>
               <Select
                 value={counterOffer.paymentMethod}
                 onValueChange={handlePaymentMethodChange}
@@ -329,17 +325,17 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Contado</SelectItem>
-                  <SelectItem value="financing">Financiación</SelectItem>
-                  <SelectItem value="crypto">Criptomonedas</SelectItem>
-                  <SelectItem value="mixed">Mixto</SelectItem>
+                  <SelectItem value="cash">{t('negotiations.paymentMethods.contado')}</SelectItem>
+                  <SelectItem value="financing">{t('negotiations.paymentMethods.financing')}</SelectItem>
+                  <SelectItem value="crypto">{t('negotiations.paymentMethods.crypto')}</SelectItem>
+                  <SelectItem value="mixed">{t('negotiations.paymentMethods.mixed')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Closing Date */}
             <div className="space-y-2">
-              <Label htmlFor="counter-date" className="text-base font-semibold text-gray-900">Fecha de Cierre</Label>
+              <Label htmlFor="counter-date" className="text-base font-semibold text-foreground">{t('negotiations.details.closingDate')}</Label>
               <Input
                 id="counter-date"
                 type="date"
@@ -352,12 +348,12 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
 
             {/* Reason */}
             <div className="space-y-2">
-              <Label htmlFor="counter-reason" className="text-base font-semibold text-gray-900">Razón de la Contraoferta</Label>
+              <Label htmlFor="counter-reason" className="text-base font-semibold text-foreground">{t('negotiations.counter.reason')}</Label>
               <Textarea
                 id="counter-reason"
                 value={counterOffer.reason}
                 onChange={(e) => setCounterOffer(prev => ({ ...prev, reason: e.target.value }))}
-                placeholder="Explica por qué estás modificando los términos..."
+                placeholder={t('negotiations.counter.reasonPlaceholder')}
                 rows={4}
                 className="text-base"
               />
@@ -366,7 +362,7 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
 
           {/* Conditions */}
           <div className="space-y-4">
-            <Label className="text-base font-semibold text-gray-900">Condiciones Especiales</Label>
+            <Label className="text-base font-semibold text-foreground">{t('negotiations.counter.specialConditions')}</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {availableConditions.map((condition) => (
                 <div key={condition} className="flex items-center space-x-3">
@@ -375,7 +371,7 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
                     checked={selectedConditions.includes(condition)}
                     onCheckedChange={(checked) => handleConditionToggle(condition, !!checked)}
                   />
-                  <Label htmlFor={condition} className="text-base text-gray-900 cursor-pointer">
+                  <Label htmlFor={condition} className="text-base text-foreground cursor-pointer">
                     {condition}
                   </Label>
                 </div>
@@ -385,34 +381,34 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
 
           {/* Changes Summary */}
           {hasChanges && (
-            <Card className="p-5 border-2 border-blue-300 bg-blue-50">
+            <Card className="p-5 border-2 border-brand-sky/40 bg-brand-sky/10">
               <h3 className="text-lg font-bold mb-4 flex items-center text-blue-900">
                 <AlertTriangle className="h-5 w-5 mr-2 text-blue-700" />
-                Resumen de Cambios
+                {t('negotiations.counter.changesSummary')}
               </h3>
               <div className="space-y-3">
                 {counterOffer.changes.priceChanged && (
                   <div className="flex items-center space-x-3 text-base">
                     <DollarSign className="h-5 w-5 text-blue-700 flex-shrink-0" />
-                    <span className="font-semibold text-gray-900">Precio modificado: <span className="text-blue-700">{formatPrice(counterOffer.offerPrice)}</span></span>
+                    <span className="font-semibold text-foreground">{t('negotiations.counter.priceModified')} <span className="text-blue-700">{formatPrice(counterOffer.offerPrice)}</span></span>
                   </div>
                 )}
                 {counterOffer.changes.paymentChanged && (
                   <div className="flex items-center space-x-3 text-base">
                     <CreditCard className="h-5 w-5 text-blue-700 flex-shrink-0" />
-                    <span className="font-semibold text-gray-900">Método de pago: <span className="text-blue-700 capitalize">{counterOffer.paymentMethod}</span></span>
+                    <span className="font-semibold text-foreground">{t('negotiations.counter.paymentModified')} <span className="text-blue-700 capitalize">{t(`negotiations.paymentMethods.${counterOffer.paymentMethod}`, { defaultValue: counterOffer.paymentMethod })}</span></span>
                   </div>
                 )}
                 {counterOffer.changes.dateChanged && (
                   <div className="flex items-center space-x-3 text-base">
                     <Calendar className="h-5 w-5 text-blue-700 flex-shrink-0" />
-                    <span className="font-semibold text-gray-900">Fecha de cierre: <span className="text-blue-700">{new Date(counterOffer.closingDate).toLocaleDateString('es-CO')}</span></span>
+                    <span className="font-semibold text-foreground">{t('negotiations.counter.dateModified')} <span className="text-blue-700">{formatDate(counterOffer.closingDate)}</span></span>
                   </div>
                 )}
                 {counterOffer.changes.conditionsChanged && (
                   <div className="flex items-center space-x-3 text-base">
                     <CheckCircle className="h-5 w-5 text-blue-700 flex-shrink-0" />
-                    <span className="font-semibold text-gray-900">Condiciones: <span className="text-blue-700">{selectedConditions.length} seleccionadas</span></span>
+                    <span className="font-semibold text-foreground">{t('negotiations.counter.conditionsModified')} <span className="text-blue-700">{t('negotiations.counter.conditionsSelected', { count: selectedConditions.length })}</span></span>
                   </div>
                 )}
               </div>
@@ -425,27 +421,27 @@ export const CounterOfferDialog: React.FC<CounterOfferDialogProps> = ({
               <div className="flex items-center space-x-2 text-yellow-800">
                 <XCircle className="h-4 w-4" />
                 <span className="text-sm">
-                  No has realizado ningún cambio. Modifica al menos un término para crear una contraoferta.
+                  {t('negotiations.counter.noChanges')}
                 </span>
               </div>
             </Card>
           )}
         </div>
 
-        <DialogFooter className="flex space-x-3 pt-4 border-t border-gray-200">
+        <DialogFooter className="flex space-x-3 pt-4 border-t border-border">
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="text-base font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 min-w-[120px]"
+            className="text-base font-semibold text-foreground border-border hover:bg-muted min-w-[120px]"
           >
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button 
             onClick={handleSubmit}
             disabled={!hasChanges || loading}
             className="min-w-[160px] text-base font-semibold bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {loading ? 'Enviando...' : 'Enviar Contraoferta'}
+            {loading ? t('negotiations.counter.sending') : t('negotiations.counter.send')}
           </Button>
         </DialogFooter>
       </DialogContent>

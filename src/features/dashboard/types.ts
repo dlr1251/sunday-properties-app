@@ -25,6 +25,10 @@ export type DashboardConfig = {
   };
   tabs: DashboardTab[];
   defaultTab: string;
+  /** When false, tab bar is hidden (navigation only via sidebar/URL). Default true. */
+  showTabBar?: boolean;
+  /** When true, header shows a personalised welcome message (uses auth profile). */
+  showWelcome?: boolean;
   stats?: DashboardStat[];
   overviewComponent?: ComponentType<any>;
 };

@@ -1,3 +1,4 @@
+import { getIntlLocale } from '../i18n';
 // Negotiation Rules Validation Engine
 // Validates offers against property negotiation rules and auto-rejects invalid ones
 
@@ -205,7 +206,7 @@ export function getOfferQuality(offer: OfferData, propertyPrice: number): {
 
 // Helper functions
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
+  return new Intl.NumberFormat(getIntlLocale(), {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,

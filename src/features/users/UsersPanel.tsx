@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { UsersFilters } from './UsersFilters';
 import { UsersTable } from './UsersTable';
 import { UsersStats } from './UsersStats';
@@ -10,6 +11,7 @@ import DeleteUserDialog from './dialogs/DeleteUserDialog';
 import UserDetailsDialog from './dialogs/UserDetailsDialog';
 
 export function UsersPanel() {
+  const { t } = useTranslation();
   const [filters, setFilters] = React.useState<UsersFilterValues>(defaultUsersFilters);
   const [page] = React.useState(1);
   const [limit] = React.useState(20);
@@ -25,9 +27,9 @@ export function UsersPanel() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">User Management</h2>
+        <h2 className="text-lg font-semibold">{t('admin.userManagement')}</h2>
         <button type="button" className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-muted" onClick={() => setOpenCreate(true)}>
-          New user
+          {t('common.newUser')}
         </button>
       </div>
 
@@ -69,5 +71,3 @@ export function UsersPanel() {
 }
 
 export default UsersPanel;
-
-

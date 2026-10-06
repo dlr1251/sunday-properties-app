@@ -5,10 +5,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '../../../../components/ui/dialog';
-import { Button } from '../../../../components/ui/button';
-import { Input } from '../../../../components/ui/input';
-import { Label } from '../../../../components/ui/label';
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { MODULE_OPTIONS } from '../config/taskConfig';
 import { PRIORITIES, STATUSES, TASK_TYPES } from '../config/taskConfig';
 import type { DevTask, ModuleId, TaskPriority, TaskStatus, TaskType } from '../types';

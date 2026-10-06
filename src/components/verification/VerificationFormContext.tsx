@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import i18n from '../../i18n/config';
 import { VerificationData } from '../../hooks/verification/useVerificationFlow';
 import { DocumentData } from '../../services/documentAnalysis';
 
@@ -81,11 +82,11 @@ export const VerificationFormProvider: React.FC<VerificationFormProviderProps> =
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       const actualAge = age - 1;
       if (actualAge < 18) {
-        setAgeError('Debes ser mayor de 18 años para verificar tu identidad');
+        setAgeError(i18n.t('verification.ageError'));
         return false;
       }
     } else if (age < 18) {
-      setAgeError('Debes ser mayor de 18 años para verificar tu identidad');
+      setAgeError(i18n.t('verification.ageError'));
       return false;
     }
 

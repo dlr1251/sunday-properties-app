@@ -1,5 +1,6 @@
 import React from 'react';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 
 export type FilterBarProps<TSchema extends z.ZodTypeAny> = {
   schema: TSchema;
@@ -12,6 +13,7 @@ export type FilterBarProps<TSchema extends z.ZodTypeAny> = {
 
 export function FilterBar<TSchema extends z.ZodTypeAny>(props: FilterBarProps<TSchema>) {
   const { children, className, values, onChange, onReset, schema } = props;
+  const { t } = useTranslation();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,11 +31,11 @@ export function FilterBar<TSchema extends z.ZodTypeAny>(props: FilterBarProps<TS
         <div className="flex flex-1 flex-wrap gap-3 items-center">{children}</div>
         <div className="flex gap-2">
           <button type="submit" className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-muted">
-            Apply
+            {t('common.apply')}
           </button>
           {onReset ? (
             <button type="button" onClick={onReset} className="inline-flex items-center rounded-md border px-3 py-2 text-sm hover:bg-muted">
-              Reset
+              {t('common.reset')}
             </button>
           ) : null}
         </div>

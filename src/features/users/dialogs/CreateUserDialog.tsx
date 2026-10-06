@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import FormModal from '../../../components/data/FormModal';
 import AutoForm, { AutoFormField } from '../../../components/data/AutoForm';
@@ -10,31 +11,32 @@ export type CreateUserDialogProps = {
   onSubmit: (values: CreateUserInput) => Promise<void> | void;
 };
 
-const fields: AutoFormField[] = [
-  { name: 'name', label: 'Name', type: 'text', placeholder: 'John Doe' },
-  { name: 'email', label: 'Email', type: 'email', placeholder: 'john@email.com' },
-  {
-    name: 'role',
-    label: 'Role',
-    type: 'select',
-    options: [
-      { label: 'User', value: 'user' },
-      { label: 'Agent', value: 'agent' },
-      { label: 'Admin', value: 'admin' },
-      { label: 'Super Admin', value: 'super_admin' },
-    ],
-  },
-];
-
 export function CreateUserDialog(props: CreateUserDialogProps) {
+  const { t } = useTranslation();
   const { open, onOpenChange, onSubmit } = props;
   const defaults: CreateUserInput = { name: '', email: '', role: 'user' };
+
+  const fields: AutoFormField[] = [
+    { name: 'name', label: t('admin.name'), type: 'text', placeholder: t('profile.placeholders.fullName') },
+    { name: 'email', label: t('profile.email'), type: 'email', placeholder: 'name@email.com' },
+    {
+      name: 'role',
+      label: t('profile.role'),
+      type: 'select',
+      options: [
+        { label: t('profile.roles.user'), value: 'user' },
+        { label: t('profile.roles.agent'), value: 'agent' },
+        { label: t('profile.roles.admin'), value: 'admin' },
+        { label: t('profile.roles.super_admin'), value: 'super_admin' },
+      ],
+    },
+  ];
 
   return (
     <FormModal<z.infer<typeof createUserSchema>>
       open={open}
       onOpenChange={onOpenChange}
-      title="Create user"
+      title={t('admin.createUser')}
       schema={createUserSchema}
       defaultValues={defaults}
       onSubmit={onSubmit}
@@ -47,5 +49,3 @@ export function CreateUserDialog(props: CreateUserDialogProps) {
 }
 
 export default CreateUserDialog;
-
-

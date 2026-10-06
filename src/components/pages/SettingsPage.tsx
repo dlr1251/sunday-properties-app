@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe, Moon, Sun, Monitor, Bell, Lock, Shield } from 'lucide-react';
+import { Globe, Moon, Sun, Bell, Lock, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -68,7 +68,7 @@ export const SettingsPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={theme} onValueChange={(value: 'light' | 'dark' | 'system') => setTheme(value)}>
+            <Select value={theme} onValueChange={(value: 'light' | 'dark') => setTheme(value)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
               </SelectTrigger>
@@ -83,12 +83,6 @@ export const SettingsPage: React.FC = () => {
                   <span className="flex items-center gap-2">
                     <Moon className="h-4 w-4" />
                     {t('settings.themes.dark')}
-                  </span>
-                </SelectItem>
-                <SelectItem value="system">
-                  <span className="flex items-center gap-2">
-                    <Monitor className="h-4 w-4" />
-                    {t('settings.themes.system')}
                   </span>
                 </SelectItem>
               </SelectContent>
@@ -106,11 +100,11 @@ export const SettingsPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="email-notifications">Email notifications</Label>
+              <Label htmlFor="email-notifications">{t('settings.emailNotifications')}</Label>
               <Switch id="email-notifications" defaultChecked />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="push-notifications">Push notifications</Label>
+              <Label htmlFor="push-notifications">{t('settings.pushNotifications')}</Label>
               <Switch id="push-notifications" defaultChecked />
             </div>
           </CardContent>
@@ -126,7 +120,7 @@ export const SettingsPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="profile-visibility">Profile visibility</Label>
+              <Label htmlFor="profile-visibility">{t('settings.profileVisibility')}</Label>
               <Switch id="profile-visibility" defaultChecked />
             </div>
           </CardContent>

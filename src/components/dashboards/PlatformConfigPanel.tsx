@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,12 +24,15 @@ import {
 } from 'lucide-react';
 import { usePlatformSettings } from '../../hooks/usePlatformSettings';
 import { toast } from 'sonner';
+import { formatDate, formatDateTime } from '../../utils/format';
 
 interface PlatformConfigPanelProps {
   onSettingsChanged?: () => void;
 }
 
-export function PlatformConfigPanel({ onSettingsChanged }: PlatformConfigPanelProps) {
+export function PlatformConfigPanel({
+  onSettingsChanged }: PlatformConfigPanelProps) {
+    const { t } = useTranslation();
   const {
     settings,
     loading,
@@ -76,7 +80,7 @@ export function PlatformConfigPanel({ onSettingsChanged }: PlatformConfigPanelPr
     });
     setFormData(initialData);
     setHasChanges(false);
-    toast.info('Cambios descartados');
+    toast.info(t('admin.changesDiscarded'));
   };
 
   const renderSettingInput = (setting: any) => {
@@ -165,7 +169,7 @@ export function PlatformConfigPanel({ onSettingsChanged }: PlatformConfigPanelPr
                 </div>
 
                 <div className="text-xs text-muted-foreground">
-                  Última actualización: {new Date(setting.updated_at).toLocaleString('es-CO')}
+                  {t('admin.lastUpdate')}: {formatDateTime(setting.updated_at)}
                 </div>
               </div>
             </CardContent>
@@ -204,19 +208,19 @@ export function PlatformConfigPanel({ onSettingsChanged }: PlatformConfigPanelPr
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Configuración de Plataforma</h2>
+          <h2 className="text-2xl font-bold">{t('admin.platformConfigTitle')}</h2>
           <p className="text-muted-foreground">
-            Gestiona la configuración global del sistema
+            {t('admin.platformConfigDescription')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportSettings}>
             <Download className="h-4 w-4 mr-2" />
-            Exportar
+            {t('common.export')}
           </Button>
           <Button variant="outline" onClick={resetToDefaults}>
             <RotateCcw className="h-4 w-4 mr-2" />
-            Restaurar
+            {t('admin.restoreDefaults')}
           </Button>
         </div>
       </div>
@@ -229,23 +233,23 @@ export function PlatformConfigPanel({ onSettingsChanged }: PlatformConfigPanelPr
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-blue-600" />
                 <span className="text-sm font-medium text-blue-800">
-                  Tienes cambios sin guardar
+                  {t('admin.unsavedChanges')}
                 </span>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleReset}>
-                  Descartar Cambios
+                  {t('admin.discardChanges')}
                 </Button>
                 <Button onClick={handleSave} disabled={saving}>
                   {saving ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Guardando...
+                      {t('common.saving')}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Guardar Cambios
+                      {t('common.saveChanges')}
                     </>
                   )}
                 </Button>
@@ -260,23 +264,23 @@ export function PlatformConfigPanel({ onSettingsChanged }: PlatformConfigPanelPr
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
-            General
+            {t('admin.tabGeneral')}
           </TabsTrigger>
           <TabsTrigger value="uploads" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
-            Subidas
+            {t('admin.tabUploads')}
           </TabsTrigger>
           <TabsTrigger value="offers" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Ofertas
+            {t('admin.tabOffers')}
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
-            Notificaciones
+            {t('admin.tabNotifications')}
           </TabsTrigger>
           <TabsTrigger value="auth" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            Autenticación
+            {t('admin.tabAuth')}
           </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
@@ -284,37 +288,37 @@ export function PlatformConfigPanel({ onSettingsChanged }: PlatformConfigPanelPr
           </TabsTrigger>
         </TabsList>
 
-        {renderSettingsCategory('general', 'Configuración General', <Settings className="h-5 w-5" />, generalSettings)}
-        {renderSettingsCategory('uploads', 'Configuración de Subidas', <Upload className="h-5 w-5" />, uploadSettings)}
-        {renderSettingsCategory('offers', 'Configuración de Ofertas', <DollarSign className="h-5 w-5" />, offerSettings)}
-        {renderSettingsCategory('notifications', 'Configuración de Notificaciones', <Bell className="h-5 w-5" />, notificationSettings)}
-        {renderSettingsCategory('auth', 'Configuración de Autenticación', <Shield className="h-5 w-5" />, authSettings)}
-        {renderSettingsCategory('email', 'Configuración de Email', <Mail className="h-5 w-5" />, emailSettings)}
+{renderSettingsCategory('general', t('admin.configCategoryGeneral'), <Settings className="h-5 w-5" />, generalSettings)}
+{renderSettingsCategory('uploads', t('admin.configCategoryUploads'), <Upload className="h-5 w-5" />, uploadSettings)}
+{renderSettingsCategory('offers', t('admin.configCategoryOffers'), <DollarSign className="h-5 w-5" />, offerSettings)}
+{renderSettingsCategory('notifications', t('admin.configCategoryNotifications'), <Bell className="h-5 w-5" />, notificationSettings)}
+{renderSettingsCategory('auth', t('admin.configCategoryAuth'), <Shield className="h-5 w-5" />, authSettings)}
+{renderSettingsCategory('email', t('admin.configCategoryEmail'), <Mail className="h-5 w-5" />, emailSettings)}
       </Tabs>
 
       {/* Quick Stats */}
       <Card>
         <CardHeader>
-          <CardTitle>Estadísticas de Configuración</CardTitle>
+          <CardTitle>{t('admin.configStats')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Configuraciones Totales</p>
+              <p className="text-sm text-muted-foreground">{t('admin.totalSettings')}</p>
               <p className="text-2xl font-bold">{settings.length}</p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Configuraciones Públicas</p>
+              <p className="text-sm text-muted-foreground">{t('admin.publicSettings')}</p>
               <p className="text-2xl font-bold">{settings.filter(s => s.is_public).length}</p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Categorías</p>
+              <p className="text-sm text-muted-foreground">{t('admin.categories')}</p>
               <p className="text-2xl font-bold">{new Set(settings.map(s => s.category)).size}</p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Última Actualización</p>
+              <p className="text-sm text-muted-foreground">{t('admin.lastUpdate')}</p>
               <p className="text-sm font-medium">
-                {settings.length > 0 ? new Date(Math.max(...settings.map(s => new Date(s.updated_at).getTime()))).toLocaleDateString('es-CO') : 'Nunca'}
+                {settings.length > 0 ? formatDate(new Date(Math.max(...settings.map(s => new Date(s.updated_at).getTime())))) : t('common.never')}
               </p>
             </div>
           </div>

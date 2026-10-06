@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -28,6 +29,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onReply,
   onDownload
 }) => {
+  const { t } = useTranslation();
   const formatTime = (dateString: string) => {
     return format(new Date(dateString), 'HH:mm');
   };
@@ -79,7 +81,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         {!isOwn && (
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-medium text-foreground">
-              {message.sender?.full_name || 'Usuario'}
+              {message.sender?.full_name || t('chat.userFallback')}
             </span>
             <span className="text-xs text-muted-foreground">
               {formatTime(message.created_at)}
@@ -91,7 +93,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {message.reply_to && (
             <div className="mb-2 p-2 bg-muted/50 rounded border-l-2 border-primary">
               <p className="text-xs text-muted-foreground">
-                Respondiendo a {message.reply_to.sender_name}
+                {t('chat.replyingTo', { name: message.reply_to.sender_name })}
               </p>
               <p className="text-sm truncate">{message.reply_to.message}</p>
             </div>
@@ -110,7 +112,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {message.document_url && (
             <div className="mt-2 flex items-center gap-2 p-2 bg-muted/50 rounded">
               <FileText className="h-4 w-4" />
-              <span className="text-sm flex-1">{message.document_name || 'Documento'}</span>
+              <span className="text-sm flex-1">{message.document_name || t('chat.document')}</span>
               <Button
                 size="sm"
                 variant="ghost"

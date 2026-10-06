@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../../ui/card';
 import { Checkbox } from '../../ui/checkbox';
 import { Label } from '../../ui/label';
@@ -7,6 +8,7 @@ import { useVerificationForm } from '../VerificationFormContext';
 import { Button } from '../../ui/button';
 
 export const StepTermsAndConditions: React.FC = () => {
+  const { t } = useTranslation();
   const { termsAccepted, setTermsAccepted } = useVerificationForm();
   const [readTerms, setReadTerms] = useState(false);
 
@@ -14,64 +16,56 @@ export const StepTermsAndConditions: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <FileText className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold">Términos y Condiciones</h3>
+        <h3 className="text-lg font-semibold">{t('verification.terms.title')}</h3>
         <p className="text-muted-foreground">
-          Por favor lee y acepta los términos y condiciones de la plataforma
+          {t('verification.terms.subtitle')}
         </p>
       </div>
 
       <Card className="p-6 max-h-96 overflow-y-auto border-2">
         <div className="prose prose-sm max-w-none">
-          <h4 className="font-semibold mb-4">Términos y Condiciones de Uso</h4>
+          <h4 className="font-semibold mb-4">{t('verification.terms.heading')}</h4>
           
           <div className="space-y-4 text-sm text-gray-700">
             <section>
-              <h5 className="font-semibold mb-2">1. Aceptación de Términos</h5>
+              <h5 className="font-semibold mb-2">{t('verification.terms.s1Title')}</h5>
               <p>
-                Al utilizar esta plataforma, aceptas cumplir con estos términos y condiciones. 
-                Si no estás de acuerdo con alguno de estos términos, no debes usar nuestros servicios.
+                {t('verification.terms.s1Body')}
               </p>
             </section>
 
             <section>
-              <h5 className="font-semibold mb-2">2. Verificación de Identidad</h5>
+              <h5 className="font-semibold mb-2">{t('verification.terms.s2Title')}</h5>
               <p>
-                Proporcionas información precisa y completa durante el proceso de verificación. 
-                La información proporcionada será utilizada únicamente para fines de verificación 
-                y seguridad de la plataforma.
+                {t('verification.terms.s2Body')}
               </p>
             </section>
 
             <section>
-              <h5 className="font-semibold mb-2">3. Uso de Datos Personales</h5>
+              <h5 className="font-semibold mb-2">{t('verification.terms.s3Title')}</h5>
               <p>
-                Tus datos personales serán tratados de acuerdo con nuestra Política de Privacidad. 
-                No compartiremos tu información con terceros sin tu consentimiento explícito, 
-                excepto cuando sea requerido por ley.
+                {t('verification.terms.s3Body')}
               </p>
             </section>
 
             <section>
-              <h5 className="font-semibold mb-2">4. Responsabilidades del Usuario</h5>
+              <h5 className="font-semibold mb-2">{t('verification.terms.s4Title')}</h5>
               <p>
-                Eres responsable de mantener la confidencialidad de tu cuenta y contraseña. 
-                Debes notificarnos inmediatamente sobre cualquier uso no autorizado de tu cuenta.
+                {t('verification.terms.s4Body')}
               </p>
             </section>
 
             <section>
-              <h5 className="font-semibold mb-2">5. Limitación de Responsabilidad</h5>
+              <h5 className="font-semibold mb-2">{t('verification.terms.s5Title')}</h5>
               <p>
-                La plataforma no se hace responsable por pérdidas o daños derivados del uso 
-                de nuestros servicios, excepto en casos de negligencia grave o dolo.
+                {t('verification.terms.s5Body')}
               </p>
             </section>
 
             <section>
-              <h5 className="font-semibold mb-2">6. Modificaciones</h5>
+              <h5 className="font-semibold mb-2">{t('verification.terms.s6Title')}</h5>
               <p>
-                Nos reservamos el derecho de modificar estos términos en cualquier momento. 
-                Los cambios serán notificados a través de la plataforma.
+                {t('verification.terms.s6Body')}
               </p>
             </section>
           </div>
@@ -86,7 +80,7 @@ export const StepTermsAndConditions: React.FC = () => {
           className="mt-1"
         />
         <Label htmlFor="read-terms" className="flex-1 cursor-pointer">
-          <span className="font-medium">He leído y entendido los términos y condiciones</span>
+          <span className="font-medium">{t('verification.terms.haveRead')}</span>
         </Label>
       </div>
 
@@ -100,10 +94,10 @@ export const StepTermsAndConditions: React.FC = () => {
         />
         <Label htmlFor="accept-terms" className="flex-1 cursor-pointer">
           <span className="font-medium text-blue-900">
-            Acepto los términos y condiciones de la plataforma *
+            {t('verification.terms.accept')}
           </span>
           <p className="text-sm text-blue-700 mt-1">
-            Debes leer los términos antes de aceptarlos
+            {t('verification.terms.mustReadFirst')}
           </p>
         </Label>
       </div>
@@ -111,7 +105,7 @@ export const StepTermsAndConditions: React.FC = () => {
       {!readTerms && termsAccepted && (
         <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
           <CheckCircle className="h-4 w-4" />
-          <span>Por favor marca que has leído los términos antes de aceptarlos</span>
+          <span>{t('verification.terms.markReadFirst')}</span>
         </div>
       )}
     </div>

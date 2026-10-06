@@ -20,10 +20,15 @@ export function useDocumentLoader(
 
   useEffect(() => {
     async function loadExistingDocument() {
+      if (!negotiationId || typeof negotiationId !== 'string' || negotiationId.trim() === '') {
+        setLoading(false);
+        if (initialContent) setDocumentContent(initialContent);
+        return;
+      }
+
       try {
         setLoading(true);
-        
-        // Buscar documento de promesa existente
+
         const { data, error } = await supabase
           .from('negotiation_documents')
           .select('*')
@@ -33,36 +38,38 @@ export function useDocumentLoader(
           .limit(1)
           .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('❌ [useDocumentLoader] Error loading document:', error);
-          throw error;
+        if (error) {
+          // PGRST116 = 0 rows with .single(); maybeSingle() no suele devolver error por 0 filas
+          if (error.code === 'PGRST116') {
+            if (initialContent) setDocumentContent(initialContent);
+            setLoading(false);
+            return;
+          }
+          console.error('❌ [useDocumentLoader] Error loading document:', error.code, error.message, error);
+          toast.error(`Error al cargar el documento: ${error.message || error.code || 'consulta fallida'}`);
+          if (initialContent) setDocumentContent(initialContent);
+          setLoading(false);
+          return;
         }
 
         if (data) {
           const doc = data as any;
           console.log('✅ [useDocumentLoader] Found existing document:', doc.id);
           setSavedDocumentId(doc.id);
-          
-          // Verificar si es TipTap JSON o texto plano
+
           if (doc.content && typeof doc.content === 'object' && doc.content.type === 'doc') {
-            // Es un documento TipTap JSON
-            console.log('📄 [useDocumentLoader] Document has TipTap JSON content');
             setHasTipTapContent(true);
-            setDocumentContent(null); // Se cargará directamente en el editor cuando entre en modo edición
+            setDocumentContent(null);
           } else if (doc.content && typeof doc.content === 'string') {
-            // Es texto plano
-            console.log('📄 [useDocumentLoader] Document has plain text content');
             setHasTipTapContent(false);
             setDocumentContent(doc.content);
           } else {
-            // Contenido vacío o null
             if (initialContent) {
               setDocumentContent(initialContent);
               setHasTipTapContent(false);
             }
           }
         } else {
-          // No hay documento, usar initialContent si existe
           if (initialContent) {
             console.log('📄 [useDocumentLoader] Using provided initial content');
             setDocumentContent(initialContent);
@@ -70,11 +77,9 @@ export function useDocumentLoader(
         }
       } catch (err: any) {
         console.error('💥 [useDocumentLoader] Failed to load document:', err);
-        toast.error('Error al cargar el documento');
-        // Usar initialContent como fallback
-        if (initialContent) {
-          setDocumentContent(initialContent);
-        }
+        const msg = err?.message || err?.code || 'Error desconocido';
+        toast.error(`Error al cargar el documento: ${msg}`);
+        if (initialContent) setDocumentContent(initialContent);
       } finally {
         setLoading(false);
       }

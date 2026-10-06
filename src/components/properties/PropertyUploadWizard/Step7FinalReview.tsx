@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,10 +25,8 @@ interface PropertyData {
   propertyType: string;
   strata: number;
   price: number;
-  acceptsCrypto: boolean;
-  financing: boolean;
-  visitPrice: number;
-  commission: number;
+  offeredTimeline?: { deedSigningDate?: string; propertyDeliveryDate?: string; paymentReceptionDate?: string };
+  acceptedPaymentMethods?: string[];
   negotiationRules: {
     minPrice?: number;
     maxClosingDays?: number;
@@ -53,6 +52,7 @@ export const Step7FinalReview: React.FC<Step7FinalReviewProps> = ({
   onTermsAcceptedChange,
   onPrivacyAcceptedChange,
 }) => {
+  const { t } = useTranslation();
   console.log('✅ Step7FinalReview rendering with data:', propertyData);
 
   const handleCheckboxChange = useCallback((handler: (checked: boolean) => void) => (checked: boolean | "indeterminate") => {
@@ -63,7 +63,7 @@ export const Step7FinalReview: React.FC<Step7FinalReviewProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Revisión Final</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('properties.wizard.review.title')}</h3>
 
         <Card className="p-6">
           <div className="space-y-4">
@@ -74,34 +74,40 @@ export const Step7FinalReview: React.FC<Step7FinalReviewProps> = ({
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">Habitaciones:</span>
+                <span className="text-muted-foreground">{t('properties.bedrooms')}:</span>
                 <p className="font-semibold">{propertyData.bedrooms}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Baños:</span>
+                <span className="text-muted-foreground">{t('properties.bathrooms')}:</span>
                 <p className="font-semibold">{propertyData.bathrooms}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Área:</span>
+                <span className="text-muted-foreground">{t('properties.area')}:</span>
                 <p className="font-semibold">{propertyData.area}m²</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Precio:</span>
+                <span className="text-muted-foreground">{t('properties.price')}:</span>
                 <p className="font-semibold">{formatPrice(propertyData.price)}</p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Badge variant="secondary">
-                {propertyData.images.length} imágenes
-              </Badge>
-              {propertyData.acceptsCrypto && (
-                <Badge variant="secondary">Acepta Crypto</Badge>
-              )}
-              {propertyData.financing && (
-                <Badge variant="secondary">Financiación</Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">{t('properties.wizard.review.imagesCount', { count: propertyData.images.length })}</Badge>
+              {(propertyData.acceptedPaymentMethods ?? []).length > 0 && (
+                (propertyData.acceptedPaymentMethods ?? []).map((m) => (
+                  <Badge key={m} variant="outline">
+                    {t(`properties.wizard.paymentMethods.${m}`, { defaultValue: m })}
+                  </Badge>
+                ))
               )}
             </div>
+            {(propertyData.offeredTimeline && (propertyData.offeredTimeline.deedSigningDate || propertyData.offeredTimeline.paymentReceptionDate)) && (
+              <div className="text-sm text-muted-foreground pt-2 space-y-1">
+                {propertyData.offeredTimeline.deedSigningDate && <p>{t('properties.wizard.review.deedSigning', { date: propertyData.offeredTimeline.deedSigningDate })}</p>}
+                {propertyData.offeredTimeline.propertyDeliveryDate && <p>{t('properties.wizard.review.propertyDelivery', { date: propertyData.offeredTimeline.propertyDeliveryDate })}</p>}
+                {propertyData.offeredTimeline.paymentReceptionDate && <p>{t('properties.wizard.review.paymentReception', { date: propertyData.offeredTimeline.paymentReceptionDate })}</p>}
+              </div>
+            )}
           </div>
         </Card>
       </div>
@@ -114,7 +120,7 @@ export const Step7FinalReview: React.FC<Step7FinalReviewProps> = ({
             onCheckedChange={handleCheckboxChange(onTermsAcceptedChange)}
           />
           <Label htmlFor="terms" className="text-sm">
-            Acepto los términos y condiciones de uso de la plataforma
+            {t('properties.wizard.review.acceptTerms')}
           </Label>
         </div>
 
@@ -125,7 +131,7 @@ export const Step7FinalReview: React.FC<Step7FinalReviewProps> = ({
             onCheckedChange={handleCheckboxChange(onPrivacyAcceptedChange)}
           />
           <Label htmlFor="privacy" className="text-sm">
-            Acepto la política de privacidad y el procesamiento de mis datos
+            {t('properties.wizard.review.acceptPrivacy')}
           </Label>
         </div>
       </div>
@@ -134,10 +140,9 @@ export const Step7FinalReview: React.FC<Step7FinalReviewProps> = ({
         <div className="flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
           <div>
-            <h4 className="font-semibold text-yellow-900">Revisión Administrativa</h4>
+            <h4 className="font-semibold text-yellow-900">{t('properties.wizard.review.adminReviewTitle')}</h4>
             <p className="text-yellow-700 text-sm mt-1">
-              Tu propiedad será revisada por nuestro equipo antes de ser publicada.
-              Te notificaremos cuando esté disponible.
+              {t('properties.wizard.review.adminReviewBody')}
             </p>
           </div>
         </div>

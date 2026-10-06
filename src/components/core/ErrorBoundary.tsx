@@ -1,4 +1,5 @@
 import React from 'react';
+import i18n from '../../i18n/config';
 
 interface Props {
   children: React.ReactNode;
@@ -26,13 +27,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-2">Algo salió mal</h1>
-          <p className="text-muted-foreground">Intenta recargar la página o vuelve más tarde.</p>
+          <h1 className="text-2xl font-bold mb-2">{i18n.t('errors.general')}</h1>
+          <p className="text-muted-foreground">{i18n.t('errors.tryAgainLater')}</p>
         </div>
       );
     }
     return this.props.children;
   }
 }
-
-

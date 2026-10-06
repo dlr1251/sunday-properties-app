@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,12 @@ import { usePropertyVerifications } from '../../hooks/properties/usePropertyVeri
 import { supabase } from '../../lib/supabase';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 import { createPropertyApprovalConversation } from '../../utils/createPropertyApprovalConversation';
 
 export const PropertyVerificationManagementPanel: React.FC = () => {
+  const { t } = useTranslation();
+  const dateFnsLocale = useDateFnsLocale();
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [selectedVerification, setSelectedVerification] = useState<any>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
@@ -59,7 +62,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
       if (propError) throw propError;
 
       // Create conversation for approved property
-      const propertyTitle = selectedVerification.property?.title || 'Propiedad sin título';
+      const propertyTitle = selectedVerification.property?.title || t('common.untitled');
       const conversationId = await createPropertyApprovalConversation({
         propertyId: selectedVerification.property_id,
         ownerId: selectedVerification.user_id,
@@ -71,14 +74,14 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
         console.log('Approval conversation created:', conversationId);
       }
 
-      toast.success('Propiedad aprobada exitosamente');
+      toast.success(t('admin.propertyApproved'));
       setShowDetailsDialog(false);
       setSelectedVerification(null);
       setReviewNotes('');
       refetch();
     } catch (err: any) {
       console.error('Error approving verification:', err);
-      toast.error('Error al aprobar la propiedad');
+      toast.error(t('admin.approvePropertyError'));
     }
   };
 
@@ -110,7 +113,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
 
       if (propError) throw propError;
 
-      toast.success('Propiedad rechazada');
+      toast.success(t('admin.propertyRejected'));
       setShowDetailsDialog(false);
       setSelectedVerification(null);
       setReviewReason('');
@@ -118,7 +121,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
       refetch();
     } catch (err: any) {
       console.error('Error rejecting verification:', err);
-      toast.error('Error al rechazar la propiedad');
+      toast.error(t('admin.rejectPropertyError'));
     }
   };
 
@@ -160,7 +163,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="h-4 w-4 text-yellow-600" />
-              Pendientes
+              {t('admin.pendingPlural')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -174,7 +177,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
-              Aprobadas
+              {t('admin.approvedPlural')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -188,7 +191,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <XCircle className="h-4 w-4 text-red-600" />
-              Rechazadas
+              {t('admin.rejectedPlural')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -208,7 +211,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
             onClick={() => setFilterStatus(status)}
             size="sm"
           >
-            {status === 'all' ? 'Todas' : status === 'pending' ? 'Pendientes' : status === 'approved' ? 'Aprobadas' : 'Rechazadas'}
+            {status === 'all' ? t('common.all') : status === 'pending' ? t('admin.pendingPlural') : status === 'approved' ? t('admin.approvedPlural') : t('admin.rejectedPlural')}
           </Button>
         ))}
       </div>
@@ -219,13 +222,13 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
           const getStatusBadge = () => {
             switch (verification.status) {
               case 'pending':
-                return <Badge className="bg-yellow-100 text-yellow-800">Pendiente</Badge>;
+                return <Badge className="bg-yellow-100 text-yellow-800">{t('admin.status.pending')}</Badge>;
               case 'approved':
-                return <Badge className="bg-green-100 text-green-800">Aprobada</Badge>;
+                return <Badge className="bg-green-100 text-green-800">{t('admin.status.approved')}</Badge>;
               case 'rejected':
-                return <Badge className="bg-red-100 text-red-800">Rechazada</Badge>;
+                return <Badge className="bg-red-100 text-red-800">{t('admin.rejected')}</Badge>;
               default:
-                return <Badge>Desconocido</Badge>;
+                return <Badge>{t('common.unknown')}</Badge>;
             }
           };
 
@@ -236,12 +239,12 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <Home className="h-5 w-5 text-gray-600" />
-                      <h4 className="font-medium">{verification.property?.title || 'Sin título'}</h4>
+                      <h4 className="font-medium">{verification.property?.title || t('common.untitled')}</h4>
                       {getStatusBadge()}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{verification.property?.address}</p>
                     <p className="text-xs text-gray-500">
-                      Enviado: {format(new Date(verification.submitted_at), 'PPp', { locale: es })}
+                      {t('admin.submitted', { date: format(new Date(verification.submitted_at), 'PPp', { locale: dateFnsLocale }) })}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -253,7 +256,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
                           onClick={() => openDetailsDialog(verification, 'approve')}
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
-                          Aprobar
+                          {t('common.approve')}
                         </Button>
                         <Button
                           size="sm"
@@ -262,7 +265,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
                           onClick={() => openDetailsDialog(verification, 'reject')}
                         >
                           <XCircle className="h-4 w-4 mr-1" />
-                          Rechazar
+                          {t('common.reject')}
                         </Button>
                       </>
                     )}
@@ -279,7 +282,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === 'approve' ? 'Aprobar Propiedad' : 'Rechazar Propiedad'}
+              {reviewAction === 'approve' ? t('admin.approveProperty') : t('admin.rejectProperty')}
             </DialogTitle>
           </DialogHeader>
           {selectedVerification && (
@@ -291,7 +294,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
 
               {reviewAction === 'reject' && (
                 <div>
-                  <label className="text-sm font-medium">Razón de rechazo *</label>
+                  <label className="text-sm font-medium">{t('admin.rejectionReasonLabel')}</label>
                   <Textarea
                     value={reviewReason}
                     onChange={(e) => setReviewReason(e.target.value)}
@@ -302,7 +305,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
               )}
 
               <div>
-                <label className="text-sm font-medium">Notas adicionales (opcional)</label>
+                <label className="text-sm font-medium">{t('admin.additionalNotesOptional')}</label>
                 <Textarea
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
@@ -313,11 +316,11 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
 
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 {reviewAction === 'approve' ? (
                   <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
-                    Aprobar Propiedad
+                    {t('admin.approveProperty')}
                   </Button>
                 ) : (
                   <Button 
@@ -325,7 +328,7 @@ export const PropertyVerificationManagementPanel: React.FC = () => {
                     disabled={!reviewReason}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    Rechazar Propiedad
+                    {t('admin.rejectProperty')}
                   </Button>
                 )}
               </div>

@@ -10,9 +10,15 @@ import {
   Mail,
   Send,
   MessageSquare,
-  Users,
   HeadphonesIcon
 } from 'lucide-react';
+import {
+  BRAND_EMAIL,
+  BRAND_EMAIL_HREF,
+  BRAND_LOCATION,
+  BRAND_PHONE,
+  BRAND_PHONE_HREF,
+} from '@/constants/brand';
 
 export const ContactPage: React.FC = () => {
   const { t } = useTranslation();
@@ -37,13 +43,13 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800">
-        <div className="absolute inset-0 bg-black opacity-20" />
+      <div className="relative overflow-hidden bg-brand-hero">
+        <div className="absolute inset-0 bg-black/10" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
           <div className="text-center text-white">
-            <h1 className="text-4xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-4xl lg:text-6xl font-bold mb-6 font-display">
               {t('pages.contact.title')}
             </h1>
             <p className="text-xl max-w-3xl mx-auto leading-relaxed">
@@ -101,7 +107,7 @@ export const ContactPage: React.FC = () => {
                       rows={5}
                     />
                   </div>
-                  <Button type="submit" size="lg" className="w-full">
+                  <Button type="submit" size="lg" variant="accent" className="w-full">
                     <Send className="w-4 h-4 mr-2" />
                     {t('pages.contact.form.submit')}
                   </Button>
@@ -112,27 +118,31 @@ export const ContactPage: React.FC = () => {
             {/* Contact Info */}
             <div className="space-y-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('pages.contact.info.title')}</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-6">{t('pages.contact.info.title')}</h2>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-blue-600 mt-1" />
+                    <MapPin className="w-5 h-5 text-primary mt-1" />
                     <div>
                       <p className="font-medium">{t('pages.contact.info.office')}</p>
-                      <p className="text-gray-600">Carrera 7 #85-20, Bogotá, Colombia</p>
+                      <p className="text-muted-foreground">{BRAND_LOCATION}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 text-blue-600 mt-1" />
+                    <Phone className="w-5 h-5 text-primary mt-1" />
                     <div>
                       <p className="font-medium">{t('pages.contact.info.phone')}</p>
-                      <p className="text-gray-600">+57 (1) 555-0123</p>
+                      <a href={BRAND_PHONE_HREF} className="text-muted-foreground hover:text-foreground transition-colors">
+                        {BRAND_PHONE}
+                      </a>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-blue-600 mt-1" />
+                    <Mail className="w-5 h-5 text-primary mt-1" />
                     <div>
                       <p className="font-medium">{t('pages.contact.info.email')}</p>
-                      <p className="text-gray-600">contacto@sundayproperties.com</p>
+                      <a href={BRAND_EMAIL_HREF} className="text-muted-foreground hover:text-foreground transition-colors">
+                        {BRAND_EMAIL}
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -141,9 +151,9 @@ export const ContactPage: React.FC = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center">
-                    <MessageSquare className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                    <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">{t('pages.contact.help.title')}</h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-muted-foreground mb-4">
                       {t('pages.contact.help.subtitle')}
                     </p>
                     <Button variant="outline">
