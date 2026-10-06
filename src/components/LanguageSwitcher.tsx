@@ -22,11 +22,12 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ onDark = fal
       }}
       aria-label={t('nav.switchLanguage', { language: nextLabel })}
       className={[
-        'min-w-10 px-2 font-semibold tracking-wide',
+        'relative z-20 min-h-11 min-w-11 px-2 font-semibold tracking-wide',
         onDark
           ? 'text-white hover:text-white hover:bg-white/10'
           : 'text-foreground hover:text-foreground hover:bg-primary/10',
       ].join(' ')}
+      data-testid="language-switcher"
     >
       {nextLabel}
     </Button>

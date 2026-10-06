@@ -48,7 +48,7 @@ test.describe('Daniel iPhone review', () => {
     await expect(page.getByText(/10,000/)).toHaveCount(0);
     await expect(page.getByText(/1\.5%/)).toHaveCount(0);
 
-    const langToggle = page.getByRole('button', { name: /Cambiar idioma|Switch language/i });
+    const langToggle = page.getByTestId('language-switcher');
     await expect(langToggle).toBeVisible();
     await expect(langToggle).toHaveText(/^(EN|ES)$/);
     const before = (await langToggle.innerText()).trim();
@@ -78,8 +78,9 @@ test.describe('Daniel iPhone review', () => {
     }
 
     await gotoReady(page, '/login');
-    await expect(page.getByLabel(/Email/i).first()).toBeVisible();
-    await page.getByLabel(/Email/i).first().fill('nobody@example.com');
+    const loginEmail = page.getByLabel(/correo|email/i).first();
+    await expect(loginEmail).toBeVisible();
+    await loginEmail.fill('nobody@example.com');
     await page.locator('#password').fill('wrong-password');
     await page.getByRole('button', { name: /Sign In|Iniciar|Entrar/i }).click();
     await expect(page.locator('[role="alert"], .text-destructive, p')).toContainText(/.+/, {
@@ -93,7 +94,7 @@ test.describe('Daniel iPhone review', () => {
     await expect(page.locator('body')).toContainText(/.+/);
 
     await gotoReady(page, '/forgot-password');
-    await page.getByLabel(/Email/i).first().fill('ui-test-not-a-real-user@example.invalid');
+    await page.getByLabel(/correo|email/i).first().fill('ui-test-not-a-real-user@example.invalid');
     await page.route('**/auth/v1/recover**', async (route) => {
       await route.fulfill({
         status: 200,

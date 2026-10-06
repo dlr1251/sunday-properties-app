@@ -135,15 +135,15 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
         ].join(' ')}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-2 min-w-0">
-            <div className="flex min-w-0 max-w-[46%] overflow-hidden items-center">
+          <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+            <div className="min-w-0 overflow-hidden">
               <BrandLogo
-                heightClassName="h-8 sm:h-11"
+                heightClassName="h-8 max-w-[140px] sm:h-11 sm:max-w-none"
                 variant={solidBrand ? 'onDark' : undefined}
               />
             </div>
 
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden md:flex items-center justify-center gap-1">
               {mainNavItems.map((item) => (
                 <Link
                   key={item.id}
