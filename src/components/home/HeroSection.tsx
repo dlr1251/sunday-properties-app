@@ -107,7 +107,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               variant="outline"
               size="lg"
               asChild
-              className="h-12 px-8 text-base border-white/30 text-white hover:bg-white/10 hover:text-white"
+              className="h-12 px-8 text-base !bg-transparent border-white/40 !text-white hover:!bg-white/10 hover:!text-white"
             >
               <Link to={salesHref}>{t('home.hero.sales')}</Link>
             </Button>
