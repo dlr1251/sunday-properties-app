@@ -19,7 +19,7 @@ export function BrandLogo({
   loading = 'eager',
   variant = 'default',
 }: BrandLogoProps) {
-  const imgClass = `${heightClassName} w-auto object-contain`;
+  const imgClass = `${heightClassName} w-auto max-w-full object-contain`;
 
   const images =
     variant === 'onDark' ? (
@@ -62,12 +62,12 @@ export function BrandLogo({
       <Link
         to={to}
         aria-label={BRAND_NAME}
-        className={`inline-flex items-center shrink-0 ${className}`}
+        className={`inline-flex items-center min-w-0 max-w-full ${className}`}
       >
         {images}
       </Link>
     );
   }
 
-  return <span className={`inline-flex items-center shrink-0 ${className}`}>{images}</span>;
+  return <span className={`inline-flex items-center min-w-0 max-w-full ${className}`}>{images}</span>;
 }

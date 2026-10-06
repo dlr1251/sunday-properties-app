@@ -1,54 +1,35 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
 import { Button } from './ui/button';
-import { supportedLanguages } from '../i18n';
 
-export const LanguageSwitcher: React.FC = () => {
-  const { i18n } = useTranslation();
+interface LanguageSwitcherProps {
+  onDark?: boolean;
+}
+
+export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ onDark = false }) => {
+  const { i18n, t } = useTranslation();
   const languageCode = (i18n.resolvedLanguage || i18n.language || 'es').split('-')[0];
-
-  const currentLanguage = supportedLanguages.find(
-    (lang) => lang.code === languageCode
-  ) || supportedLanguages[0];
-
-  const handleLanguageChange = (langCode: string) => {
-    i18n.changeLanguage(langCode);
-  };
+  const nextLanguage = languageCode === 'es' ? 'en' : 'es';
+  const nextLabel = nextLanguage.toUpperCase();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-2 text-muted-foreground hover:text-foreground"
-        >
-          <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{currentLanguage.flag}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        {supportedLanguages.map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
-            className={[
-              'flex items-center gap-2 cursor-pointer',
-              i18n.language.startsWith(lang.code) ? 'bg-accent' : '',
-            ].join(' ')}
-          >
-            <span>{lang.flag}</span>
-            <span>{lang.name}</span>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        void i18n.changeLanguage(nextLanguage);
+      }}
+      aria-label={t('nav.switchLanguage', { language: nextLabel })}
+      className={[
+        'relative z-20 min-h-11 min-w-11 px-2 font-semibold tracking-wide',
+        onDark
+          ? 'text-white hover:text-white hover:bg-white/10'
+          : 'text-foreground hover:text-foreground hover:bg-primary/10',
+      ].join(' ')}
+      data-testid="language-switcher"
+    >
+      {nextLabel}
+    </Button>
   );
 };

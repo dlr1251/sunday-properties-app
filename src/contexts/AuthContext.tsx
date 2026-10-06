@@ -28,6 +28,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, options?: SignUpOptions) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -50,6 +51,9 @@ export const useAuth = () => {
       },
       signOut: async () => {
         console.warn('signOut called outside AuthProvider');
+      },
+      resetPassword: async () => {
+        console.warn('resetPassword called outside AuthProvider');
       },
       refreshProfile: async () => {
         console.warn('refreshProfile called outside AuthProvider');
@@ -207,6 +211,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      throw error;
+    }
+  };
+
   // Sign out function - simplified
   const signOut = async () => {
     try {
@@ -325,6 +338,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signUp,
     signOut,
+    resetPassword,
     refreshProfile,
   };
 

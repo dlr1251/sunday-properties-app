@@ -24,9 +24,9 @@ import {
   SimilarProperties,
 } from './detail';
 import { ErrorBoundary } from '../core/ErrorBoundary';
-import { PropertyDetailMap } from '../maps/PropertyDetailMap';
 import { MapFallback } from '../maps/PropertyMap';
 import { useFavorites } from '../../hooks/useFavorites';
+import { publicLocationLabel, sanitizePublicDescription } from '../../utils/publicLocation';
 import { 
   Heart, 
   Share2, 
@@ -132,6 +132,18 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       }
 
       setProperty(data);
+      const location = publicLocationLabel(data);
+      document.title = location
+        ? `${data.title} · ${location} · Sunday Properties`
+        : `${data.title} · Sunday Properties`;
+      const meta = document.querySelector('meta[name="description"]');
+      if (meta && data.description) {
+        const publicDescription = sanitizePublicDescription(
+          String(data.description),
+          data.address
+        );
+        meta.setAttribute('content', publicDescription.slice(0, 160));
+      }
 
       if (data.slug && propertyId !== data.slug && isPropertyUuid(propertyId)) {
         const path = window.location.pathname;
@@ -212,28 +224,40 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
   const mainPriceLabel = isRentalListing
     ? t('properties.detail.pricePerMonth', { amount: formatCurrency(mainPrice) })
     : formatCurrency(mainPrice);
+  const locationLabel = publicLocationLabel(displayProperty);
+  const publicDescription = sanitizePublicDescription(
+    displayProperty.description,
+    displayProperty.address
+  );
+  const publicFeatures = (displayProperty.features || []).map((feature: string) =>
+    sanitizePublicDescription(feature, displayProperty.address)
+  ).filter(Boolean);
+  const publicTags = (displayProperty.tags || []).map((tag: string) =>
+    sanitizePublicDescription(tag, displayProperty.address)
+  ).filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white border-b border-border px-4 py-4 lg:px-6 sticky top-0 z-40 backdrop-blur-sm bg-white/95"
+        className="sticky top-16 z-30 border-b border-border bg-background/95 px-4 py-3 lg:px-6 backdrop-blur-sm"
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" onClick={onBack}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Button variant="ghost" size="sm" onClick={onBack} className="mb-1 -ml-2 text-foreground">
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t('common.back')}
             </Button>
-            <div>
-              <h1 className="text-xl font-semibold">{displayProperty.title}</h1>
-              <p className="text-muted-foreground">{displayProperty.address}</p>
-            </div>
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground break-words">
+              {displayProperty.title}
+            </h1>
+            {locationLabel && (
+              <p className="text-sm text-muted-foreground">{locationLabel}</p>
+            )}
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0">
             <Button
               variant="ghost"
               size="sm"
@@ -251,7 +275,23 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             >
               <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'fill-brand-gold text-brand-gold' : ''}`} />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setShowShareModal(true)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                const shareUrl = window.location.href;
+                const shareTitle = t('properties.detail.share.lookAt', { title: displayProperty.title });
+                if (typeof navigator !== 'undefined' && navigator.share) {
+                  try {
+                    await navigator.share({ title: shareTitle, text: shareTitle, url: shareUrl });
+                    return;
+                  } catch {
+                    // cancelled or unsupported payload — fall back to the icon sheet
+                  }
+                }
+                setShowShareModal(true);
+              }}
+            >
               <Share2 className="h-4 w-4" />
             </Button>
           </div>
@@ -531,32 +571,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             )}
           </div>
 
-          {/* 3. Ubicación / Map - third on single column (below photos and price), below image on xl */}
           <div className="order-3 xl:col-span-2 space-y-6 min-w-0">
-            {/* Property Map */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.25 }}
-            >
-              <ErrorBoundary fallback={<MapFallback message="No pudimos cargar el mapa." />}>
-                <PropertyDetailMap
-                  propertyId={property.slug || resolvedId}
-                  title={displayProperty.title}
-                  address={displayProperty.address}
-                  neighborhood={displayProperty.neighborhood}
-                  city={displayProperty.city}
-                  coordinates={property?.coordinates}
-                  image={images.length > 0 ? images[0] : undefined}
-                  height="400px"
-                  showHeader={true}
-                />
-              </ErrorBoundary>
-            </motion.div>
-          </div>
-
-          {/* 4. Rest of main content - Property Details, Neighborhood, Similar */}
-          <div className="order-4 xl:col-span-2 space-y-6 min-w-0">
             {/* Property Details */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -594,13 +609,13 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">{t('properties.detail.description')}</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{displayProperty.description}</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{publicDescription}</p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-semibold mb-2">{t('properties.detail.characteristics')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {(displayProperty.features || []).map((feature: string, index: number) => (
+                      {publicFeatures.map((feature: string, index: number) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-primary rounded-full"></div>
                         <span className="text-sm">{feature}</span>
@@ -612,7 +627,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 <div>
                   <h3 className="text-lg font-semibold mb-2">{t('properties.detail.tags')}</h3>
                   <div className="flex flex-wrap gap-2">
-                      {(displayProperty.tags || []).map((tag: string, index: number) => (
+                      {publicTags.map((tag: string, index: number) => (
                       <Badge key={index} variant="secondary">
                         {tag}
                       </Badge>
@@ -631,7 +646,6 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               <ErrorBoundary fallback={<MapFallback message="No pudimos cargar el mapa del barrio." />}>
                 <NeighborhoodSection
                   title={displayProperty.title}
-                  address={displayProperty.address}
                   neighborhood={displayProperty.neighborhood}
                   city={displayProperty.city}
                   coordinates={property?.coordinates}

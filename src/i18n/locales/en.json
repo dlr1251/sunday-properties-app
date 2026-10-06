@@ -5,10 +5,16 @@
       "titleHighlight": "home",
       "subtitle": "Colombia's most modern real estate platform. Discover verified properties, negotiate smartly, and close deals with confidence.",
       "exploreProperties": "Explore properties",
-      "learnMore": "Learn more"
+      "learnMore": "Learn more",
+      "rentals": "Rentals",
+      "sales": "Sales"
+    },
+    "search": {
+      "cityPlaceholder": "City",
+      "neighborhoodPlaceholder": "Neighborhood"
     },
     "features": {
-      "properties": "10,000+ properties",
+      "properties": "Published listings in Medellín",
       "secure": "Secure transactions",
       "smart": "Smart negotiation"
     },
@@ -31,7 +37,7 @@
       "forBuyers": "For Buyers",
       "buyersTitle": "Buy with total peace of mind",
       "buyersSubtitle": "Safe and guided experience for your real estate investment with complete legal support",
-      "commission": "Single 1.5% commission per successful sale",
+      "commission": "Legal support through closing",
       "protection": "All transactions protected by specialized lawyers",
       "whyChoose": "Why choose Sunday?",
       "readyToStart": "Ready to start?",
@@ -53,7 +59,7 @@
         },
         "close": {
           "title": "Close the deal",
-          "description": "Finalize the transaction securely with our legal backing. Single 1.5% commission per successful sale."
+          "description": "Finalize the transaction securely with our legal backing."
         }
       },
       "buyerSteps": {
@@ -228,11 +234,33 @@
     "profile": "My Profile",
     "profileAndPreferences": "Profile & preferences",
     "settings": "Settings",
+    "switchLanguage": "Switch language to {{language}}",
     "signOut": "Sign Out",
     "development": "Development",
     "sidebarPlatform": "Platform",
     "sidebarPeople": "Team",
     "sidebarOperations": "Operations"
+  },
+  "maps": {
+    "openInGoogleMaps": "Open in Google Maps",
+    "location": "Location",
+    "locationUnavailable": "Location not available",
+    "neighborhoodTitle": "The neighborhood",
+    "surroundings": "Nearby",
+    "noMapYet": "There is no map for this listing yet.",
+    "unavailable": "Map unavailable",
+    "nearbyTitle": "Nearby",
+    "nearbyHint": "Useful places around the listing. Tap a pin or a row to see it on the map.",
+    "placesCount": "{{count}} places",
+    "noPlaces": "No nearby places have been loaded for this listing yet.",
+    "categories": {
+      "parks": "Parks",
+      "transit": "Transit",
+      "health": "Health",
+      "commerce": "Shops",
+      "universities": "Universities",
+      "landmarks": "Landmarks"
+    }
   },
   "ai": {
     "disclaimer": {
@@ -298,6 +326,7 @@
     "resetPasswordTitle": "Reset password",
     "newPassword": "New password",
     "updatePassword": "Update password",
+    "goToDashboard": "Go to dashboard",
     "passwordUpdated": "Your password has been updated.",
     "passwordUpdateFailed": "Could not update the password",
     "passwordRequirements": "Password must have at least 8 characters, one letter and one number",
@@ -514,19 +543,16 @@
     "listingsInReview": "My listings under review",
     "visitsConfigured": "Visits configured",
     "maps": {
-      "notConfigured": "Google Maps not configured",
-      "notConfiguredHint": "Please set VITE_MAPS_API_KEY in your .env file",
-      "notConfiguredAlert": "Google Maps is not configured. Please set VITE_MAPS_API_KEY in your .env file",
       "loading": "Loading map...",
       "noLocation": "No properties with a location",
       "noLocationHint": "Properties need coordinates to be shown on the map",
-      "selectLocation": "Select Location on the Map",
-      "searchAddress": "Search address",
-      "searchAddressPlaceholder": "Search for an address or place...",
+      "selectLocation": "Select location on the map",
       "selectedLocation": "Selected location",
       "selectedCoordinates": "Selected coordinates",
-      "pickerHint": "Click the map to select the exact location, or search for an address in the search field.",
-      "confirmLocation": "Confirm Location"
+      "pickerHint": "Tap the map to set the location, or enter latitude and longitude.",
+      "confirmLocation": "Confirm location",
+      "latitude": "Latitude",
+      "longitude": "Longitude"
     },
     "detail": {
       "loading": "Loading property...",

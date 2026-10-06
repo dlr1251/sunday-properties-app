@@ -7,6 +7,9 @@ import { StorageInitializer } from './components/StorageInitializer';
 
 // Page imports
 import { HomePage } from './components/pages/HomePage';
+import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SignupPage } from './components/pages/AuthPages';
+import { SettingsPage } from './components/pages/SettingsPage';
+import { AuthRecoveryListener } from './components/auth/AuthRecoveryListener';
 import { PropertiesView } from './components/properties/PropertiesView';
 import { ProfilePage } from './components/profile/ProfilePage';
 import { SuperAdminProfilePage } from './components/profile/SuperAdminProfilePage';
@@ -269,9 +272,16 @@ const AppRouter = () => {
     <BrowserRouter>
       <AuthProvider>
         <StorageInitializer />
+        <AuthRecoveryListener />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Layout children={<HomePage />} />} />
+          <Route path="/login" element={<Layout children={<LoginPage />} />} />
+          <Route path="/signup" element={<Layout children={<SignupPage />} />} />
+          <Route path="/register" element={<Layout children={<SignupPage />} />} />
+          <Route path="/forgot-password" element={<Layout children={<ForgotPasswordPage />} />} />
+          <Route path="/reset-password" element={<Layout children={<ResetPasswordPage />} />} />
+          <Route path="/settings" element={<Layout children={<SettingsPage />} />} />
           <Route path="/properties" element={<Layout children={<PropertiesView />} />} />
           <Route 
             path="/properties/:propertyId" 

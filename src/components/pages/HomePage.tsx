@@ -8,7 +8,22 @@ import { HowItWorks } from '@/components/home/HowItWorks';
 import { FeaturedProperty } from '@/components/home/FeaturedProperty';
 import { ExploreProperties } from '@/components/home/ExploreProperties';
 import { Button } from '@/components/ui/button';
+import { type HomeSearchValues } from '@/components/ui/search-bar';
 import { ArrowRight, CheckCircle2, Landmark, Scale, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+
+function propertiesHref(
+  listingType: 'rental' | 'sale',
+  filters: HomeSearchValues
+): string {
+  const params = new URLSearchParams();
+  params.set('listing_type', listingType);
+  if (filters.city.trim()) params.set('city', filters.city.trim());
+  if (filters.neighborhood.trim()) params.set('neighborhood', filters.neighborhood.trim());
+  if (filters.propertyType && filters.propertyType !== 'all') {
+    params.set('type', filters.propertyType);
+  }
+  return `/properties?${params.toString()}`;
+}
 
 // Section wrapper with consistent styling
 const Section: React.FC<{ 
@@ -52,6 +67,13 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('price');
+  const [homeFilters, setHomeFilters] = useState<HomeSearchValues>({
+    city: '',
+    neighborhood: '',
+    propertyType: 'all',
+  });
+  const rentalsHref = propertiesHref('rental', homeFilters);
+  const salesHref = propertiesHref('sale', homeFilters);
 
   const highlights = useMemo(
     () => [
@@ -74,10 +96,6 @@ export const HomePage: React.FC = () => {
     [t]
   );
 
-  const handleSearch = (query: string) => {
-    navigate(`/properties?q=${encodeURIComponent(query)}`);
-  };
-
   const handlePropertySelect = (propertyId: string) => {
     navigate(`/properties/${propertyId}`);
   };
@@ -88,7 +106,11 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection onSearch={handleSearch} />
+      <HeroSection
+        onFiltersChange={setHomeFilters}
+        rentalsHref={rentalsHref}
+        salesHref={salesHref}
+      />
 
       {/* Linear-style product highlights */}
       <section className="relative py-16 lg:py-20 overflow-hidden">
@@ -114,13 +136,10 @@ export const HomePage: React.FC = () => {
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Button asChild className="h-11 px-5">
-                  <Link to="/properties">
-                    {t('home.hero.exploreProperties')}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                  <Link to={rentalsHref}>{t('home.hero.rentals')}</Link>
                 </Button>
                 <Button asChild variant="outline" className="h-11 px-5">
-                  <Link to="/about">{t('home.hero.learnMore')}</Link>
+                  <Link to={salesHref}>{t('home.hero.sales')}</Link>
                 </Button>
               </div>
             </div>
@@ -255,9 +274,11 @@ export const HomePage: React.FC = () => {
         />
       </Section>
 
-      {/* Explore Properties */}
       <Section>
-        <ExploreProperties />
+        <ExploreProperties
+          onPropertySelect={handlePropertySelect}
+          onViewAllProperties={() => navigate('/properties')}
+        />
       </Section>
     </div>
   );

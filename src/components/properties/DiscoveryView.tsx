@@ -70,8 +70,7 @@ export const DiscoveryView: React.FC = () => {
       const locationLower = searchFilters.location.toLowerCase();
       filtered = filtered.filter(property =>
         property.city.toLowerCase().includes(locationLower) ||
-        property.neighborhood.toLowerCase().includes(locationLower) ||
-        property.address.toLowerCase().includes(locationLower)
+        property.neighborhood.toLowerCase().includes(locationLower)
       );
     }
 

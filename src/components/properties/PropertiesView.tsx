@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,20 +84,28 @@ export interface PropertiesViewProps {
 export function PropertiesView({ onPropertyClick: onPropertyClickProp }: PropertiesViewProps = {}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { properties: allProperties, loading: allPropertiesLoading } = useAllProperties(user?.id); // add , 'rental' to filter rentals only
   const { addToFavorites, removeFromFavorites, isFavorited } = useFavorites();
 
+  const listingTypeParam = searchParams.get('listing_type');
+  const cityParam = searchParams.get('city') || '';
+  const neighborhoodParam = searchParams.get('neighborhood') || '';
+  const typeParam = searchParams.get('type') || '';
+  const qParam = searchParams.get('q') || '';
+
   const [filters, setFilters] = useState<Filters>({
-    search: '',
-    listingTypes: [],
+    search: qParam,
+    listingTypes:
+      listingTypeParam === 'rental' || listingTypeParam === 'sale' ? [listingTypeParam] : [],
     priceRange: [0, 2000000000],
     areaRange: [0, 1000],
     bedrooms: [],
     bathrooms: [],
-    propertyTypes: [],
-    cities: [],
-    neighborhoods: [],
+    propertyTypes: typeParam && typeParam !== 'all' ? [typeParam] : [],
+    cities: cityParam ? [cityParam] : [],
+    neighborhoods: neighborhoodParam ? [neighborhoodParam] : [],
     features: [],
     acceptsCrypto: null,
   });
@@ -108,6 +116,23 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
   const [propertiesPerPage] = useState(12);
   const [uniqueCities, setUniqueCities] = useState<string[]>([]);
   const [uniqueNeighborhoods, setUniqueNeighborhoods] = useState<string[]>([]);
+
+  useEffect(() => {
+    const listingType = searchParams.get('listing_type');
+    const city = searchParams.get('city') || '';
+    const neighborhood = searchParams.get('neighborhood') || '';
+    const type = searchParams.get('type') || '';
+    const q = searchParams.get('q') || '';
+    setFilters((prev) => ({
+      ...prev,
+      search: q,
+      listingTypes: listingType === 'rental' || listingType === 'sale' ? [listingType] : [],
+      propertyTypes: type && type !== 'all' ? [type] : [],
+      cities: city ? [city] : [],
+      neighborhoods: neighborhood ? [neighborhood] : [],
+    }));
+    setCurrentPage(1);
+  }, [searchParams]);
 
   // Fetch unique cities and neighborhoods
   useEffect(() => {
@@ -215,14 +240,16 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
         return false;
       }
 
-      // Cities
-      if (filters.cities.length > 0 && !filters.cities.includes(property.city)) {
-        return false;
+      if (filters.cities.length > 0) {
+        const wanted = filters.cities.map((value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+        const city = (property.city || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        if (!wanted.some((value) => city.includes(value) || value.includes(city))) return false;
       }
 
-      // Neighborhoods
-      if (filters.neighborhoods.length > 0 && !filters.neighborhoods.includes(property.neighborhood)) {
-        return false;
+      if (filters.neighborhoods.length > 0) {
+        const wanted = filters.neighborhoods.map((value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+        const neighborhood = (property.neighborhood || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        if (!wanted.some((value) => neighborhood.includes(value) || value.includes(neighborhood))) return false;
       }
 
       // Features
@@ -562,7 +589,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
   }
 
   return (
-    <div className="space-y-8 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -669,7 +696,6 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
             id: prop.id,
             slug: prop.slug,
             title: prop.title,
-            address: prop.location,
             neighborhood: prop.neighborhood,
             city: prop.city,
             price: prop.price_value,

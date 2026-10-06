@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ForgotPasswordForm: React.FC = () => {
@@ -40,11 +41,16 @@ const ForgotPasswordForm: React.FC = () => {
             <Label htmlFor="email">{t('auth.email')}</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {message && <p className="text-sm text-green-600">{message}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          {message && <p className="text-sm text-success">{message}</p>}
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? t('common.sending') : t('auth.sendResetLink')}
           </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            <Link to="/login" className="underline underline-offset-2 hover:text-foreground">
+              {t('auth.loginHere')}
+            </Link>
+          </p>
         </form>
       </CardContent>
     </Card>

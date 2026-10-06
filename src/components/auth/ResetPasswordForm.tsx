@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,8 +33,8 @@ const ResetPasswordForm: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) throw updateError;
       setMessage(t('auth.passwordUpdated'));
     } catch (err: any) {
       setError(err.message || t('auth.passwordUpdateFailed'));
@@ -48,21 +49,43 @@ const ResetPasswordForm: React.FC = () => {
         <CardTitle>{t('auth.resetPasswordTitle')}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">{t('auth.newPassword')}</Label>
-            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        {message ? (
+          <div className="space-y-4 text-center">
+            <p className="text-sm text-success">{message}</p>
+            <Button asChild className="w-full">
+              <Link to="/dashboard">{t('auth.goToDashboard')}</Link>
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirm">{t('auth.confirmPassword')}</Label>
-            <Input id="confirm" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {message && <p className="text-sm text-green-600">{message}</p>}
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? t('common.updating') : t('auth.updatePassword')}
-          </Button>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('auth.newPassword')}</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+              <p className="text-xs text-muted-foreground">{t('auth.passwordRequirements')}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm">{t('auth.confirmPassword')}</Label>
+              <Input
+                id="confirm"
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+              />
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? t('common.updating') : t('auth.updatePassword')}
+            </Button>
+          </form>
+        )}
       </CardContent>
     </Card>
   );

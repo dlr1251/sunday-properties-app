@@ -6,17 +6,20 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, Phone, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
   onSwitchToLogin?: () => void;
+  loginHref?: string;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ 
   onSuccess, 
-  onSwitchToLogin 
+  onSwitchToLogin,
+  loginHref,
 }) => {
   const { t } = useTranslation();
   const { signUp } = useAuth();
@@ -43,8 +46,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       setError(t('auth.errors.passwordMismatch'));
       return false;
     }
-    if (formData.password.length < 6) {
-      setError(t('auth.errors.passwordTooShort'));
+    if (
+      formData.password.length < 8 ||
+      !/[A-Za-z]/.test(formData.password) ||
+      !/\d/.test(formData.password)
+    ) {
+      setError(t('auth.passwordRequirements'));
       return false;
     }
     if (!formData.name.trim()) {
@@ -257,18 +264,24 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
           {t('auth.hasAccount')}{' '}
-          <Button
-            type="button"
-            variant="link"
-            className="p-0 h-auto font-medium"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onSwitchToLogin?.();
-            }}
-          >
-            {t('auth.loginHere')}
-          </Button>
+          {loginHref ? (
+            <Link to={loginHref} className="font-medium text-primary underline-offset-2 hover:underline">
+              {t('auth.loginHere')}
+            </Link>
+          ) : (
+            <Button
+              type="button"
+              variant="link"
+              className="p-0 h-auto font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSwitchToLogin?.();
+              }}
+            >
+              {t('auth.loginHere')}
+            </Button>
+          )}
         </p>
       </div>
 

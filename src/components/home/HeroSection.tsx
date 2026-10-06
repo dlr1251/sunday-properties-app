@@ -2,21 +2,17 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { SearchBar } from '@/components/ui/search-bar';
+import { SearchBar, type HomeSearchValues } from '@/components/ui/search-bar';
 import { Button } from '@/components/ui/button';
-import { 
-  ArrowRight,
-  Building2,
-  Shield,
-  TrendingUp
-} from 'lucide-react';
+import { Shield, TrendingUp } from 'lucide-react';
 
 interface HeroSectionProps {
-  onSearch?: (filters: string) => void;
+  onFiltersChange?: (filters: HomeSearchValues) => void;
+  rentalsHref: string;
+  salesHref: string;
   className?: string;
 }
 
-// Animation variants for staggered children
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -40,14 +36,15 @@ const itemVariants = {
   },
 };
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ 
-  onSearch,
-  className = ''
+export const HeroSection: React.FC<HeroSectionProps> = ({
+  onFiltersChange,
+  rentalsHref,
+  salesHref,
+  className = '',
 }) => {
   const { t } = useTranslation();
-  
+
   const features = [
-    { icon: Building2, label: t('home.features.properties') },
     { icon: Shield, label: t('home.features.secure') },
     { icon: TrendingUp, label: t('home.features.smart') },
   ];
@@ -57,15 +54,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="absolute inset-0 bg-black/20" />
       <div className="absolute inset-0 bg-blueprint mask-blueprint-fade opacity-30" />
 
-      {/* Content */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
-        <motion.div 
+        <motion.div
           className="flex flex-col items-center text-center"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Main Heading - Display typography */}
           <motion.div variants={itemVariants} className="space-y-4">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white tracking-tight text-balance font-display">
               {t('home.hero.title')}{' '}
@@ -73,34 +68,25 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </h1>
           </motion.div>
 
-          {/* Subtitle */}
-          <motion.p 
+          <motion.p
             variants={itemVariants}
             className="mt-6 text-lg sm:text-xl text-white/85 max-w-2xl text-balance"
           >
             {t('home.hero.subtitle')}
           </motion.p>
 
-          {/* Search Bar */}
           <motion.div variants={itemVariants} className="w-full max-w-3xl mt-10">
-            <SearchBar 
-              variant="hero" 
-              onSearch={onSearch}
-            />
+            <SearchBar variant="hero" onFiltersChange={onFiltersChange} />
           </motion.div>
 
-          {/* Features Row */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="flex flex-wrap items-center justify-center gap-6 mt-10"
           >
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
-                <div 
-                  key={feature.label}
-                  className="flex items-center gap-2 text-sm text-white/80"
-                >
+                <div key={feature.label} className="flex items-center gap-2 text-sm text-white/80">
                   <div className="p-1.5 rounded-lg bg-white/10">
                     <Icon className="h-4 w-4 text-brand-gold-light" />
                   </div>
@@ -110,39 +96,36 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             })}
           </motion.div>
 
-          {/* CTA Buttons */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="flex flex-col sm:flex-row items-center gap-4 mt-10"
           >
             <Button size="lg" variant="accent" asChild className="h-12 px-8 text-base">
-              <Link to="/properties">
-                {t('home.hero.exploreProperties')}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
+              <Link to={rentalsHref}>{t('home.hero.rentals')}</Link>
             </Button>
-            <Button variant="outline" size="lg" asChild className="h-12 px-8 text-base border-white/30 text-white hover:bg-white/10 hover:text-white">
-              <Link to="/about">
-                {t('home.hero.learnMore')}
-              </Link>
+            <Button
+              variant="outline"
+              size="lg"
+              asChild
+              className="h-12 px-8 text-base !bg-transparent border-white/40 !text-white hover:!bg-white/10 hover:!text-white"
+            >
+              <Link to={salesHref}>{t('home.hero.sales')}</Link>
             </Button>
           </motion.div>
-
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div 
+      <motion.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 1 }}
       >
         <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center p-1">
-          <motion.div 
+          <motion.div
             className="w-1.5 h-2.5 bg-brand-gold-light rounded-full"
             animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />
         </div>
       </motion.div>
