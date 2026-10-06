@@ -26,7 +26,7 @@ import {
 import { ErrorBoundary } from '../core/ErrorBoundary';
 import { MapFallback } from '../maps/PropertyMap';
 import { useFavorites } from '../../hooks/useFavorites';
-import { publicLocationLabel } from '../../utils/publicLocation';
+import { publicLocationLabel, sanitizePublicDescription } from '../../utils/publicLocation';
 import { 
   Heart, 
   Share2, 
@@ -138,7 +138,11 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         : `${data.title} · Sunday Properties`;
       const meta = document.querySelector('meta[name="description"]');
       if (meta && data.description) {
-        meta.setAttribute('content', String(data.description).slice(0, 160));
+        const publicDescription = sanitizePublicDescription(
+          String(data.description),
+          data.address
+        );
+        meta.setAttribute('content', publicDescription.slice(0, 160));
       }
 
       if (data.slug && propertyId !== data.slug && isPropertyUuid(propertyId)) {
@@ -221,6 +225,16 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
     ? t('properties.detail.pricePerMonth', { amount: formatCurrency(mainPrice) })
     : formatCurrency(mainPrice);
   const locationLabel = publicLocationLabel(displayProperty);
+  const publicDescription = sanitizePublicDescription(
+    displayProperty.description,
+    displayProperty.address
+  );
+  const publicFeatures = (displayProperty.features || []).map((feature: string) =>
+    sanitizePublicDescription(feature, displayProperty.address)
+  ).filter(Boolean);
+  const publicTags = (displayProperty.tags || []).map((tag: string) =>
+    sanitizePublicDescription(tag, displayProperty.address)
+  ).filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
@@ -595,13 +609,13 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">{t('properties.detail.description')}</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap">{displayProperty.description}</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{publicDescription}</p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-semibold mb-2">{t('properties.detail.characteristics')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {(displayProperty.features || []).map((feature: string, index: number) => (
+                      {publicFeatures.map((feature: string, index: number) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-primary rounded-full"></div>
                         <span className="text-sm">{feature}</span>
@@ -613,7 +627,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 <div>
                   <h3 className="text-lg font-semibold mb-2">{t('properties.detail.tags')}</h3>
                   <div className="flex flex-wrap gap-2">
-                      {(displayProperty.tags || []).map((tag: string, index: number) => (
+                      {publicTags.map((tag: string, index: number) => (
                       <Badge key={index} variant="secondary">
                         {tag}
                       </Badge>

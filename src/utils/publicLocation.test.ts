@@ -5,6 +5,7 @@ import {
   matchesPublicLocation,
   normalizeSearch,
   publicLocationLabel,
+  sanitizePublicDescription,
 } from './publicLocation';
 
 describe('publicLocationLabel', () => {
@@ -55,5 +56,22 @@ describe('googleMapsNeighborhoodUrl', () => {
     expect(url).toContain('Medell');
     expect(url).not.toContain('Carrera');
     expect(url).not.toContain('6.2476123');
+  });
+});
+
+describe('sanitizePublicDescription', () => {
+  it('redacts apartment, house number, and the listing street', () => {
+    const raw =
+      'Apto 517 + parqueadero privado S-24. El conjunto está sobre la Carrera 74. Dirección: Carrera 74 No. 53-162.';
+    const clean = sanitizePublicDescription(raw, 'Carrera 74 No. 53-162, Apto 517');
+    expect(clean).not.toMatch(/Carrera\s*74/i);
+    expect(clean).not.toMatch(/Apto\s*517/i);
+    expect(clean).not.toMatch(/No\.\s*53-162/i);
+    expect(clean).toMatch(/parqueadero/i);
+  });
+
+  it('keeps neighborhood prose that is not a street address', () => {
+    const raw = 'En Estadio, cerca del Metro y del Atanasio Girardot.';
+    expect(sanitizePublicDescription(raw)).toBe(raw);
   });
 });

@@ -48,11 +48,12 @@ test.describe('Daniel iPhone review', () => {
     await expect(page.getByText(/10,000/)).toHaveCount(0);
     await expect(page.getByText(/1\.5%/)).toHaveCount(0);
 
-    const langToggle = page.getByRole('button', { name: /Cambiar idioma|Switch language|EN|ES/i }).first();
+    const langToggle = page.getByRole('button', { name: /Cambiar idioma|Switch language/i });
     await expect(langToggle).toBeVisible();
-    const before = await langToggle.innerText();
+    await expect(langToggle).toHaveText(/^(EN|ES)$/);
+    const before = (await langToggle.innerText()).trim();
     await langToggle.click();
-    await expect(langToggle).not.toHaveText(before, { timeout: 5000 });
+    await expect(langToggle).toHaveText(before === 'EN' ? 'ES' : 'EN');
 
     const city = page.getByPlaceholder(/Ciudad|City/i).first();
     await city.fill('Medellín');

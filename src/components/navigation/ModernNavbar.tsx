@@ -135,10 +135,10 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
         ].join(' ')}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
+          <div className="flex items-center justify-between h-16 gap-2 min-w-0">
+            <div className="flex min-w-0 max-w-[46%] overflow-hidden items-center">
               <BrandLogo
-                heightClassName="h-11"
+                heightClassName="h-8 sm:h-11"
                 variant={solidBrand ? 'onDark' : undefined}
               />
             </div>
@@ -252,7 +252,7 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="relative z-10 flex shrink-0 items-center gap-1 sm:gap-2">
               <LanguageSwitcher onDark={solidBrand} />
 
               <button

@@ -98,3 +98,91 @@ export function googleMapsNeighborhoodUrl(options: {
 
 export const DEFAULT_MAP_CENTER = MEDELLIN_CENTER;
 export const DEFAULT_MAP_ZOOM = 12;
+
+const STREET_TYPE =
+  '(?:carrera|cra\\.?|cr\\.?|calle|cll\\.?|cl\\.?|transversal|tv\\.?|diagonal|dg\\.?|avenida|av\\.?|circular|circ\\.?|autopista)';
+
+const UNIT_RE = new RegExp(
+  String.raw`\b(?:apto\.?|apt\.?|apartamento|apart\.?|interior|int\.?|torre|unidad)\s*#?\s*\d+[a-z]?\b`,
+  'gi'
+);
+
+const HOUSE_NO_RE = /\b(?:no\.?|#|n[úu]mero)\s*\d+\s*-\s*\d+\b/gi;
+
+const FULL_ADDRESS_RE = new RegExp(
+  String.raw`\b${STREET_TYPE}\s+\d+[a-z]?\s*(?:no\.?|#|n[úu]mero)\s*\d+(?:\s*-\s*\d+)?`,
+  'gi'
+);
+
+const STREET_PLUS_NUMBER_RE = new RegExp(
+  String.raw`\b${STREET_TYPE}\s+\d+[a-z]?\b`,
+  'gi'
+);
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function extractAddressFragments(address: string): string[] {
+  const fragments = new Set<string>();
+  const trimmed = address.trim();
+  if (trimmed) fragments.add(trimmed);
+
+  for (const chunk of address.split(',')) {
+    const part = chunk.trim();
+    if (part.length >= 4) fragments.add(part);
+  }
+
+  const street = address.match(new RegExp(`${STREET_TYPE}\\s+\\d+[a-z]?`, 'i'));
+  if (street) fragments.add(street[0]);
+
+  const unit = address.match(
+    /(?:apto\.?|apt\.?|apartamento|interior|int\.?|torre)\s*#?\s*\d+[a-z]?/i
+  );
+  if (unit) fragments.add(unit[0]);
+
+  const house = address.match(/(?:no\.?|#|n[úu]mero)\s*\d+\s*-\s*\d+/i);
+  if (house) fragments.add(house[0]);
+
+  return [...fragments].sort((a, b) => b.length - a.length);
+}
+
+function tidyPublicText(value: string): string {
+  return value
+    .replace(/[ \t]+/g, ' ')
+    .replace(/ ?\n ?/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/([,.;]){2,}/g, '$1')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\s+\+\s+/g, ' ')
+    .replace(/^[\s,;:+-]+/gm, '')
+    .replace(/[ \t]+$/gm, '')
+    .trim();
+}
+
+/**
+ * Strip street, house number, and apartment identifiers from public copy.
+ * Landmark corridors without a house number are also generalized so a
+ * listing never publishes its own via or unit.
+ */
+export function sanitizePublicDescription(
+  text: string | null | undefined,
+  address?: string | null
+): string {
+  if (!text) return '';
+  let out = String(text);
+
+  if (address) {
+    for (const fragment of extractAddressFragments(address)) {
+      out = out.replace(new RegExp(escapeRegExp(fragment), 'gi'), ' ');
+    }
+  }
+
+  out = out.replace(FULL_ADDRESS_RE, ' ');
+  out = out.replace(UNIT_RE, ' ');
+  out = out.replace(HOUSE_NO_RE, ' ');
+  out = out.replace(STREET_PLUS_NUMBER_RE, ' ');
+
+  return tidyPublicText(out);
+}

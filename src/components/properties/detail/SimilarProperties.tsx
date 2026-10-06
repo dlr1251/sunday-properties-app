@@ -23,7 +23,6 @@ interface Property {
   price?: number | null;
   listing_type?: 'sale' | 'rental' | null;
   rent_monthly?: number | null;
-  address: string;
   neighborhood: string;
   city: string;
   bedrooms: number;
@@ -63,7 +62,6 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
           price,
           rent_monthly,
           listing_type,
-          address,
           neighborhood,
           city,
           bedrooms,
