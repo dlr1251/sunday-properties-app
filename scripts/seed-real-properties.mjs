@@ -143,6 +143,7 @@ const IMG = {
 const REAL_PROPERTIES = [
   {
     key: 'brisas-estadio',
+    slug: 'brisas-del-estadio',
     title: 'Brisas del Estadio — Apartamento dúplex en venta',
     description: `For sale: dúplex de 75 m² (40 m² principal + 35 m² altillo), completamente remodelado en Conjunto Residencial Brisas del Estadio P.H.
 
@@ -163,8 +164,8 @@ Publicado en FincaRaiz: https://www.fincaraiz.com.co/apartamento-en-venta-en-lau
     property_type: 'apartment',
     strata: 4,
     listing_type: 'sale',
-    price: 590000000,
-    minimum_offer_price: 560000000,
+    price: 390000000,
+    minimum_offer_price: 370000000,
     status: 'published',
     verified: true,
     premium: true,
@@ -186,6 +187,7 @@ Publicado en FincaRaiz: https://www.fincaraiz.com.co/apartamento-en-venta-en-lau
   },
   {
     key: 'escorial-701',
+    slug: 'el-escorial-701',
     title: 'El Escorial 701 — Arriendo en Conquistadores',
     description: `Se arrienda apartamento en El Escorial, Conquistadores (Medellín).
 
@@ -220,6 +222,7 @@ Visitas con cita previa. Gestión de arriendo con Sunday Properties.`,
   },
   {
     key: 'campo-nuevo',
+    slug: 'apartamento-campo-nuevo',
     title: 'Apartamento Campo Nuevo — Arriendo',
     description: `SE ARRIENDA apartamento de 52 m² en conjunto cerrado en Campo Nuevo.
 
@@ -255,6 +258,7 @@ Contrato de arrendamiento claro con respaldo legal. Ideal para parejas o profesi
   },
   {
     key: 'lauret',
+    slug: 'casa-lauret',
     title: 'Casa Lauret — Arriendo en Laureles',
     description: `Hermosa casa en el corazón de Laureles, ideal para familias o ejecutivos.
 
@@ -396,6 +400,7 @@ function buildPayload(prop, ownerId, agentId) {
   const now = new Date().toISOString();
   return {
     title: prop.title,
+    slug: prop.slug,
     description: prop.description,
     address: prop.address,
     neighborhood: prop.neighborhood,
@@ -441,11 +446,15 @@ async function upsertRealProperty(prop, ownerId, agentId) {
     return null;
   }
 
-  const { data: existing } = await supabase
-    .from('properties')
-    .select('id')
-    .eq('title', prop.title)
-    .maybeSingle();
+  const { data: existingBySlug } = prop.slug
+    ? await supabase.from('properties').select('id').eq('slug', prop.slug).maybeSingle()
+    : { data: null };
+
+  const { data: existingByTitle } = existingBySlug
+    ? { data: null }
+    : await supabase.from('properties').select('id').eq('title', prop.title).maybeSingle();
+
+  const existing = existingBySlug || existingByTitle;
 
   const payload = buildPayload(prop, ownerId, agentId);
 
@@ -527,16 +536,16 @@ async function main() {
     const id = await upsertRealProperty(prop, ownerId, agentId);
     if (id) {
       await ensureVisitAvailability(id, prop.key);
-      inserted.push({ key: prop.key, title: prop.title, id, listing_type: prop.listing_type });
+      inserted.push({ key: prop.key, slug: prop.slug, title: prop.title, id, listing_type: prop.listing_type });
     }
   }
 
   console.log('\n📊 Summary:');
-  inserted.forEach(p => console.log(`   • [${p.listing_type}] ${p.title}\n     id: ${p.id}`));
+  inserted.forEach(p => console.log(`   • [${p.listing_type}] ${p.title}\n     /properties/${p.slug || p.id}`));
 
   if (inserted.length) {
     console.log('\n🔗 Property URLs (local dev):');
-    inserted.forEach(p => console.log(`   http://localhost:3000/properties/${p.id}`));
+    inserted.forEach(p => console.log(`   http://localhost:3000/properties/${p.slug || p.id}`));
   }
 
   console.log('\n🔐 Test account passwords (if newly created):', DEFAULT_PASSWORD);

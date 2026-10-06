@@ -6,7 +6,7 @@ import { Badge } from '../../ui/badge';
 import { ChevronLeft, ChevronRight, MapPin, Bed, Bath, Square } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatCurrency } from '../../../utils/format';
+import { formatCurrency, listingAmount } from '../../../utils/format';
 
 interface SimilarPropertiesProps {
   currentPropertyId: string;
@@ -18,8 +18,11 @@ interface SimilarPropertiesProps {
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   price: number;
+  listing_type?: 'sale' | 'rental';
+  rent_monthly?: number | null;
   address: string;
   neighborhood: string;
   city: string;
@@ -55,6 +58,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
         .from('properties')
         .select(`
           id,
+          slug,
           title,
           price,
           address,
@@ -173,7 +177,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                onClick={() => onPropertyClick?.(property.id)}
+                onClick={() => onPropertyClick?.(property.slug || property.id)}
                 className="group cursor-pointer"
               >
                 <div className="overflow-hidden rounded-lg border border-gray-200 hover:shadow-lg transition-all">
@@ -220,7 +224,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
 
                     <div className="pt-2 border-t">
                       <p className="text-lg font-bold text-primary">
-                        {formatPrice(property.price)}
+                        {formatPrice(listingAmount(property))}
                       </p>
                     </div>
                   </div>

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, listingAmount } from '../../utils/format';
 import {
   MapPin,
   Bed,
@@ -204,7 +204,8 @@ export const FeaturedProperty: React.FC<FeaturedPropertyProps> = ({
           {/* Price and Title */}
           <div className="mb-6">
             <div className="text-3xl font-bold text-foreground mb-2">
-              {formatPrice(featuredProperty.price)}
+              {formatPrice(listingAmount(featuredProperty))}
+              {featuredProperty.listing_type === 'rental' ? ' / mes' : ''}
             </div>
             <h3 className="text-2xl font-semibold text-foreground mb-3">
               {featuredProperty.title}
@@ -244,7 +245,7 @@ export const FeaturedProperty: React.FC<FeaturedPropertyProps> = ({
             <Button
               size="lg"
               className="h-12 px-6 text-base font-semibold flex-1"
-              onClick={() => onPropertySelect?.(featuredProperty.id)}
+              onClick={() => onPropertySelect?.(featuredProperty.slug || featuredProperty.id)}
             >
               {t('properties.viewProperty')}
               <ArrowRight className="ml-2 h-5 w-5" />

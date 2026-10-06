@@ -16,6 +16,7 @@ import { formatCurrency } from '../utils/format';
 
 interface PropertyCardProps {
   id?: string;
+  slug?: string | null;
   title: string;
   area: string;
   location: string;
@@ -40,6 +41,7 @@ interface PropertyCardProps {
 
 export function PropertyCard({
   id = '1',
+  slug,
   title,
   area,
   location,
@@ -65,7 +67,7 @@ export function PropertyCard({
   };
 
   const handleCardClick = () => {
-    onView?.(id);
+    onView?.(slug || id);
   };
 
   const handleFavorite = (e: React.MouseEvent) => {

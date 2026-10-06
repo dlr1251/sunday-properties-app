@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 import { formatCurrency } from '../../utils/format';
+import { isPropertyUuid, propertyEditPath, propertyPath } from '../../utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -83,21 +84,25 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
   const [hasVisited, setHasVisited] = useState(false);
   const [propertyVisits, setPropertyVisits] = useState<PropertyVisitSummary[]>([]);
   
-  const isFavorite = isFavorited(propertyId);
+  const resolvedId: string = property?.id || '';
+  const isFavorite = resolvedId ? isFavorited(resolvedId) : false;
   const isOwner = user?.id === property?.owner_id;
 
   // Fetch property data
   useEffect(() => {
     fetchPropertyData();
-    if (user) {
+  }, [propertyId, user]);
+
+  useEffect(() => {
+    if (user && resolvedId) {
       checkIfVisited();
     }
-  }, [propertyId, user]);
+  }, [resolvedId, user]);
 
   const fetchPropertyData = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('properties')
         .select(`
           *,
@@ -108,9 +113,11 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             phone,
             avatar_url
           )
-        `)
-        .eq('id', propertyId)
-        .single();
+        `);
+      query = isPropertyUuid(propertyId)
+        ? query.eq('id', propertyId)
+        : query.eq('slug', propertyId);
+      const { data, error } = await query.single();
 
       if (error) throw error;
       
@@ -128,6 +135,13 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       }
 
       setProperty(data);
+
+      if (data.slug && propertyId !== data.slug && isPropertyUuid(propertyId)) {
+        const path = window.location.pathname;
+        if (path === `/properties/${propertyId}`) {
+          navigate(propertyPath(data), { replace: true });
+        }
+      }
     } catch (error: any) {
       console.error('Error fetching property:', error);
       toast.error(t('properties.detail.loadError'));
@@ -137,13 +151,13 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
   };
 
   const checkIfVisited = async () => {
-    if (!user) return;
+    if (!user || !resolvedId) return;
     
     try {
       const { data, error } = await supabase
         .from('visits')
         .select('id, scheduled_date, scheduled_time, status')
-        .eq('property_id', propertyId)
+        .eq('property_id', resolvedId)
         .eq('visitor_id', user.id)
         .order('scheduled_date', { ascending: false });
 
@@ -240,9 +254,9 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                   return;
                 }
                 if (isFavorite) {
-                  await removeFromFavorites(propertyId);
+                  await removeFromFavorites(resolvedId);
                 } else {
-                  await addToFavorites(propertyId);
+                  await addToFavorites(resolvedId);
                 }
               }}
             >
@@ -373,7 +387,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                       size="sm"
                       onClick={() => {
                         // Navigate to properties page or show full details
-                        window.location.href = `/properties/${propertyId}`;
+                        window.location.href = propertyPath(property);
                       }}
                     >
                       <Eye className="h-4 w-4 mr-2" />
@@ -383,7 +397,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                       variant="outline" 
                       className="w-full" 
                       size="sm"
-                      onClick={() => navigate(`/properties/${propertyId}/edit`)}
+                      onClick={() => navigate(propertyEditPath(property))}
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       {t('properties.detail.editProperty')}
@@ -512,7 +526,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                 <SmartOfferForm
                   isOpen={showOfferForm}
                   onOpenChange={setShowOfferForm}
-                  propertyId={propertyId}
+                  propertyId={resolvedId}
                   propertyPrice={mainPrice}
                   transactionType={isRentalListing ? 'rental' : 'sale'}
                   negotiationRules={displayProperty.negotiation_rules || {}}
@@ -536,7 +550,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               transition={{ duration: 0.3, delay: 0.25 }}
             >
               <PropertyDetailMap
-                propertyId={propertyId}
+                propertyId={property.slug || resolvedId}
                 title={displayProperty.title}
                 address={displayProperty.address}
                 neighborhood={displayProperty.neighborhood}
@@ -639,7 +653,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
               transition={{ duration: 0.3, delay: 0.4 }}
             >
               <SimilarProperties
-                currentPropertyId={propertyId}
+                currentPropertyId={resolvedId}
                 neighborhood={displayProperty.neighborhood || ''}
                 city={displayProperty.city || ''}
                 priceRange={{ min: mainPrice * 0.7, max: mainPrice * 1.3 }}
@@ -660,7 +674,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
           if (!open) checkIfVisited();
         }}
         propertyTitle={displayProperty.title}
-        propertyId={propertyId}
+        propertyId={resolvedId}
         onVisitScheduled={() => {
           checkIfVisited();
         }}
@@ -669,7 +683,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       <SmartOfferForm
         isOpen={showOfferForm}
         onOpenChange={setShowOfferForm}
-        propertyId={propertyId}
+        propertyId={resolvedId}
         propertyPrice={mainPrice}
         transactionType={isRentalListing ? 'rental' : 'sale'}
         negotiationRules={displayProperty.negotiation_rules || {}}
@@ -695,7 +709,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         propertyTitle={displayProperty.title}
-        propertyId={propertyId}
+        propertyId={property.slug || resolvedId}
       />
 
       {/* Edit Panel Modal */}

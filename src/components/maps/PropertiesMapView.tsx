@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { PropertyMap, PropertyMarker, MapFallback } from './PropertyMap';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { getBoundsCenter, getBounds, isValidCoordinates } from '@/lib/googleMaps';
+import { propertyPath } from '@/utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, MapPin, AlertCircle } from 'lucide-react';
 
 export interface PropertyForMap {
   id: string;
+  slug?: string | null;
   title: string;
   address?: string;
   neighborhood?: string;
@@ -64,13 +66,15 @@ export const PropertiesMapView: React.FC<PropertiesMapViewProps> = ({
 
   const handleMarkerClick = useCallback(
     (markerId: string) => {
+      const match = properties.find((p) => p.id === markerId);
+      const key = match?.slug || markerId;
       if (onPropertyClick) {
-        onPropertyClick(markerId);
+        onPropertyClick(key);
       } else {
-        navigate(`/properties/${markerId}`);
+        navigate(match ? propertyPath(match) : `/properties/${markerId}`);
       }
     },
-    [navigate, onPropertyClick]
+    [navigate, onPropertyClick, properties]
   );
 
   // Loading state

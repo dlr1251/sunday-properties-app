@@ -71,8 +71,8 @@ export const UserPropertiesView: React.FC = () => {
     setShowEditPanel(true);
   };
 
-  const handleViewProperty = (propertyId: string) => {
-    navigate(`/properties/${propertyId}`);
+  const handleViewProperty = (property: { id: string; slug?: string | null }) => {
+    navigate(`/properties/${property.slug || property.id}`);
   };
 
   const handlePropertyUpdated = () => {
@@ -219,7 +219,7 @@ export const UserPropertiesView: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewProperty(property.id)}
+                            onClick={() => handleViewProperty(property)}
                             className="flex-1 font-semibold text-gray-900 border-gray-300 hover:bg-gray-100 hover:text-gray-900"
                           >
                             <Eye className="h-4 w-4 mr-1" />

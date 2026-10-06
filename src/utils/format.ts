@@ -9,6 +9,16 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+/** List price for filters/cards: rentals use monthly canon, sales use sale price. */
+export function listingAmount(property: {
+  listing_type?: string | null;
+  rent_monthly?: number | null;
+  price?: number | null;
+}): number {
+  if (property.listing_type === 'rental') return Number(property.rent_monthly ?? 0);
+  return Number(property.price ?? 0);
+}
+
 export function formatDate(date: string | Date): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return dateObj.toLocaleDateString(getIntlLocale(), {

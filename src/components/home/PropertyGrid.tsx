@@ -9,6 +9,7 @@ import { GridControls } from './GridControls';
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   area: string;
   location: string;
@@ -110,6 +111,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
           <PropertyCard
             key={property.id}
             id={property.id}
+            slug={property.slug}
             title={property.title}
             area={property.area}
             location={property.location}

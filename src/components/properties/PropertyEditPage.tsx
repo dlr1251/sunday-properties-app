@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency } from '../../utils/format';
+import { isPropertyUuid, propertyPath } from '../../utils/propertyPath';
 
 interface OfferedTimeline {
   deedSigningDate?: string;
@@ -41,6 +42,7 @@ interface OfferedTimeline {
 
 interface Property {
   id: string;
+  slug?: string | null;
   title: string;
   description: string;
   address: string;
@@ -97,11 +99,13 @@ export const PropertyEditPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('properties')
-        .select('*')
-        .eq('id', propertyId)
-        .single();
+        .select('*');
+      query = isPropertyUuid(propertyId)
+        ? query.eq('id', propertyId)
+        : query.eq('slug', propertyId);
+      const { data, error } = await query.single();
 
       if (error) throw error;
 
@@ -114,7 +118,7 @@ export const PropertyEditPage: React.FC = () => {
       // Check if user owns this property
       if (!user || user.id !== data.owner_id) {
         toast.error(t('properties.edit.noPermission'));
-        navigate(`/properties/${propertyId}`);
+        navigate(propertyPath(data));
         return;
       }
 
@@ -160,7 +164,7 @@ export const PropertyEditPage: React.FC = () => {
   };
 
   const handleSaveProperty = async () => {
-    if (!formData || !propertyId) return;
+    if (!formData || !property) return;
 
     setSaving(true);
     try {
@@ -193,7 +197,7 @@ export const PropertyEditPage: React.FC = () => {
           negotiation_terms: formData.negotiation_terms ?? undefined,
           updated_at: new Date().toISOString()
         })
-        .eq('id', propertyId)
+        .eq('id', property.id)
         .eq('owner_id', user?.id) // Extra security check
         .select()
         .single();
@@ -201,7 +205,7 @@ export const PropertyEditPage: React.FC = () => {
       if (error) throw error;
 
       toast.success(t('properties.edit.saveSuccess'));
-      navigate(`/properties/${propertyId}`);
+      navigate(propertyPath({ id: property.id, slug: data?.slug || property.slug }));
     } catch (error: any) {
       console.error('Error updating property:', error);
       toast.error(error.message || t('properties.edit.saveError'));
@@ -261,7 +265,7 @@ export const PropertyEditPage: React.FC = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(`/properties/${propertyId}`)}
+            onClick={() => navigate(propertyPath(property))}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -278,7 +282,7 @@ export const PropertyEditPage: React.FC = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => navigate(`/properties/${propertyId}`)}
+            onClick={() => navigate(propertyPath(property))}
             disabled={saving}
           >
             <X className="h-4 w-4 mr-2" />

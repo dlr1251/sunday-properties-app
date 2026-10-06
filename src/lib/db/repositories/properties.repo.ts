@@ -2,10 +2,12 @@ import { supabase } from '../../supabase';
 import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError, createNotFoundError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
+import { isPropertyUuid } from '../../../utils/propertyPath';
 
 // Property interface (matching database schema)
 export interface Property {
   id: string;
+  slug?: string;
   owner_id: string;
   title: string;
   description: string;
@@ -221,10 +223,11 @@ export class PropertiesRepository {
   }
 
   /**
-   * Get a specific property by ID
+   * Get a specific property by UUID or public slug
    */
   async getPropertyById(id: string): Promise<Result<Property, AppError>> {
     return tryCatch(async () => {
+      const keyColumn = isPropertyUuid(id) ? 'id' : 'slug';
       const { data, error } = await supabase
         .from('properties')
         .select(`
@@ -235,7 +238,7 @@ export class PropertiesRepository {
             email
           )
         `)
-        .eq('id', id)
+        .eq(keyColumn, id)
         .single();
 
       if (error) {

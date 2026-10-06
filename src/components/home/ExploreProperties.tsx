@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, listingAmount } from '../../utils/format';
 import {
   Map,
   Grid3X3,
@@ -161,11 +161,11 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       filtered = filtered.filter(property => property.property_type === searchFilters.propertyType);
     }
 
-    // Price range filter
-    filtered = filtered.filter(property =>
-      property.price >= searchFilters.priceRange[0] &&
-      property.price <= searchFilters.priceRange[1]
-    );
+    // Price range filter (sale price or monthly rent)
+    filtered = filtered.filter((property) => {
+      const amount = listingAmount(property);
+      return amount >= searchFilters.priceRange[0] && amount <= searchFilters.priceRange[1];
+    });
 
     // Bedrooms filter
     if (searchFilters.bedrooms && searchFilters.bedrooms > 0) {
@@ -214,10 +214,10 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
     // Apply sorting
     switch (sortBy) {
       case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => listingAmount(a) - listingAmount(b));
         break;
       case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => listingAmount(b) - listingAmount(a));
         break;
       case 'area':
         filtered.sort((a, b) => b.area - a.area);
@@ -279,12 +279,13 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
   const convertProperties = (props: Property[]) => {
     return props.map(prop => ({
       id: prop.id,
+      slug: prop.slug,
       title: prop.title,
       area: `${prop.area} m²`,
       location: `${prop.neighborhood}, ${prop.city}`,
       bedrooms: prop.bedrooms,
       bathrooms: prop.bathrooms,
-      price: formatPrice(prop.price),
+      price: formatPrice(listingAmount(prop)),
       image: prop.images?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
       rating: 4.2 + Math.random() * 0.8,
       verified: prop.verified,
@@ -304,7 +305,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       key: 'average',
       label: t('properties.averagePrice'),
       value: properties.length > 0
-        ? formatPrice(properties.reduce((sum, p) => sum + p.price, 0) / properties.length)
+        ? formatPrice(properties.reduce((sum, p) => sum + listingAmount(p), 0) / properties.length)
         : '$0',
       icon: TrendingUp,
       color: 'text-green-600'

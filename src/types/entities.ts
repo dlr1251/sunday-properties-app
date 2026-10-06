@@ -50,8 +50,13 @@ export interface VerificationData {
 
 export interface Property {
   id: string;
+  slug?: string;
   title: string;
   price: number;
+  listing_type?: 'sale' | 'rental';
+  rent_monthly?: number | null;
+  created_at?: string;
+  published_at?: string;
   area: number;
   bedrooms: number;
   bathrooms: number;

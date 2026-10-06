@@ -695,6 +695,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
             <PropertyCard
               key={property.id}
               id={property.id}
+              slug={property.slug}
               title={property.title}
               area={typeof property.area === 'string' ? property.area : `${property.area}m²`}
               location={property.location || `${property.neighborhood}, ${property.city}`}

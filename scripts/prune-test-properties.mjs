@@ -40,7 +40,9 @@ const KEEP_TITLES = [
   'Casa Lauret - Arriendo en Laureles',
   'Apartamento Campo Nuevo — Arriendo',
   'Apartamento Campo Nuevo - Arriendo',
-  'Brisas del Estadio — Apartamento dúplex en venta'
+  'Brisas del Estadio — Apartamento dúplex en venta',
+  'El Escorial 701 — Arriendo en Conquistadores',
+  'Distrito Vera 1310 — Apartamento en venta'
 ];
 
 // Optional: keep 1-2 very minimal demo properties for testing flows (negotiation, offers, etc.)

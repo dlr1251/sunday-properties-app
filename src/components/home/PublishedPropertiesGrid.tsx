@@ -33,6 +33,7 @@ function sortValue(property: Property): number {
 function mapForGrid(properties: Property[]) {
   return properties.map((prop) => ({
     id: prop.id,
+    slug: prop.slug,
     title: prop.title,
     area: `${prop.area} m²`,
     location: `${prop.neighborhood}, ${prop.city}`,

@@ -167,7 +167,7 @@ export function SuperAdminPropertiesManagement() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate(`/properties/${prop.id}/edit`)}
+                            onClick={() => navigate(`/properties/${prop.slug || prop.id}/edit`)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

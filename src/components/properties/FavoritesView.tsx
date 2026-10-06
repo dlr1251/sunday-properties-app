@@ -28,6 +28,7 @@ interface FavoriteProperty {
   id: string;
   property: {
     id: string;
+    slug?: string | null;
     title: string;
     description: string;
     price: number;
@@ -338,7 +339,7 @@ export const FavoritesView: React.FC = () => {
                   <Button 
                     className="flex-1 font-semibold" 
                     size="sm"
-                    onClick={() => navigate(`/properties/${favorite.property.id}`)}
+                    onClick={() => navigate(`/properties/${favorite.property.slug || favorite.property.id}`)}
                   >
                     <Eye className="h-4 w-4 mr-2" />
                     {t('properties.viewDetails')}

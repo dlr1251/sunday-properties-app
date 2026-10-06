@@ -132,6 +132,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
 
     return allProperties.map((property: any) => ({
       id: property.id,
+      slug: property.slug,
       title: property.title,
       area: `${property.area}m²`,
       area_value: property.area,
@@ -663,6 +664,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
         <PropertiesMapView
           properties={filteredAndSortedProperties.map(prop => ({
             id: prop.id,
+            slug: prop.slug,
             title: prop.title,
             address: prop.location,
             neighborhood: prop.neighborhood,
@@ -686,6 +688,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
             <PropertyCard
               key={property.id}
               id={property.id}
+              slug={property.slug}
               title={property.title}
               area={property.area}
               location={property.location}
