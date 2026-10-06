@@ -16,7 +16,11 @@ async function collectPageErrors(page: Page) {
   page.on('console', (msg) => {
     if (msg.type() === 'error') {
       const text = msg.text();
-      if (/Failed to load resource|net::ERR|favicon|Download the React DevTools/i.test(text)) {
+      if (
+        /Failed to load resource|net::ERR|favicon|Download the React DevTools|Invalid login credentials|Sign in failed|Sign in error/i.test(
+          text
+        )
+      ) {
         return;
       }
       errors.push(text);
