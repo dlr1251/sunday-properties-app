@@ -176,6 +176,7 @@ export const ContactPanel: React.FC<ContactPanelProps> = ({
               onClick={() => setShowEmailModal(true)}
               className="w-full"
               size="sm"
+              disabled={!owner.email}
             >
               <Mail className="h-4 w-4 mr-1" />
               Email

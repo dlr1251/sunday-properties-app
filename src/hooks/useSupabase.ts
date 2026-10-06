@@ -167,14 +167,7 @@ export const useAllProperties = (currentUserId?: string) => {
       try {
         const { data, error } = await supabase
           .from('properties')
-          .select(`
-            *,
-            profiles:owner_id (
-              full_name,
-              email,
-              phone
-            )
-          `)
+          .select('*')
           .eq('status', 'published')
           .order('created_at', { ascending: false });
 
@@ -183,11 +176,11 @@ export const useAllProperties = (currentUserId?: string) => {
           throw error;
         }
 
-        // Add ownership flag for current user
+        // Ownership is derived from the current session only. Do not embed
+        // profiles: owner email/phone/full_name must stay off public listing queries.
         const propertiesWithOwnership = data?.map(property => ({
           ...property,
           isOwner: property.owner_id === currentUserId,
-          owner: property.profiles
         })) || [];
 
         setProperties(propertiesWithOwnership);
@@ -473,14 +466,7 @@ export const useProperties = (filters?: {
       try {
         let query = supabase
           .from('properties')
-          .select(`
-            *,
-            profiles:owner_id (
-              name,
-              phone,
-              email
-            )
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
 
         // Apply filters

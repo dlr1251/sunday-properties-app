@@ -90,14 +90,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         .from('properties')
         .select(`
           *,
-          nearby_places,
-          owner:owner_id (
-            id,
-            full_name,
-            email,
-            phone,
-            avatar_url
-          )
+          nearby_places
         `);
 
       query = isPropertyUuid(propertyId)
@@ -195,14 +188,6 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
 
   const displayProperty = property;
   const images = property?.images && property.images.length > 0 ? property.images : [];
-  const owner = property?.owner_id ? {
-    id: property.owner_id,
-    name: property.owner?.full_name || '',
-    email: property.owner?.email || '',
-    phone: property.owner?.phone || '',
-    verified: property.verified || false,
-    propertiesCount: 0
-  } : { id: '', name: '', email: '', phone: '', verified: false, propertiesCount: 0 };
 
   return (
     <div className="min-h-screen bg-background">
@@ -590,13 +575,12 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
             >
               <ContactPanel
                 owner={{
-                  id: property?.owner_id || property?.owner?.id || '',
-                  full_name: property?.owner?.full_name || displayProperty.owner?.name || 'Propietario',
-                  email: property?.owner?.email || '',
-                  phone: property?.owner?.phone || '',
-                  avatar_url: property?.owner?.avatar_url,
+                  id: property?.owner_id || '',
+                  full_name: 'Propietario',
+                  email: '',
+                  phone: '',
                   verification_status: property?.verified ? 'verified' : 'pending',
-                  properties_count: displayProperty.owner?.propertiesCount || 0,
+                  properties_count: 0,
                 }}
                 propertyId={propertyId}
                 propertyTitle={displayProperty.title}

@@ -66,14 +66,7 @@ export class PropertiesRepository {
     return tryCatch(async () => {
       let query = supabase
         .from('properties')
-        .select(`
-          *,
-          owner:profiles!properties_owner_id_fkey (
-            id,
-            name,
-            email
-          )
-        `)
+        .select('*')
         .eq('status', 'published')
         .order('created_at', { ascending: false });
 
@@ -238,14 +231,7 @@ export class PropertiesRepository {
     return tryCatch(async () => {
       const { data, error } = await supabase
         .from('properties')
-        .select(`
-          *,
-          owner:profiles!properties_owner_id_fkey (
-            id,
-            name,
-            email
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
@@ -410,14 +396,7 @@ export class PropertiesRepository {
     return tryCatch(async () => {
       let supabaseQuery = supabase
         .from('properties')
-        .select(`
-          *,
-          owner:profiles!properties_owner_id_fkey (
-            id,
-            name,
-            email
-          )
-        `)
+        .select('*')
         .eq('status', 'published')
         .or(`
           title.ilike.%${query}%,
