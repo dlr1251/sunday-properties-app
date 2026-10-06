@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Grid3X3, List, Filter, SortAsc } from 'lucide-react';
+import { Grid3X3, List, SortAsc } from 'lucide-react';
 
 interface GridControlsProps {
   viewMode: 'grid' | 'list';
@@ -85,10 +85,6 @@ export const GridControls: React.FC<GridControlsProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button variant="outline">
-          <Filter className="h-4 w-4 mr-2" />
-          {t('properties.filters')}
-        </Button>
       </div>
     </div>
   );

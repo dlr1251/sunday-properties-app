@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { PropertyData, Step1BasicInfoProps } from './types';
 import { LocationPickerModal } from '@/components/maps/LocationPickerModal';
-import { isValidCoordinates } from '@/lib/googleMaps';
+import { isValidCoordinates } from '@/utils/publicLocation';
 
 export const Step1BasicInfo: React.FC<Step1BasicInfoProps> = ({
   propertyData,

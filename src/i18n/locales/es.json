@@ -5,10 +5,16 @@
       "titleHighlight": "hogar",
       "subtitle": "La plataforma inmobiliaria más moderna de Colombia. Descubre propiedades verificadas, negocia de forma inteligente y cierra tratos con confianza.",
       "exploreProperties": "Explorar propiedades",
-      "learnMore": "Conocer más"
+      "learnMore": "Conocer más",
+      "rentals": "Arrendamientos",
+      "sales": "Compraventas"
+    },
+    "search": {
+      "cityPlaceholder": "Ciudad",
+      "neighborhoodPlaceholder": "Barrio"
     },
     "features": {
-      "properties": "10,000+ propiedades",
+      "properties": "Listados publicados en Medellín",
       "secure": "Transacciones seguras",
       "smart": "Negociación inteligente"
     },
@@ -31,7 +37,7 @@
       "forBuyers": "Para Compradores",
       "buyersTitle": "Compra con total tranquilidad",
       "buyersSubtitle": "Experiencia segura y guiada para tu inversión inmobiliaria con respaldo legal completo",
-      "commission": "Comisión única del 1.5% por venta exitosa",
+      "commission": "Acompañamiento legal hasta el cierre",
       "protection": "Todas las transacciones protegidas por abogados especializados",
       "whyChoose": "¿Por qué elegir Sunday?",
       "readyToStart": "¿Listo para comenzar?",
@@ -53,7 +59,7 @@
         },
         "close": {
           "title": "Cierra el negocio",
-          "description": "Finaliza la transacción de forma segura con nuestro respaldo legal. Comisión única del 1.5% por venta exitosa."
+          "description": "Finaliza la transacción de forma segura con nuestro respaldo legal."
         }
       },
       "buyerSteps": {
@@ -228,11 +234,33 @@
     "profile": "Mi Perfil",
     "profileAndPreferences": "Perfil y preferencias",
     "settings": "Configuración",
+    "switchLanguage": "Cambiar idioma a {{language}}",
     "signOut": "Cerrar Sesión",
     "development": "Desarrollo",
     "sidebarPlatform": "Plataforma",
     "sidebarPeople": "Equipo",
     "sidebarOperations": "Operaciones"
+  },
+  "maps": {
+    "openInGoogleMaps": "Abrir en Google Maps",
+    "location": "Ubicación",
+    "locationUnavailable": "Ubicación no disponible",
+    "neighborhoodTitle": "La zona",
+    "surroundings": "Alrededores",
+    "noMapYet": "Aún no hay un mapa para esta ficha.",
+    "unavailable": "Mapa no disponible",
+    "nearbyTitle": "Cerca de aquí",
+    "nearbyHint": "Lugares útiles alrededor de la propiedad. Toca un pin o una fila para verlo en el mapa.",
+    "placesCount": "{{count}} lugares",
+    "noPlaces": "Aún no hay lugares cercanos cargados para esta propiedad.",
+    "categories": {
+      "parks": "Parques",
+      "transit": "Transporte",
+      "health": "Salud",
+      "commerce": "Comercio",
+      "universities": "Universidades",
+      "landmarks": "Sitios"
+    }
   },
   "ai": {
     "disclaimer": {
@@ -298,6 +326,7 @@
     "resetPasswordTitle": "Restablecer contraseña",
     "newPassword": "Nueva contraseña",
     "updatePassword": "Actualizar contraseña",
+    "goToDashboard": "Ir al dashboard",
     "passwordUpdated": "Tu contraseña ha sido actualizada.",
     "passwordUpdateFailed": "No se pudo actualizar la contraseña",
     "passwordRequirements": "La contraseña debe tener al menos 8 caracteres, una letra y un número",
@@ -514,19 +543,16 @@
     "listingsInReview": "Mis publicaciones en revisión",
     "visitsConfigured": "Visitas configuradas",
     "maps": {
-      "notConfigured": "Google Maps no configurado",
-      "notConfiguredHint": "Por favor, configura VITE_MAPS_API_KEY en tu archivo .env",
-      "notConfiguredAlert": "Google Maps no está configurado. Por favor, configura VITE_MAPS_API_KEY en tu archivo .env",
       "loading": "Cargando mapa...",
       "noLocation": "No hay propiedades con ubicación",
       "noLocationHint": "Las propiedades necesitan coordenadas para mostrarse en el mapa",
-      "selectLocation": "Seleccionar Ubicación en el Mapa",
-      "searchAddress": "Buscar dirección",
-      "searchAddressPlaceholder": "Buscar dirección o lugar...",
+      "selectLocation": "Seleccionar ubicación en el mapa",
       "selectedLocation": "Ubicación seleccionada",
       "selectedCoordinates": "Coordenadas seleccionadas",
-      "pickerHint": "Haz clic en el mapa para seleccionar la ubicación exacta, o busca una dirección en el campo de búsqueda.",
-      "confirmLocation": "Confirmar Ubicación"
+      "pickerHint": "Toca el mapa para marcar la ubicación, o ingresa latitud y longitud.",
+      "confirmLocation": "Confirmar ubicación",
+      "latitude": "Latitud",
+      "longitude": "Longitud"
     },
     "detail": {
       "loading": "Cargando propiedad...",

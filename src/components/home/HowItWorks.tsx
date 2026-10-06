@@ -15,8 +15,6 @@ import {
   FileText,
   Shield,
   Users,
-  Star,
-  ArrowRight,
   Sparkles
 } from 'lucide-react';
 
@@ -214,7 +212,6 @@ export const HowItWorks: React.FC = () => {
             ))}
           </div>
 
-          {/* Commission Badge */}
           <motion.div
             className="mt-16 text-center"
             initial={{ opacity: 0, scale: 0.8 }}
@@ -222,9 +219,9 @@ export const HowItWorks: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.8 }}
           >
-            <div className="inline-flex items-center bg-success/15 text-success px-6 py-3 rounded-2xl text-base font-bold shadow-sm border border-success/30">
-              <Star className="w-6 h-6 mr-3" />
-              {t('home.howItWorks.commission')}
+            <div className="inline-flex items-center bg-secondary/60 text-foreground px-6 py-3 rounded-2xl text-base font-bold shadow-sm border border-border/60">
+              <Shield className="w-6 h-6 mr-3" />
+              {t('home.howItWorks.protection')}
             </div>
           </motion.div>
         </motion.div>
@@ -358,21 +355,22 @@ export const HowItWorks: React.FC = () => {
                 {t('home.howItWorks.readySubtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <motion.button
+                <motion.a
+                  href="/properties?listing_type=rental"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 rounded-xl text-base font-semibold shadow-sm transition-all duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {t('home.howItWorks.startNow')}
-                  <ArrowRight className="w-5 h-5 ml-2 inline" />
-                </motion.button>
-                <motion.button
-                  className="border border-border text-foreground hover:bg-accent px-8 py-4 rounded-xl text-base font-semibold transition-all duration-200"
+                  {t('home.hero.rentals')}
+                </motion.a>
+                <motion.a
+                  href="/properties?listing_type=sale"
+                  className="border border-border text-foreground hover:bg-muted px-8 py-4 rounded-xl text-base font-semibold transition-all duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {t('home.howItWorks.learnMore')}
-                </motion.button>
+                  {t('home.hero.sales')}
+                </motion.a>
               </div>
             </div>
           </motion.div>

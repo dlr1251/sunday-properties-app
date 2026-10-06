@@ -89,7 +89,7 @@
     /* Dark backgrounds — navy, not pure black */
     --background: 225 38% 8%;
     --background-subtle: 225 32% 12%;
-    --foreground: 40 40% 96%;
+    --foreground: 40 33% 96%;
 
     /* Cards & Popovers */
     --card: 225 32% 11%;

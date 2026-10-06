@@ -113,7 +113,7 @@ export const FavoritesView: React.FC = () => {
     const matchesSearch = favorite.property.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase()) ||
-      (favorite.property.address || favorite.property.neighborhood || '')
+      (favorite.property.neighborhood || favorite.property.city || '')
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
 
@@ -301,7 +301,7 @@ export const FavoritesView: React.FC = () => {
                 
                 <div className="flex items-center text-gray-700 mb-3">
                   <MapPin className="h-4 w-4 mr-1 text-gray-600" />
-                  <span className="text-sm font-medium">{favorite.property.address}, {favorite.property.neighborhood}, {favorite.property.city}</span>
+                  <span className="text-sm font-medium">{[favorite.property.neighborhood, favorite.property.city].filter(Boolean).join(', ')}</span>
                 </div>
 
                 <div className="flex items-center justify-between mb-3">

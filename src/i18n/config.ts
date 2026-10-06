@@ -27,13 +27,15 @@ i18n
     load: 'languageOnly',
     defaultNS: 'translation',
     debug: import.meta.env.DEV,
-    
+
     interpolation: {
-      escapeValue: false, // React already escapes values
+      escapeValue: false,
     },
 
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      // Spanish listings and Colombian audience: don't follow an English iPhone.
+      // Only an explicit user choice (localStorage) or the document lang override English.
+      order: ['localStorage', 'htmlTag'],
       caches: ['localStorage'],
       lookupLocalStorage: 'sunday-language',
     },

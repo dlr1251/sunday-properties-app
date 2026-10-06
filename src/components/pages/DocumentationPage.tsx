@@ -159,7 +159,7 @@ cp .env.example .env.local
 # Configurar variables requeridas
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_GOOGLE_MAPS_API_KEY=your-google-maps-key
+# Maps use MapLibre + OpenFreeMap (no API key)
 \`\`\`
 
 #### 5. Base de Datos

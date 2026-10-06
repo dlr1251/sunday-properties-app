@@ -1,22 +1,31 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { GoogleMap } from '@react-google-maps/api';
-import { useGoogleMaps } from '@/hooks/useGoogleMaps';
-import { DEFAULT_CENTER, DEFAULT_ZOOM, isValidCoordinates } from '@/lib/googleMaps';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MapPin, Check, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Check, MapPin, X } from 'lucide-react';
+import { FreeMap } from './FreeMap';
+import {
+  DEFAULT_MAP_CENTER,
+  DEFAULT_MAP_ZOOM,
+  isValidCoordinates,
+  type Coordinates,
+} from '@/utils/publicLocation';
 
 export interface LocationPickerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialCoordinates?: { lat: number; lng: number } | null;
-  onLocationSelect: (coordinates: { lat: number; lng: number }) => void;
+  initialCoordinates?: Coordinates | null;
+  onLocationSelect: (coordinates: Coordinates) => void;
   address?: string;
 }
 
@@ -25,133 +34,65 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   onOpenChange,
   initialCoordinates,
   onLocationSelect,
-  address,
 }) => {
   const { t } = useTranslation();
-  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
-  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(
-    initialCoordinates || null
+  const [selectedLocation, setSelectedLocation] = useState<Coordinates | null>(
+    initialCoordinates && isValidCoordinates(initialCoordinates) ? initialCoordinates : null
   );
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [marker, setMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const [searchQuery, setSearchQuery] = useState(address || '');
-  const [isGeocoding, setIsGeocoding] = useState(false);
-
-  // Initialize with initial coordinates or default center
-  const center = initialCoordinates && isValidCoordinates(initialCoordinates)
-    ? initialCoordinates
-    : DEFAULT_CENTER;
-
-  const mapOptions = React.useMemo<google.maps.MapOptions>(
-    () => ({
-      disableDefaultUI: false,
-      clickableIcons: false,
-      scrollwheel: true,
-      zoomControl: true,
-      streetViewControl: true,
-      mapTypeControl: false,
-      fullscreenControl: true,
-      mapId: 'LOCATION_PICKER_MAP', // Required for AdvancedMarkerElement
-    }),
-    []
+  const [latInput, setLatInput] = useState(
+    initialCoordinates && isValidCoordinates(initialCoordinates)
+      ? String(initialCoordinates.lat)
+      : ''
+  );
+  const [lngInput, setLngInput] = useState(
+    initialCoordinates && isValidCoordinates(initialCoordinates)
+      ? String(initialCoordinates.lng)
+      : ''
   );
 
-  const handleMapLoad = useCallback((mapInstance: google.maps.Map) => {
-    setMap(mapInstance);
-  }, []);
-
-  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-    if (!e.latLng) return;
-
-    const lat = e.latLng.lat();
-    const lng = e.latLng.lng();
-    const newLocation = { lat, lng };
-
-    setSelectedLocation(newLocation);
-
-    // Update marker
-    if (map && typeof google !== 'undefined' && google.maps?.marker) {
-      // Remove old marker
-      if (marker) {
-        marker.map = null;
-      }
-
-      // Create new marker
-      const pinElement = new google.maps.marker.PinElement({
-        background: '#3B82F6',
-        borderColor: '#FFFFFF',
-        glyphColor: '#FFFFFF',
-        scale: 1.5,
-      });
-
-      const newMarker = new google.maps.marker.AdvancedMarkerElement({
-        map,
-        position: newLocation,
-        content: pinElement.element,
-        title: t('properties.maps.selectedLocation'),
-      });
-
-      setMarker(newMarker);
-
-      // Reverse geocoding to get address
-      if (google.maps.Geocoder) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: newLocation }, (results, status) => {
-          if (status === 'OK' && results && results[0]) {
-            setSearchQuery(results[0].formatted_address);
-          }
-        });
-      }
+  useEffect(() => {
+    if (!open) return;
+    if (initialCoordinates && isValidCoordinates(initialCoordinates)) {
+      setSelectedLocation(initialCoordinates);
+      setLatInput(String(initialCoordinates.lat));
+      setLngInput(String(initialCoordinates.lng));
     }
-  }, [map, marker, t]);
+  }, [open, initialCoordinates]);
 
-  const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim() || !map || !google.maps?.Geocoder) return;
+  const center = selectedLocation && isValidCoordinates(selectedLocation)
+    ? selectedLocation
+    : DEFAULT_MAP_CENTER;
 
-    setIsGeocoding(true);
-    const geocoder = new google.maps.Geocoder();
+  const markers = useMemo(
+    () =>
+      selectedLocation && isValidCoordinates(selectedLocation)
+        ? [
+            {
+              id: 'selected',
+              position: selectedLocation,
+              color: 'hsl(var(--primary))',
+              property: true,
+              label: t('properties.maps.selectedLocation'),
+            },
+          ]
+        : [],
+    [selectedLocation, t]
+  );
 
-    geocoder.geocode({ address: searchQuery }, (results, status) => {
-      setIsGeocoding(false);
+  const applyManualCoords = useCallback(() => {
+    const lat = Number(latInput);
+    const lng = Number(lngInput);
+    const next = { lat, lng };
+    if (isValidCoordinates(next)) {
+      setSelectedLocation(next);
+    }
+  }, [latInput, lngInput]);
 
-      if (status === 'OK' && results && results[0]) {
-        const location = results[0].geometry.location;
-        const newLocation = {
-          lat: location.lat(),
-          lng: location.lng(),
-        };
-
-        setSelectedLocation(newLocation);
-
-        // Center map on location
-        map.setCenter(newLocation);
-        map.setZoom(16);
-
-        // Update marker
-        if (marker) {
-          marker.map = null;
-        }
-
-        if (typeof google !== 'undefined' && google.maps?.marker) {
-          const pinElement = new google.maps.marker.PinElement({
-            background: '#3B82F6',
-            borderColor: '#FFFFFF',
-            glyphColor: '#FFFFFF',
-            scale: 1.5,
-          });
-
-          const newMarker = new google.maps.marker.AdvancedMarkerElement({
-            map,
-            position: newLocation,
-            content: pinElement.element,
-            title: t('properties.maps.selectedLocation'),
-          });
-
-          setMarker(newMarker);
-        }
-      }
-    });
-  }, [searchQuery, map, marker, t]);
+  const handleMapClick = useCallback((coords: Coordinates) => {
+    setSelectedLocation(coords);
+    setLatInput(String(coords.lat));
+    setLngInput(String(coords.lng));
+  }, []);
 
   const handleConfirm = useCallback(() => {
     if (selectedLocation && isValidCoordinates(selectedLocation)) {
@@ -159,50 +100,6 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       onOpenChange(false);
     }
   }, [selectedLocation, onLocationSelect, onOpenChange]);
-
-  // Initialize marker when map loads and we have initial coordinates
-  useEffect(() => {
-    if (!map || !isLoaded || !initialCoordinates || !isValidCoordinates(initialCoordinates)) return;
-
-    if (typeof google !== 'undefined' && google.maps?.marker) {
-      const pinElement = new google.maps.marker.PinElement({
-        background: '#3B82F6',
-        borderColor: '#FFFFFF',
-        glyphColor: '#FFFFFF',
-        scale: 1.5,
-      });
-
-      const newMarker = new google.maps.marker.AdvancedMarkerElement({
-        map,
-        position: initialCoordinates,
-        content: pinElement.element,
-        title: t('properties.maps.selectedLocation'),
-      });
-
-      setMarker(newMarker);
-      map.setCenter(initialCoordinates);
-      map.setZoom(15);
-    }
-  }, [map, isLoaded, initialCoordinates, t]);
-
-  // Cleanup marker on unmount
-  useEffect(() => {
-    return () => {
-      if (marker) {
-        marker.map = null;
-      }
-    };
-  }, [marker]);
-
-  // Reset selection when modal closes
-  useEffect(() => {
-    if (!open && initialCoordinates) {
-      setSelectedLocation(initialCoordinates);
-    } else if (!open) {
-      setSelectedLocation(null);
-      setSearchQuery(address || '');
-    }
-  }, [open, initialCoordinates, address]);
 
   const canConfirm = selectedLocation && isValidCoordinates(selectedLocation);
 
@@ -217,104 +114,55 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         </DialogHeader>
 
         <div className="flex-1 flex flex-col gap-4 min-h-0">
-          {/* Search Bar */}
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Label htmlFor="address-search">{t('properties.maps.searchAddress')}</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="picker-lat">{t('properties.maps.latitude')}</Label>
               <Input
-                id="address-search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch();
-                  }
-                }}
-                placeholder={t('properties.maps.searchAddressPlaceholder')}
+                id="picker-lat"
+                value={latInput}
+                onChange={(event) => setLatInput(event.target.value)}
+                onBlur={applyManualCoords}
+                placeholder="6.2476"
               />
             </div>
-            <div className="flex items-end">
-              <Button
-                onClick={handleSearch}
-                disabled={isGeocoding || !searchQuery.trim()}
-              >
-                {isGeocoding ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t('common.searching')}
-                  </>
-                ) : (
-                  t('common.search')
-                )}
-              </Button>
+            <div>
+              <Label htmlFor="picker-lng">{t('properties.maps.longitude')}</Label>
+              <Input
+                id="picker-lng"
+                value={lngInput}
+                onChange={(event) => setLngInput(event.target.value)}
+                onBlur={applyManualCoords}
+                placeholder="-75.5658"
+              />
             </div>
           </div>
 
-          {/* Map */}
-          <Card className="flex-1 min-h-0 overflow-hidden">
-            {!hasApiKey ? (
-              <div className="flex items-center justify-center h-full">
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {t('properties.maps.notConfiguredAlert')}
-                  </AlertDescription>
-                </Alert>
-              </div>
-            ) : !isLoaded ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">{t('properties.maps.loading')}</p>
-                </div>
-              </div>
-            ) : loadError ? (
-              <div className="flex items-center justify-center h-full">
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{loadError}</AlertDescription>
-                </Alert>
-              </div>
-            ) : (
-              <div className="h-full">
-                <GoogleMap
-                  mapContainerStyle={{ width: '100%', height: '100%' }}
-                  center={center}
-                  zoom={DEFAULT_ZOOM}
-                  options={mapOptions}
-                  onLoad={handleMapLoad}
-                  onClick={handleMapClick}
-                />
-              </div>
+          <Card className="flex-1 min-h-[320px] overflow-hidden">
+            {open && (
+              <FreeMap
+                center={center}
+                zoom={selectedLocation ? 14 : DEFAULT_MAP_ZOOM}
+                markers={markers}
+                onMapClick={handleMapClick}
+                heightClassName="h-full min-h-[320px]"
+              />
             )}
           </Card>
 
-          {/* Selected Coordinates Display */}
-          {selectedLocation && isValidCoordinates(selectedLocation) && (
+          {canConfirm && (
             <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1">{t('properties.maps.selectedCoordinates')}</Label>
-                  <p className="font-mono text-sm">
-                    Lat: {selectedLocation.lat.toFixed(6)}, Lng: {selectedLocation.lng.toFixed(6)}
-                  </p>
-                  {searchQuery && (
-                    <p className="text-xs text-muted-foreground mt-1">{searchQuery}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-green-500" />
-                </div>
-              </div>
+              <Label className="text-xs text-muted-foreground mb-1">
+                {t('properties.maps.selectedCoordinates')}
+              </Label>
+              <p className="font-mono text-sm">
+                Lat: {selectedLocation!.lat.toFixed(6)}, Lng: {selectedLocation!.lng.toFixed(6)}
+              </p>
             </Card>
           )}
 
-          {/* Instructions */}
           <Alert>
             <MapPin className="h-4 w-4" />
-            <AlertDescription>
-              {t('properties.maps.pickerHint')}
-            </AlertDescription>
+            <AlertDescription>{t('properties.maps.pickerHint')}</AlertDescription>
           </Alert>
         </div>
 
@@ -332,4 +180,3 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     </Dialog>
   );
 };
-

@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSignOutWithRedirect } from '../../utils/auth';
-import { AuthModal } from '../auth/AuthModal';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '../ThemeProvider';
@@ -41,13 +40,13 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
   const { user, profile, signOut } = auth;
   const location = useLocation();
   const { theme, setTheme } = useTheme();
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('login');
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const [devDropdownOpen, setDevDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const isDark = theme === 'dark';
+  const solidBrand = scrolled && !isDark;
   const { signOutAndRedirect } = useSignOutWithRedirect();
 
   const companyDropdownRef = useRef<HTMLDivElement>(null);
@@ -80,11 +79,6 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
 
   const handleSignOutNavigate = () => {
     signOutAndRedirect(signOut, '/');
-  };
-
-  const handleAuth = (mode: 'login' | 'register') => {
-    setAuthMode(mode);
-    setAuthModalOpen(true);
   };
 
   const toggleTheme = () => {
@@ -134,9 +128,9 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
       <nav
         className={[
           'fixed top-0 left-0 right-0 z-50 border-b transition-colors duration-300',
-          scrolled
-            ? 'bg-brand-navy/95 backdrop-blur-xl border-brand-navy text-primary-foreground shadow-elevated'
-            : 'glass border-border/50',
+          solidBrand
+            ? 'bg-primary backdrop-blur-xl border-primary text-primary-foreground shadow-elevated'
+            : 'bg-background/95 backdrop-blur-xl border-border text-foreground',
           className,
         ].join(' ')}
       >
@@ -145,7 +139,7 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
             <div className="flex items-center">
               <BrandLogo
                 heightClassName="h-11"
-                variant={scrolled ? 'onDark' : undefined}
+                variant={solidBrand ? 'onDark' : undefined}
               />
             </div>
 
@@ -157,10 +151,10 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                   className={[
                     'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                     isActiveRoute(item.href)
-                      ? scrolled
+                      ? solidBrand
                         ? 'text-brand-gold bg-white/10'
                         : 'text-primary bg-primary/10'
-                      : scrolled
+                      : solidBrand
                         ? 'text-white/80 hover:text-white hover:bg-white/10'
                         : 'text-muted-foreground hover:text-foreground hover:bg-primary/10',
                   ].join(' ')}
@@ -175,7 +169,7 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                   onClick={() => setCompanyDropdownOpen(!companyDropdownOpen)}
                   className={[
                     'flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    scrolled
+                    solidBrand
                       ? 'text-white/80 hover:text-white hover:bg-white/10'
                       : 'text-muted-foreground hover:text-foreground hover:bg-primary/10',
                   ].join(' ')}
@@ -218,7 +212,7 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                     onClick={() => setDevDropdownOpen(!devDropdownOpen)}
                     className={[
                       'flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                      scrolled
+                      solidBrand
                         ? 'text-white/80 hover:text-white hover:bg-white/10'
                         : 'text-muted-foreground hover:text-foreground hover:bg-primary/10',
                     ].join(' ')}
@@ -259,13 +253,13 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
             </div>
 
             <div className="flex items-center gap-2">
-              <LanguageSwitcher />
+              <LanguageSwitcher onDark={solidBrand} />
 
               <button
                 onClick={toggleTheme}
                 className={[
                   'p-2 rounded-lg transition-colors',
-                  scrolled
+                  solidBrand
                     ? 'text-white/80 hover:text-white hover:bg-white/10'
                     : 'text-muted-foreground hover:text-foreground hover:bg-primary/10',
                 ].join(' ')}
@@ -281,10 +275,10 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                     className={[
                       'hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
                       isActiveRoute('/dashboard')
-                        ? scrolled
+                        ? solidBrand
                           ? 'text-brand-gold bg-white/10'
-                          : 'text-brand-navy bg-brand-gold/15'
-                        : scrolled
+                          : 'text-primary bg-primary/10'
+                        : solidBrand
                           ? 'text-white/80 hover:text-white hover:bg-white/10'
                           : 'text-muted-foreground hover:text-foreground hover:bg-primary/10',
                     ].join(' ')}
@@ -298,13 +292,13 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                       onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                       className={[
                         'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors',
-                        scrolled ? 'hover:bg-white/10' : 'hover:bg-primary/10',
+                        solidBrand ? 'hover:bg-white/10' : 'hover:bg-primary/10',
                       ].join(' ')}
                     >
                       <div
                         className={[
                           'w-8 h-8 rounded-full flex items-center justify-center ring-2 ring-background',
-                          scrolled ? 'bg-brand-gold/20 text-brand-gold' : 'bg-primary/10 text-primary',
+                          solidBrand ? 'bg-brand-gold/20 text-brand-gold' : 'bg-primary/10 text-primary',
                         ].join(' ')}
                       >
                         <span className="text-sm font-semibold">
@@ -312,7 +306,7 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                         </span>
                       </div>
                       <ChevronDown
-                        className={`h-4 w-4 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''} ${scrolled ? 'text-white/70' : 'text-muted-foreground'}`}
+                        className={`h-4 w-4 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''} ${solidBrand ? 'text-white/70' : 'text-muted-foreground'}`}
                       />
                     </button>
                     <AnimatePresence>
@@ -375,11 +369,11 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                 </>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  <Button onClick={() => handleAuth('login')} variant="ghost" size="sm">
-                    {t('auth.login')}
+                  <Button asChild variant="ghost" size="sm">
+                    <Link to="/login">{t('auth.login')}</Link>
                   </Button>
-                  <Button onClick={() => handleAuth('register')} variant="accent" size="sm">
-                    {t('auth.register')}
+                  <Button asChild variant="accent" size="sm">
+                    <Link to="/signup">{t('auth.register')}</Link>
                   </Button>
                 </div>
               )}
@@ -388,7 +382,7 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className={[
                   'md:hidden p-2 rounded-lg transition-colors',
-                  scrolled ? 'text-white hover:bg-white/10' : 'text-foreground hover:bg-primary/10',
+                  solidBrand ? 'text-white hover:bg-white/10' : 'text-foreground hover:bg-primary/10',
                 ].join(' ')}
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -461,25 +455,15 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
 
                   {!user && (
                     <div className="pt-4 border-t border-border mt-2 space-y-2">
-                      <Button
-                        onClick={() => {
-                          handleAuth('login');
-                          setMobileMenuOpen(false);
-                        }}
-                        variant="outline"
-                        className="w-full"
-                      >
-                        {t('auth.login')}
+                      <Button asChild variant="outline" className="w-full">
+                        <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                          {t('auth.login')}
+                        </Link>
                       </Button>
-                      <Button
-                        onClick={() => {
-                          handleAuth('register');
-                          setMobileMenuOpen(false);
-                        }}
-                        variant="accent"
-                        className="w-full"
-                      >
-                        {t('auth.register')}
+                      <Button asChild variant="accent" className="w-full">
+                        <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                          {t('auth.register')}
+                        </Link>
                       </Button>
                     </div>
                   )}
@@ -489,13 +473,6 @@ export const ModernNavbar = ({ className = '' }: ModernNavbarProps) => {
           </AnimatePresence>
         </div>
       </nav>
-
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        mode={authMode}
-        onModeChange={setAuthMode}
-      />
     </>
   );
 };

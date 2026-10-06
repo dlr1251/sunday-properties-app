@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { PropertyGrid } from './PropertyGrid';
+import { PropertiesMapView } from '@/components/maps/PropertiesMapView';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '../../types/entities';
@@ -146,14 +147,19 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
   useEffect(() => {
     let filtered = [...properties];
 
-    // Location filter
     if (searchFilters.location) {
-      const locationLower = searchFilters.location.toLowerCase();
-      filtered = filtered.filter(property =>
-        property.city.toLowerCase().includes(locationLower) ||
-        property.neighborhood.toLowerCase().includes(locationLower) ||
-        property.address.toLowerCase().includes(locationLower)
-      );
+      const locationLower = searchFilters.location
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+      filtered = filtered.filter((property) => {
+        const city = (property.city || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const neighborhood = (property.neighborhood || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase();
+        return city.includes(locationLower) || neighborhood.includes(locationLower);
+      });
     }
 
     // Property type filter
@@ -285,7 +291,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       bathrooms: prop.bathrooms,
       price: formatListingPrice(prop),
       image: prop.images?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
-      rating: 4.2 + Math.random() * 0.8,
+      rating: undefined,
       verified: prop.verified,
       premium: prop.premium
     }));
@@ -326,8 +332,8 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
   const selectedPropertyType = propertyTypes.find(type => type.value === searchFilters.propertyType);
 
   return (
-    <section className="py-20 bg-background">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+    <section className="bg-background">
+      <div className="w-full">
         {/* Header */}
         <motion.div
           className="text-center mb-16"
@@ -708,7 +714,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
             {viewMode === 'map' && (
               <Badge variant="secondary" className="px-4 py-2">
                 <Map className="w-4 h-4 mr-2" />
-                {t('properties.mapComingSoon')}
+                {t('properties.mapViewTitle')}
               </Badge>
             )}
             <Button
@@ -730,25 +736,24 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
             onPropertySelect={handlePropertySelect}
             sortBy={sortBy}
             onSortChange={setSortBy}
-            showFilters={false}
           />
         ) : (
-          <motion.div
-            className="bg-secondary/40 rounded-2xl border border-border/60 h-96 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="text-center">
-              <Map className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                {t('properties.mapViewTitle')}
-              </h3>
-              <p className="text-muted-foreground max-w-md">
-                {t('properties.mapComingSoonDesc')}
-              </p>
-            </div>
-          </motion.div>
+          <PropertiesMapView
+            properties={filteredProperties.map((property) => ({
+              id: property.id,
+              slug: property.slug,
+              title: property.title,
+              neighborhood: property.neighborhood,
+              city: property.city,
+              price: property.price ?? property.rent_monthly ?? undefined,
+              coordinates: property.coordinates,
+              images: property.images,
+              verified: property.verified,
+              premium: property.premium,
+            }))}
+            height="480px"
+            onPropertyClick={handlePropertySelect}
+          />
         )}
 
         {/* View All Button */}

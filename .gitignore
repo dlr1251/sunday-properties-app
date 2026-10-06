@@ -44,6 +44,11 @@ pids
 *.seed
 *.pid.lock
 
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
 # Coverage directory used by tools like istanbul
 coverage/
 

@@ -203,7 +203,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
                       <h3 className="font-semibold text-sm mb-1 line-clamp-1">{property.title}</h3>
                       <div className="flex items-center gap-1 text-xs text-gray-600">
                         <MapPin className="h-3 w-3" />
-                        <span className="line-clamp-1">{property.address}</span>
+                        <span className="line-clamp-1">{[property.neighborhood, property.city].filter(Boolean).join(', ')}</span>
                       </div>
                     </div>
 

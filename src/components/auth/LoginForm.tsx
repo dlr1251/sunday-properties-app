@@ -5,17 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 
 interface LoginFormProps {
   onSuccess?: () => void;
   onSwitchToRegister?: () => void;
+  registerHref?: string;
+  forgotHref?: string;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ 
   onSuccess, 
-  onSwitchToRegister 
+  onSwitchToRegister,
+  registerHref,
+  forgotHref = '/forgot-password',
 }) => {
   const { t } = useTranslation();
   const { signIn } = useAuth();
@@ -117,35 +122,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
           {t('auth.noAccount')}{' '}
-          <Button
-            type="button"
-            variant="link"
-            className="p-0 h-auto font-medium"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onSwitchToRegister?.();
-            }}
-          >
-            {t('auth.registerHere')}
-          </Button>
+          {registerHref ? (
+            <Link to={registerHref} className="font-medium text-primary underline-offset-2 hover:underline">
+              {t('auth.registerHere')}
+            </Link>
+          ) : (
+            <Button
+              type="button"
+              variant="link"
+              className="p-0 h-auto font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSwitchToRegister?.();
+              }}
+            >
+              {t('auth.registerHere')}
+            </Button>
+          )}
         </p>
       </div>
 
       <div className="mt-4 text-center">
-        <Button
-          type="button"
-          variant="link"
-          className="text-xs text-muted-foreground"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            // TODO: Implement password reset
-            alert(t('auth.forgotPasswordComingSoon'));
-          }}
+        <Link
+          to={forgotHref}
+          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
         >
           {t('auth.forgotPassword')}
-        </Button>
+        </Link>
       </div>
     </Card>
   );
