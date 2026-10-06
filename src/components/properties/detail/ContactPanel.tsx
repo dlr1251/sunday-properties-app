@@ -175,6 +175,7 @@ export const ContactPanel: React.FC<ContactPanelProps> = ({
               onClick={() => setShowEmailModal(true)}
               className="w-full min-w-0 text-xs sm:text-sm"
               size="sm"
+              disabled={!owner.email}
             >
               <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 shrink-0" />
               <span className="truncate">{t('properties.detail.contact.email')}</span>

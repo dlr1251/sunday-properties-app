@@ -105,14 +105,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         .from('properties')
         .select(`
           *,
-          nearby_places,
-          owner:owner_id (
-            id,
-            full_name,
-            email,
-            phone,
-            avatar_url
-          )
+          nearby_places
         `);
       query = isPropertyUuid(propertyId)
         ? query.eq('id', propertyId)
@@ -216,14 +209,6 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
   const mainPriceLabel = isRentalListing
     ? t('properties.detail.pricePerMonth', { amount: formatCurrency(mainPrice) })
     : formatCurrency(mainPrice);
-  const owner = property?.owner_id ? {
-    id: property.owner_id,
-    name: property.owner?.full_name || '',
-    email: property.owner?.email || '',
-    phone: property.owner?.phone || '',
-    verified: property.verified || false,
-    propertiesCount: 0
-  } : { id: '', name: '', email: '', phone: '', verified: false, propertiesCount: 0 };
 
   return (
     <div className="min-h-screen bg-background">
@@ -518,6 +503,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                   <p>{t('properties.detail.visitFee', { amount: formatCurrency(displayProperty.visit_price) })}</p>
                 )}
                 <p>{t('properties.detail.includesNda')}</p>
+                <p className="mt-2 text-sm font-medium text-foreground">{t('properties.detail.contact.owner')}</p>
               </div>
             </Card>
 
