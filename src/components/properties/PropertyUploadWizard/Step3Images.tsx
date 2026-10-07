@@ -1,8 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Upload, Camera, Trash2, Play, Zap, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Upload, Camera, Trash2, Play } from 'lucide-react';
 
 interface PropertyData {
   title: string;
@@ -51,7 +50,6 @@ interface Step3ImagesProps {
   onMoveImage: (index: number, direction: 'left' | 'right') => void;
   onSetPrimaryImage: (index: number) => void;
   onRemoveImage: (index: number) => void;
-  onLoadSampleImage?: () => Promise<void>;
 }
 
 export const Step3Images: React.FC<Step3ImagesProps> = ({
@@ -66,36 +64,13 @@ export const Step3Images: React.FC<Step3ImagesProps> = ({
   onMoveImage,
   onSetPrimaryImage,
   onRemoveImage,
-  onLoadSampleImage,
 }) => {
   const { t } = useTranslation();
-  const [loadingSample, setLoadingSample] = useState(false);
-
-  const handleLoadSample = useCallback(async () => {
-    if (!onLoadSampleImage) return;
-    setLoadingSample(true);
-    try {
-      await onLoadSampleImage();
-      toast.success(t('properties.wizard.images.sampleLoaded'));
-    } catch (err: any) {
-      toast.error(err.message || t('properties.wizard.images.sampleError'));
-    } finally {
-      setLoadingSample(false);
-    }
-  }, [onLoadSampleImage, t]);
 
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">{t('properties.wizard.images.title')}</h3>
-          {onLoadSampleImage && (
-            <Button type="button" variant="outline" size="sm" onClick={handleLoadSample} disabled={loadingSample || propertyData.images.length > 0} className="text-xs">
-              {loadingSample ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Zap className="h-3 w-3 mr-1" />}
-              {t('properties.wizard.images.useSample')}
-            </Button>
-          )}
-        </div>
+        <h3 className="text-lg font-semibold mb-4">{t('properties.wizard.images.title')}</h3>
 
         {/* Upload Area */}
         <div

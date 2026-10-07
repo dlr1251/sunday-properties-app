@@ -324,16 +324,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     }));
   }, [propertyData.images.length, t]);
 
-  const loadSampleImage = useCallback(async () => {
-    const res = await fetch('/ai_food/jpeg/vista_1.jpeg');
-    if (!res.ok) throw new Error(t('properties.wizard.sampleImageMissing'));
-    const blob = await res.blob();
-    const file = new File([blob], 'vista_1.jpeg', { type: 'image/jpeg' });
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    await handleImageUpload(dt.files);
-  }, [handleImageUpload, t]);
-
   const buildDraftPayload = useCallback((): Record<string, unknown> => ({
     title: propertyData.title || 'Draft Property',
     description: propertyData.description || 'Draft property',
@@ -626,7 +616,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
           onMoveImage={moveImage}
           onSetPrimaryImage={(index) => setPrimaryImageIndex(index)}
           onRemoveImage={removeImage}
-          onLoadSampleImage={loadSampleImage}
         />
       );
       case 5: return (

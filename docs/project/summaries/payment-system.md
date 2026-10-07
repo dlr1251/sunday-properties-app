@@ -59,8 +59,8 @@ Calcula análisis completo incluyendo:
 
 ### 5. Datos de Prueba (`src/test/fixtures/payment-test-data.ts`)
 
-Basado en documentos reales colombianos:
-- **PROMESA_DE_COMPRAVENTA_ANGELA_LAMBARRI**: Transferencia bancaria en 3 pagos
+Basado en estructuras de pago típicas en Colombia:
+- **Promesa de compraventa (muestra)**: Transferencia bancaria en 3 pagos
 - **Financiamiento Mixto**: Crédito hipotecario + pago inicial
 - **Criptomonedas**: Alto riesgo con validaciones adicionales
 - **Efectivo Limitado**: Dentro de límites legales
@@ -238,8 +238,8 @@ const recommendations = PaymentValidationService.generateComplianceRecommendatio
 
 ## Documentos de Referencia
 
-Basado en documentos reales colombianos:
-- **PROMESA_DE_COMPRAVENTA_ANGELA_LAMBARRI**: Transferencia bancaria en 3 pagos
+Basado en estructuras de pago típicas en Colombia:
+- **Promesa de compraventa (muestra)**: Transferencia bancaria en 3 pagos
 - **Ley 1908/2018**: SARLAFT (Sistema Anti-Lavado)
 - **Ley 153/1887**: Promesas de compraventa
 - **Código Civil**: Arts. 1857+ sobre compraventa

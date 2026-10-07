@@ -1,9 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Upload, FileText, CheckCircle, Loader2, Zap } from 'lucide-react';
-import { toast } from 'sonner';
+import { Upload, FileText, CheckCircle } from 'lucide-react';
 
 interface UploadedDocs {
   [key: string]: { path: string; file: File };
@@ -15,51 +14,21 @@ interface Step4DocumentsProps {
   onDocUpload: (docType: string, file: File) => void;
 }
 
-// PDFs de prueba en public/ai_food (ejecutar: node scripts/copy-ai-food-to-public.mjs)
-const SAMPLE_DOCS: Record<string, string> = {
-  clyt: '/ai_food/CLYT_APTO_POBLADO_MI_001-1429919_17_OCT_2025_ANGELA_LAMBARRI.pdf',
-  escritura: '/ai_food/EP_COMPRAVENTA_ZOCALO_04_FEB_2013_DOLF_ANDRINGA.pdf',
-  cedula: '/ai_food/CC_JOSEFINA_GOMEZ_DOLF_ANDRINGA.pdf',
-};
-
 export const Step4Documents: React.FC<Step4DocumentsProps> = ({
   uploadedDocs,
   submitting,
   onDocUpload,
 }) => {
   const { t } = useTranslation();
-  const [loadingSampleDocs, setLoadingSampleDocs] = useState(false);
 
   const handleFileUpload = useCallback((docType: string, file: File) => {
     onDocUpload(docType, file);
   }, [onDocUpload]);
 
-  const loadSampleDocs = useCallback(async () => {
-    setLoadingSampleDocs(true);
-    try {
-      for (const [docType, url] of Object.entries(SAMPLE_DOCS)) {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(t('properties.wizard.documents.sampleMissing', { url }));
-        const blob = await res.blob();
-        const filename = url.split('/').pop() || `${docType}.pdf`;
-        const file = new File([blob], filename, { type: 'application/pdf' });
-        onDocUpload(docType, file);
-      }
-      toast.success(t('properties.wizard.documents.sampleLoaded'));
-    } catch (err: any) {
-      console.error('Error loading sample docs:', err);
-      toast.error(err.message || t('properties.wizard.documents.sampleError'));
-    } finally {
-      setLoadingSampleDocs(false);
-    }
-  }, [onDocUpload, t]);
-
   const handleFileChange = useCallback((docType: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFileUpload(docType, file);
   }, [handleFileUpload]);
-
-  const allSamplesLoaded = Object.keys(SAMPLE_DOCS).every((k) => uploadedDocs[k]);
 
   const getDocumentLabel = (docType: string) => {
     switch (docType) {
@@ -73,29 +42,7 @@ export const Step4Documents: React.FC<Step4DocumentsProps> = ({
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">{t('properties.wizard.documents.title')}</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={loadSampleDocs}
-            disabled={loadingSampleDocs || allSamplesLoaded}
-            className="text-xs"
-          >
-            {loadingSampleDocs ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                {t('common.loading')}
-              </>
-            ) : (
-              <>
-                <Zap className="h-3 w-3 mr-1" />
-                {t('properties.wizard.documents.useSample')}
-              </>
-            )}
-          </Button>
-        </div>
+        <h3 className="text-lg font-semibold mb-4">{t('properties.wizard.documents.title')}</h3>
 
         <div className="space-y-4">
           {(['clyt', 'escritura', 'cedula'] as const).map((docType) => (
