@@ -95,18 +95,15 @@ export function publicMapCoordinates(source: {
 }
 
 export function mapPublicProperty<T extends Record<string, unknown>>(row: T) {
-  const mapped = {
-    ...row,
-    coordinates: publicMapCoordinates(row as {
-      public_coordinates?: Coordinates | null;
-      coordinates?: Coordinates | null;
-    }),
-  };
+  const mapped: Record<string, unknown> = { ...row };
+  const pin = publicMapCoordinates(row as {
+    public_coordinates?: Coordinates | null;
+    coordinates?: Coordinates | null;
+  });
   for (const column of SENSITIVE_PROPERTY_COLUMNS) {
-    if (column in mapped) {
-      delete (mapped as Record<string, unknown>)[column];
-    }
+    delete mapped[column];
   }
+  mapped.coordinates = pin;
   return mapped;
 }
 
