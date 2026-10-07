@@ -130,7 +130,7 @@ END $$;
 -- REAL PROPERTIES (Lauret / Campo Nuevo rentals + Peter Pitchler sale)
 -- ============================================
 -- These are the production/real properties the user wants to promote.
--- They use listing_type correctly and reference real legal docs from ai_food/.
+-- They use listing_type correctly. Legal documents stay out of the public repo.
 -- Idempotent: skips if title already exists.
 -- Runs always (even if other properties exist), assigned to first available regular users.
 
@@ -165,8 +165,8 @@ BEGIN
             '{"lat": 6.2458, "lng": -75.5942}'::jsonb,
             4, 3, 220, 2, 'house', 4,
             NULL, v_owner_id, v_agent_id, 'published', true, true,
-            ARRAY['/ai_food/jpeg/vista_1.jpeg', '/ai_food/jpeg/vista_2.jpeg', '/ai_food/jpeg/vista_3.jpeg'],
-            ARRAY['/ai_food/CLYT_CASA_BQLLA_DOÑA_ELCY.pdf', '/ai_food/PAZ_Y_SALVO_ADMINISTRACION_ZOCALO_APTO_31_JAN_2025.jpeg'],
+            ARRAY['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=800&fit=crop', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=800&fit=crop'],
+            ARRAY[]::text[],
             ARRAY['Jardín', 'Zona BBQ', 'Parqueadero', 'Seguridad'],
             'rental', 5200000, 12, 10400000, 520000, ARRAY['Administración']::text[], 'Se permiten mascotas pequeñas con depósito adicional',
             49000,
@@ -192,8 +192,8 @@ BEGIN
             '{"lat": 6.175, "lng": -75.58}'::jsonb,
             2, 2, 78, 1, 'apartment', 3,
             NULL, v_owner_id, v_agent_id, 'published', true, false,
-            ARRAY['/ai_food/jpeg/vista_10.jpeg', '/ai_food/jpeg/vista_11.jpeg'],
-            ARRAY['/ai_food/CLYT_APTO_POBLADO_MI_001-1429919_17_OCT_2025_ANGELA_LAMBARRI.pdf'],
+            ARRAY['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&h=800&fit=crop', 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&h=800&fit=crop'],
+            ARRAY[]::text[],
             ARRAY['Ascensor', 'Portería 24h', 'Parqueadero'],
             'rental', 2450000, 12, 4900000, 245000, ARRAY[]::text[], 'No se permiten mascotas',
             49000,
@@ -219,8 +219,8 @@ BEGIN
             '{"lat": 6.2091, "lng": -75.5678}'::jsonb,
             3, 2, 95, 1, 'apartment', 5,
             720000000, 680000000, v_owner_id, v_agent_id, 'published', true, true,
-            ARRAY['/ai_food/jpeg/vista_20.jpeg', '/ai_food/jpeg/vista_21.jpeg', '/ai_food/jpeg/vista_22.jpeg'],
-            ARRAY['/ai_food/CLTYD_APTO_ED_ZOCALO_04_FEB_2025_DOLF_ANDRINGA.pdf', '/ai_food/EP_COMPRAVENTA_ZOCALO_04_FEB_2013_DOLF_ANDRINGA.pdf'],
+            ARRAY['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=800&fit=crop', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&h=800&fit=crop'],
+            ARRAY[]::text[],
             ARRAY['Piscina', 'Gimnasio', 'Vista', 'Seguridad 24h'],
             'sale', 49000, false, true,
             NOW() - INTERVAL '7 days', NOW(), NOW() - INTERVAL '6 days'

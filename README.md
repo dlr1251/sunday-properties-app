@@ -40,7 +40,6 @@ Setup completo (Supabase remoto + Vercel):
 | `npm run test` | Tests (Vitest) |
 | `npm run db:reset-seed` | Reset DB + seed local |
 | `npm run seed:real-properties` | Cargar propiedades reales |
-| `npm run copy:ai-food` | Copiar assets de prueba a `public/` |
 | `npm run yjs:server` | Servidor WebSocket para edición colaborativa |
 
 ---
@@ -53,7 +52,6 @@ Setup completo (Supabase remoto + Vercel):
 ├── supabase/         # Migraciones, seeds y edge functions
 ├── docs/             # Documentación (ES/EN)
 ├── scripts/          # Automatización (setup, sql, seed, dev)
-├── data/ai_food/     # PDFs e imágenes de prueba (copiados a public/ en dev)
 ├── public/           # Assets estáticos servidos por Vite
 ├── .env.example      # Plantilla de variables de entorno
 ├── package.json

@@ -139,10 +139,9 @@ export const TEST_PROPERTIES = {
   }
 };
 
-// Configuraciones de pago de prueba basadas en documentos reales
+// Configuraciones de pago de prueba
 export const TEST_PAYMENT_CONFIGURATIONS: Record<string, ColombianPaymentStructure> = {
-  // Basado en PROMESA_DE_COMPRAVENTA_ANGELA_LAMBARRI
-  promesa_angela_lamabri: {
+  promesa_sample: {
     method: 'transferencia_bancaria',
     totalAmount: 650000000,
     currency: 'COP',
@@ -431,7 +430,7 @@ export const TEST_LEGAL_DOCUMENTS = {
   promesa_compraventa: {
     id: 'doc_promesa_001',
     type: 'promesa_compraventa',
-    title: 'PROMESA_DE_COMPRAVENTA_ANGELA_LAMBARRI',
+    title: 'PROMESA_DE_COMPRAVENTA_SAMPLE',
     property_id: TEST_PROPERTIES.apartment_zocalo.id,
     buyer_id: TEST_USERS.buyer.id,
     seller_id: TEST_USERS.seller.id,
@@ -443,7 +442,7 @@ export const TEST_LEGAL_DOCUMENTS = {
         lawyer: TEST_USERS.lawyer
       },
       property: TEST_PROPERTIES.apartment_zocalo,
-      payment_terms: TEST_PAYMENT_CONFIGURATIONS.promesa_angela_lamabri,
+      payment_terms: TEST_PAYMENT_CONFIGURATIONS.promesa_sample,
       conditions: [
         'El comprador obtendrá crédito hipotecario por mínimo el 70% del valor',
         'La propiedad se entregará libre de gravámenes',
@@ -487,7 +486,7 @@ export const TEST_LEGAL_DOCUMENTS = {
 // Función para obtener configuración de pago por propiedad
 export function getTestPaymentForProperty(propertyId: string): ColombianPaymentStructure | null {
   if (propertyId === TEST_PROPERTIES.apartment_zocalo.id) {
-    return TEST_PAYMENT_CONFIGURATIONS.promesa_angela_lamabri;
+    return TEST_PAYMENT_CONFIGURATIONS.promesa_sample;
   }
   if (propertyId === TEST_PROPERTIES.townhouse_poblado.id) {
     return TEST_PAYMENT_CONFIGURATIONS.financiamiento_mixto;
@@ -514,7 +513,7 @@ export function getTestNegotiationScenario(scenario: 'standard' | 'financing' | 
   const scenarios = {
     standard: {
       property: TEST_PROPERTIES.apartment_zocalo,
-      payment: TEST_PAYMENT_CONFIGURATIONS.promesa_angela_lamabri,
+      payment: TEST_PAYMENT_CONFIGURATIONS.promesa_sample,
       users: TEST_USERS,
       documents: TEST_LEGAL_DOCUMENTS
     },

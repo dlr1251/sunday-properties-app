@@ -295,18 +295,6 @@ Jardín privado, zona de parrilla y fácil acceso a parques, restaurantes y tran
 /** Legacy placeholder title — remove after migration */
 const LEGACY_TITLES = ['Propiedad Peter Pitchler - Venta'];
 
-function ensureAiFoodPublic() {
-  const aiFoodSrc = path.join(root, 'ai_food');
-  if (!fs.existsSync(aiFoodSrc)) return;
-  const publicDest = path.join(root, 'public', 'ai_food');
-  if (!fs.existsSync(publicDest)) fs.mkdirSync(publicDest, { recursive: true });
-  for (const f of fs.readdirSync(aiFoodSrc)) {
-    if (!/\.(pdf|jpe?g|png)$/i.test(f)) continue;
-    const dest = path.join(publicDest, f);
-    if (!fs.existsSync(dest)) fs.copyFileSync(path.join(aiFoodSrc, f), dest);
-  }
-}
-
 async function findOrCreateAccount({ email, fullName, role }) {
   supabase = await getWritableClient();
 
@@ -516,7 +504,6 @@ async function ensureVisitAvailability(propertyId, propKey) {
 
 async function main() {
   console.log('\n🌱 Sunday Properties — Real Properties Seeder\n');
-  ensureAiFoodPublic();
   supabase = await getWritableClient();
 
   console.log('👤 Accounts (owners + agent)...\n');
