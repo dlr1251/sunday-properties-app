@@ -21,6 +21,7 @@ import {
   Scale
 } from 'lucide-react';
 
+import { formatArea } from '../../utils/format';
 import { PaymentForm } from './PaymentForm';
 import { useHolisticNegotiation } from '../../hooks/useHolisticNegotiation';
 import { PaymentValidationService } from '../../services/paymentValidation.service';
@@ -188,7 +189,7 @@ export function PaymentNegotiationDemo() {
             </div>
             <div>
               <span className="text-muted-foreground">Área:</span>
-              <p className="font-medium">{property.area}m²</p>
+              <p className="font-medium">{formatArea(property.area)}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Estado:</span>

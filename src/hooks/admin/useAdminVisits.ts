@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { hydrateSensitivePropertyFields } from '../../lib/propertyPrivacy';
+import { publicLocationLabel } from '../../utils/publicLocation';
 import { toast } from 'sonner';
 
 interface AdminVisit {
@@ -53,9 +55,10 @@ export const useAdminVisits = () => {
         .select(`
           *,
           properties!visits_property_id_fkey (
+            id,
             title,
-            address,
-            type
+            neighborhood,
+            city
           ),
           buyer:profiles!visits_buyer_id_fkey (
             name,
@@ -94,7 +97,7 @@ export const useAdminVisits = () => {
       if (filters.search) {
         query = query.or(`
           properties.title.ilike.%${filters.search}%,
-          properties.address.ilike.%${filters.search}%,
+          properties.neighborhood.ilike.%${filters.search}%,
           buyer.name.ilike.%${filters.search}%,
           buyer.email.ilike.%${filters.search}%,
           agent.name.ilike.%${filters.search}%
@@ -106,10 +109,11 @@ export const useAdminVisits = () => {
       if (error) throw error;
 
       // Transform data
-      const transformedVisits = (data || []).map(visit => ({
+      const hydrated = await hydrateSensitivePropertyFields(data || []);
+      const transformedVisits = hydrated.map(visit => ({
         ...visit,
         property_title: visit.properties?.title,
-        property_address: visit.properties?.address,
+        property_address: visit.properties?.address || publicLocationLabel(visit.properties),
         buyer_name: visit.buyer?.name,
         buyer_email: visit.buyer?.email,
         buyer_phone: visit.buyer?.phone,

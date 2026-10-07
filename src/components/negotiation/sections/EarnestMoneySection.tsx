@@ -350,7 +350,7 @@ export function EarnestMoneySection({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Las arras representan un depósito que garantiza el cumplimiento del contrato.
+                Las arras son una suma que garantiza el cumplimiento del contrato.
                 En caso de incumplimiento, pueden perderse total o parcialmente según las condiciones acordadas.
               </AlertDescription>
             </Alert>

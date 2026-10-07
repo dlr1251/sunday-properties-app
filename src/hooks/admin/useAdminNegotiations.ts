@@ -55,7 +55,7 @@ export const useAdminNegotiations = () => {
           properties!offers_property_id_fkey (
             title,
             price,
-            type,
+            property_type,
             status
           ),
           buyer:profiles!offers_buyer_id_fkey (
@@ -78,7 +78,7 @@ export const useAdminNegotiations = () => {
         query = query.eq('status', filters.status);
       }
       if (filters.property_type && filters.property_type !== 'all') {
-        query = query.eq('properties.type', filters.property_type);
+        query = query.eq('properties.property_type', filters.property_type);
       }
       if (filters.date_from) {
         query = query.gte('created_at', filters.date_from);

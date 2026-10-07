@@ -32,8 +32,6 @@ export interface PropertyData {
   rentMonthly: number;
   /** Typical lease term (months). */
   leaseTermMonths: number;
-  /** Security deposit (COP). */
-  deposit: number;
   /** Admin/agency fee (COP). */
   adminFee: number;
   /** Utilities included (labels/ids). */

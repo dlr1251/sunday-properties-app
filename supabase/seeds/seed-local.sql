@@ -116,7 +116,7 @@ BEGIN
             ARRAY['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800'],
             ARRAY['Jardín', 'Zona BBQ'],
             NOW() - INTERVAL '10 days', NOW(), NOW() - INTERVAL '8 days',
-            'rental', 2800000, 12, 5600000, 280000, ARRAY['Administración']::text[], 'Mascotas pequeñas permitidas'
+            'rental', 2800000, 12, NULL, 280000, ARRAY['Administración']::text[], 'Mascotas pequeñas permitidas'
         );
         
         GET DIAGNOSTICS property_count = ROW_COUNT;
@@ -168,7 +168,7 @@ BEGIN
             ARRAY['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=800&fit=crop', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=800&fit=crop'],
             ARRAY[]::text[],
             ARRAY['Jardín', 'Zona BBQ', 'Parqueadero', 'Seguridad'],
-            'rental', 5200000, 12, 10400000, 520000, ARRAY['Administración']::text[], 'Se permiten mascotas pequeñas con depósito adicional',
+            'rental', 5200000, 12, NULL, 520000, ARRAY['Administración']::text[], 'Se permiten mascotas pequeñas',
             49000,
             NOW() - INTERVAL '5 days', NOW(), NOW() - INTERVAL '4 days'
         );
@@ -195,7 +195,7 @@ BEGIN
             ARRAY['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&h=800&fit=crop', 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&h=800&fit=crop'],
             ARRAY[]::text[],
             ARRAY['Ascensor', 'Portería 24h', 'Parqueadero'],
-            'rental', 2450000, 12, 4900000, 245000, ARRAY[]::text[], 'No se permiten mascotas',
+            'rental', 2450000, 12, NULL, 245000, ARRAY[]::text[], 'No se permiten mascotas',
             49000,
             NOW() - INTERVAL '3 days', NOW(), NOW() - INTERVAL '2 days'
         );

@@ -35,7 +35,7 @@ export const useTestingUsers = () => {
 
         // Get properties with titles per user
         const { data: propertiesData } = await supabase
-          .from('properties')
+          .from('properties_private' as 'properties')
           .select('owner_id, title, id')
           .in('owner_id', userIds);
 

@@ -46,7 +46,8 @@ export const usePropertyVerifications = (userId?: string) => {
           property:properties (
             id,
             title,
-            address,
+            neighborhood,
+            city,
             status
           )
         `);

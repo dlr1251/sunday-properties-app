@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import { privatePropertiesTable } from '../../../lib/propertyPrivacy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -349,21 +350,24 @@ export const UserProfileTab: React.FC = () => {
 
     setDeletingAccount(true);
     try {
-      // Check if user has associated data
-      const { data: userData } = await supabase
-        .from('profiles')
-        .select(`
-          properties:properties!properties_owner_id_fkey(count),
-          offers:offers!offers_buyer_id_fkey(count),
-          visits:visits!visits_visitor_id_fkey(count)
-        `)
-        .eq('id', user.id)
-        .single();
+      const [{ count: propertiesCount }, { data: userData }] = await Promise.all([
+        privatePropertiesTable()
+          .select('id', { count: 'exact', head: true })
+          .eq('owner_id', user.id),
+        supabase
+          .from('profiles')
+          .select(`
+            offers:offers!offers_buyer_id_fkey(count),
+            visits:visits!visits_visitor_id_fkey(count)
+          `)
+          .eq('id', user.id)
+          .single(),
+      ]);
 
-      if (userData) {
-        const hasProperties = (userData.properties?.[0]?.count || 0) > 0;
-        const hasOffers = (userData.offers?.[0]?.count || 0) > 0;
-        const hasVisits = (userData.visits?.[0]?.count || 0) > 0;
+      if (userData || (propertiesCount ?? 0) > 0) {
+        const hasProperties = (propertiesCount ?? 0) > 0;
+        const hasOffers = (userData?.offers?.[0]?.count || 0) > 0;
+        const hasVisits = (userData?.visits?.[0]?.count || 0) > 0;
 
         if (hasProperties || hasOffers || hasVisits) {
           toast.error(t('profile.toasts.cannotDeleteWithData'));

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import {
+  PUBLIC_PROPERTY_EMBED,
+  hydrateSensitivePropertyFields,
+} from '../../../lib/propertyPrivacy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -123,7 +127,7 @@ export const UserBusinessTab: React.FC = () => {
       try {
         // First get user's properties
         const { data: properties, error: propsError } = await supabase
-          .from('properties')
+          .from('properties_private' as 'properties')
           .select('id')
           .eq('owner_id', user.id);
 
@@ -143,11 +147,7 @@ export const UserBusinessTab: React.FC = () => {
           .select(`
             *,
             property:properties!offers_property_id_fkey (
-              id,
-              title,
-              address,
-              price,
-              owner_id
+              ${PUBLIC_PROPERTY_EMBED}
             ),
             buyer:profiles!offers_buyer_id_fkey (
               id,
@@ -165,7 +165,7 @@ export const UserBusinessTab: React.FC = () => {
 
         if (offersError) throw offersError;
 
-        setSellerOffers((offers || []) as SellerOffer[]);
+        setSellerOffers((await hydrateSensitivePropertyFields(offers || [])) as SellerOffer[]);
       } catch (error: any) {
         toast.error(t('dashboard.loadReceivedOffersError'));
         console.error('Error fetching seller offers:', error);
@@ -290,7 +290,7 @@ export const UserBusinessTab: React.FC = () => {
         // Refresh offers
         if (activeTab === 'seller-offers') {
           const { data: properties } = await supabase
-            .from('properties')
+            .from('properties_private' as 'properties')
             .select('id')
             .eq('owner_id', user?.id);
           if (properties) {
@@ -300,11 +300,7 @@ export const UserBusinessTab: React.FC = () => {
               .select(`
                 *,
                 property:properties!offers_property_id_fkey (
-                  id,
-                  title,
-                  address,
-                  price,
-                  owner_id
+                  ${PUBLIC_PROPERTY_EMBED}
                 ),
                 buyer:profiles!offers_buyer_id_fkey (
                   id,
@@ -319,7 +315,7 @@ export const UserBusinessTab: React.FC = () => {
               `)
               .in('property_id', propertyIds)
               .order('created_at', { ascending: false });
-            setSellerOffers((offers || []) as SellerOffer[]);
+            setSellerOffers((await hydrateSensitivePropertyFields(offers || [])) as SellerOffer[]);
           }
         }
       } else {
@@ -339,7 +335,7 @@ export const UserBusinessTab: React.FC = () => {
         // Refresh offers
         if (activeTab === 'seller-offers') {
           const { data: properties } = await supabase
-            .from('properties')
+            .from('properties_private' as 'properties')
             .select('id')
             .eq('owner_id', user?.id);
           if (properties) {
@@ -349,11 +345,7 @@ export const UserBusinessTab: React.FC = () => {
               .select(`
                 *,
                 property:properties!offers_property_id_fkey (
-                  id,
-                  title,
-                  address,
-                  price,
-                  owner_id
+                  ${PUBLIC_PROPERTY_EMBED}
                 ),
                 buyer:profiles!offers_buyer_id_fkey (
                   id,
@@ -368,7 +360,7 @@ export const UserBusinessTab: React.FC = () => {
               `)
               .in('property_id', propertyIds)
               .order('created_at', { ascending: false });
-            setSellerOffers((offers || []) as SellerOffer[]);
+            setSellerOffers((await hydrateSensitivePropertyFields(offers || [])) as SellerOffer[]);
           }
         }
       } else {
@@ -442,7 +434,7 @@ export const UserBusinessTab: React.FC = () => {
         // Refresh seller offers
         if (user?.id) {
           const { data: properties } = await supabase
-            .from('properties')
+            .from('properties_private' as 'properties')
             .select('id')
             .eq('owner_id', user.id);
           if (properties) {
@@ -452,11 +444,7 @@ export const UserBusinessTab: React.FC = () => {
               .select(`
                 *,
                 property:properties!offers_property_id_fkey (
-                  id,
-                  title,
-                  address,
-                  price,
-                  owner_id
+                  ${PUBLIC_PROPERTY_EMBED}
                 ),
                 buyer:profiles!offers_buyer_id_fkey (
                   id,
@@ -471,7 +459,7 @@ export const UserBusinessTab: React.FC = () => {
               `)
               .in('property_id', propertyIds)
               .order('created_at', { ascending: false });
-            setSellerOffers((offers || []) as SellerOffer[]);
+            setSellerOffers((await hydrateSensitivePropertyFields(offers || [])) as SellerOffer[]);
           }
         }
         

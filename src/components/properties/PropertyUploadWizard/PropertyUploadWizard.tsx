@@ -33,6 +33,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useVerification } from '../../../hooks/verification/useVerification';
 import { toast } from 'sonner';
 import { usePropertyUpload } from '../../../hooks/properties/usePropertyUpload';
+import { parseAreaInput } from '../../../utils/format';
 import { usePropertyAudit } from '../../../hooks/properties/usePropertyAudit';
 import { SuccessModal } from '../../ui/success-modal';
 import type { PropertyData } from './types';
@@ -88,7 +89,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     price: 0,
     rentMonthly: 0,
     leaseTermMonths: 12,
-    deposit: 0,
     adminFee: 0,
     utilitiesIncluded: [],
     petsPolicy: '',
@@ -184,7 +184,7 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
 
   const handleNumericChange = useCallback((field: string, value: string) => {
     console.log('🔄 handleNumericChange called for field:', field, 'with value:', value);
-    const numValue = parseInt(value) || 0;
+    const numValue = field === 'area' ? parseAreaInput(value) : (parseInt(value) || 0);
     setPropertyData(prev => ({ ...prev, [field]: numValue }));
   }, []);
 
@@ -339,7 +339,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
     price: propertyData.listingType === 'sale' ? (propertyData.price || 100000) : null,
     rent_monthly: propertyData.listingType === 'rental' ? (propertyData.rentMonthly || 100000) : null,
     lease_term_months: propertyData.listingType === 'rental' ? (propertyData.leaseTermMonths || 12) : null,
-    deposit: propertyData.listingType === 'rental' ? (propertyData.deposit || 0) : null,
     admin_fee: propertyData.listingType === 'rental' ? (propertyData.adminFee || 0) : null,
     utilities_included: propertyData.listingType === 'rental' ? (propertyData.utilitiesIncluded || []) : [],
     pets_policy: propertyData.listingType === 'rental' ? (propertyData.petsPolicy || '') : null,
@@ -418,7 +417,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
             price: propertyData.listingType === 'sale' ? (propertyData.price || 100000) : null,
             rent_monthly: propertyData.listingType === 'rental' ? (propertyData.rentMonthly || 100000) : null,
             lease_term_months: propertyData.listingType === 'rental' ? (propertyData.leaseTermMonths || 12) : null,
-            deposit: propertyData.listingType === 'rental' ? (propertyData.deposit || 0) : null,
             admin_fee: propertyData.listingType === 'rental' ? (propertyData.adminFee || 0) : null,
             utilities_included: propertyData.listingType === 'rental' ? (propertyData.utilitiesIncluded || []) : [],
             pets_policy: propertyData.listingType === 'rental' ? (propertyData.petsPolicy || '') : null,
@@ -481,7 +479,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
               fieldsToUpdate.price = propertyData.listingType === 'sale' ? propertyData.price : null;
               fieldsToUpdate.rent_monthly = propertyData.listingType === 'rental' ? propertyData.rentMonthly : null;
               fieldsToUpdate.lease_term_months = propertyData.listingType === 'rental' ? propertyData.leaseTermMonths : null;
-              fieldsToUpdate.deposit = propertyData.listingType === 'rental' ? propertyData.deposit : null;
               fieldsToUpdate.admin_fee = propertyData.listingType === 'rental' ? propertyData.adminFee : null;
               fieldsToUpdate.utilities_included = propertyData.listingType === 'rental' ? (propertyData.utilitiesIncluded ?? []) : [];
               fieldsToUpdate.pets_policy = propertyData.listingType === 'rental' ? (propertyData.petsPolicy ?? '') : null;
@@ -637,7 +634,6 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
             formatPrice={formatPrice}
             onRentMonthlyChange={(value) => setPropertyData((prev) => ({ ...prev, rentMonthly: Number(value) || 0 }))}
             onLeaseTermMonthsChange={(value) => setPropertyData((prev) => ({ ...prev, leaseTermMonths: Number(value) || 0 }))}
-            onDepositChange={(value) => setPropertyData((prev) => ({ ...prev, deposit: Number(value) || 0 }))}
             onAdminFeeChange={(value) => setPropertyData((prev) => ({ ...prev, adminFee: Number(value) || 0 }))}
             onUtilitiesIncludedChange={(utilities) => setPropertyData((prev) => ({ ...prev, utilitiesIncluded: utilities }))}
             onPetsPolicyChange={(value) => setPropertyData((prev) => ({ ...prev, petsPolicy: value }))}

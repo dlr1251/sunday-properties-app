@@ -7,6 +7,7 @@ import { Badge } from '../../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { privatePropertiesTable } from '../../lib/propertyPrivacy';
 import { DashboardConfig } from './types';
 
 export type UserSummaryStats = {
@@ -83,8 +84,7 @@ export function Dashboard({ config, className }: DashboardProps) {
     setSummaryLoading(true);
     (async () => {
       try {
-        const { data: myProperties, error: propErr } = await supabase
-          .from('properties')
+        const { data: myProperties, error: propErr } = await privatePropertiesTable()
           .select('id')
           .eq('owner_id', user.id);
         if (propErr) throw propErr;

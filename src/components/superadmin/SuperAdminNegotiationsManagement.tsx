@@ -34,7 +34,7 @@ export function SuperAdminNegotiationsManagement() {
           .from('negotiations')
           .select(`
             *,
-            property:properties(id, title, address, price),
+            property:properties(id, title, neighborhood, city, price),
             buyer:profiles!negotiations_buyer_id_fkey(id, full_name, email),
             seller:profiles!negotiations_seller_id_fkey(id, full_name, email)
           `)
@@ -47,7 +47,7 @@ export function SuperAdminNegotiationsManagement() {
           .from('offers')
           .select(`
             *,
-            property:properties!offers_property_id_fkey(id, title, address, price),
+            property:properties!offers_property_id_fkey(id, title, neighborhood, city, price),
             buyer:profiles!offers_buyer_id_fkey(id, full_name, email)
           `)
           .order('created_at', { ascending: false });

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  formatArea,
   formatCurrency,
   formatDate,
   formatDateTime,
@@ -8,6 +9,7 @@ import {
   formatPercentage,
   formatNumber,
   getListingPriceValue,
+  parseAreaInput,
   capitalize,
   truncateText
 } from './format';
@@ -103,6 +105,25 @@ describe('formatNumber', () => {
     expect(formatNumber(1000)).toBe('1.000');
     expect(formatNumber(1000000)).toBe('1.000.000');
     expect(formatNumber(500)).toBe('500');
+  });
+});
+
+describe('formatArea', () => {
+  it('shows whole numbers without decimals', () => {
+    expect(formatArea(80)).toBe('80 m²');
+    expect(formatArea(120)).toBe('120 m²');
+  });
+
+  it('shows fractions in es-CO style', () => {
+    expect(formatArea(45.54)).toBe('45,54 m²');
+  });
+});
+
+describe('parseAreaInput', () => {
+  it('accepts comma and dot decimals', () => {
+    expect(parseAreaInput('45,54')).toBe(45.54);
+    expect(parseAreaInput('45.54')).toBe(45.54);
+    expect(parseAreaInput('80')).toBe(80);
   });
 });
 

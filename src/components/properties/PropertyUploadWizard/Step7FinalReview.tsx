@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
+import { formatArea } from '../../../utils/format';
 
 interface PropertyData {
   title: string;
@@ -83,7 +84,7 @@ export const Step7FinalReview: React.FC<Step7FinalReviewProps> = ({
               </div>
               <div>
                 <span className="text-muted-foreground">{t('properties.area')}:</span>
-                <p className="font-semibold">{propertyData.area}m²</p>
+                <p className="font-semibold">{formatArea(propertyData.area)}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">{t('properties.price')}:</span>

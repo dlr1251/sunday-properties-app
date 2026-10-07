@@ -30,8 +30,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
+import { privatePropertiesTable } from '../../lib/propertyPrivacy';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, parseAreaInput } from '../../utils/format';
 import { applyPropertyKeyFilter, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
 
 interface OfferedTimeline {
@@ -103,8 +104,7 @@ export const PropertyEditPage: React.FC = () => {
 
     try {
       setLoading(true);
-      let query = supabase
-        .from('properties')
+      let query = privatePropertiesTable()
         .select('*');
       query = applyPropertyKeyFilter(query, propertyId);
       const { data, error } = await query.single();
@@ -183,7 +183,6 @@ export const PropertyEditPage: React.FC = () => {
           price: formData.listing_type === 'sale' ? formData.price : null,
           rent_monthly: formData.listing_type === 'rental' ? (formData.rent_monthly ?? null) : null,
           lease_term_months: formData.listing_type === 'rental' ? (formData.lease_term_months ?? null) : null,
-          deposit: formData.listing_type === 'rental' ? (formData.deposit ?? null) : null,
           admin_fee: formData.listing_type === 'rental' ? (formData.admin_fee ?? null) : null,
           utilities_included: formData.listing_type === 'rental' ? (formData.utilities_included ?? []) : [],
           pets_policy: formData.listing_type === 'rental' ? (formData.pets_policy ?? null) : null,
@@ -200,8 +199,7 @@ export const PropertyEditPage: React.FC = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', property.id)
-        .eq('owner_id', user?.id) // Extra security check
-        .select()
+        .select('id, slug')
         .single();
 
       if (error) throw error;
@@ -501,8 +499,10 @@ export const PropertyEditPage: React.FC = () => {
                     <Input
                       id="area"
                       type="number"
+                      step="0.01"
+                      min="0"
                       value={formData.area}
-                      onChange={(e) => handleInputChange('area', parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleInputChange('area', parseAreaInput(e.target.value))}
                       placeholder={t('common.example', { value: '80' })}
                     />
                   </div>

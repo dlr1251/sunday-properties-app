@@ -28,11 +28,8 @@ export function SuperAdminPropertiesManagement() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('properties')
-        .select(`
-          *,
-          owner:profiles!properties_owner_id_fkey(id, full_name, email)
-        `)
+        .from('properties_private' as 'properties')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

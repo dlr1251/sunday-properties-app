@@ -74,14 +74,8 @@ export const PropertyApprovalPanel: React.FC<PropertyApprovalPanelProps> = ({
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('properties')
-        .select(`
-          *,
-          profiles!properties_owner_id_fkey (
-            full_name,
-            email
-          )
-        `)
+        .from('properties_private' as 'properties')
+        .select('*')
         .in('status', ['pending', 'published', 'rejected'])
         .order('created_at', { ascending: false });
 

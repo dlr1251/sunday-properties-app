@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { fetchPropertyCountsByOwner } from '../lib/propertyCounts';
 import { Result, asUserMessage, logError } from '../lib/error';
 import type { UserWithRole, RoleStats } from '../types/entities';
 
@@ -20,7 +21,6 @@ export async function fetchUsersService(
     let query = supabase
       .from('profiles')
       .select(`*,
-        properties:properties!properties_owner_id_fkey(count),
         reports_as_reporter:reports!reporter_id(count),
         reports_as_reported:reports!reported_user_id(count),
         visits_as_buyer:visits!buyer_id(count),
@@ -41,6 +41,7 @@ export async function fetchUsersService(
     const { data, error, count } = await query;
     if (error) throw error;
 
+    const counts = await fetchPropertyCountsByOwner((data || []).map((user: { id: string }) => user.id));
     const users: UserWithRole[] = (data || []).map((user: any) => ({
       id: user.id,
       name: user.name,
@@ -50,7 +51,7 @@ export async function fetchUsersService(
       email_confirmed_at: user.email_confirmed_at,
       created_at: user.created_at,
       last_sign_in_at: user.last_sign_in_at,
-      properties_count: user.properties?.[0]?.count || 0,
+      properties_count: counts.get(user.id)?.total ?? 0,
       reports_count: (user.reports_as_reporter?.[0]?.count || 0) + (user.reports_as_reported?.[0]?.count || 0),
       visits_count: user.visits_as_buyer?.[0]?.count || 0,
       offers_count: (user.offers_as_buyer?.[0]?.count || 0) + (user.offers_as_seller?.[0]?.count || 0)

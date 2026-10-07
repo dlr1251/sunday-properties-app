@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
-import { formatCurrency, getListingPriceValue } from '../../utils/format';
+import { formatArea, formatCurrency, getListingPriceValue } from '../../utils/format';
 import { applyPropertyKeyFilter, propertyEditPath, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,12 @@ import { ErrorBoundary } from '../core/ErrorBoundary';
 import { MapFallback } from '../maps/PropertyMap';
 import { useFavorites } from '../../hooks/useFavorites';
 import { publicLocationLabel, sanitizePublicDescription } from '../../utils/publicLocation';
+import {
+  PUBLIC_PROPERTY_SELECT,
+  fetchPrivatePropertyByKey,
+  mapPublicProperty,
+  publicMapCoordinates,
+} from '../../lib/propertyPrivacy';
 import { 
   Heart, 
   Share2, 
@@ -88,7 +94,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
   
   const resolvedId: string = property?.id || '';
   const isFavorite = resolvedId ? isFavorited(resolvedId) : false;
-  const isOwner = user?.id === property?.owner_id;
+  const isOwner = Boolean(property?._canManage);
 
   // Fetch property data
   useEffect(() => {
@@ -111,47 +117,50 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
       setLoading(true);
       let query = supabase
         .from('properties')
-        .select(`
-          *,
-          nearby_places
-        `);
+        .select(PUBLIC_PROPERTY_SELECT);
       query = applyPropertyKeyFilter(query, propertyId);
 
       const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
-      
-      if (!data) {
+
+      let canManage = false;
+      if (user) {
+        const privateRow = await fetchPrivatePropertyByKey(propertyId);
+        canManage = Boolean(privateRow.data);
+      }
+
+      const listing = data ?? null;
+      if (!listing) {
         toast.error(t('properties.detail.notFound'));
         onBack();
         return;
       }
 
-      // Only show published properties to regular users
-      if (data.status !== 'published' && user?.id !== data.owner_id) {
+      if (listing.status !== 'published' && !canManage) {
         toast.error(t('properties.detail.notAvailable'));
         onBack();
         return;
       }
 
-      setProperty(data);
-      const location = publicLocationLabel(data);
+      const publicListing = { ...mapPublicProperty(listing), _canManage: canManage };
+      setProperty(publicListing);
+      const location = publicLocationLabel(publicListing);
       document.title = location
-        ? `${data.title} · ${location} · Sunday Properties`
-        : `${data.title} · Sunday Properties`;
+        ? `${publicListing.title} · ${location} · Sunday Properties`
+        : `${publicListing.title} · Sunday Properties`;
       const meta = document.querySelector('meta[name="description"]');
-      if (meta && data.description) {
+      if (meta && publicListing.description) {
         const publicDescription = sanitizePublicDescription(
-          String(data.description),
-          data.address
+          String(publicListing.description)
         );
         meta.setAttribute('content', publicDescription.slice(0, 160));
       }
 
-      if (data.slug && propertyId !== data.slug) {
+      if (publicListing.slug && propertyId !== publicListing.slug) {
         const path = window.location.pathname;
         if (path === `/properties/${propertyId}`) {
-          navigate(propertyPath(data), { replace: true });
+          navigate(propertyPath(publicListing), { replace: true });
         }
       }
     } catch (error: any) {
@@ -228,15 +237,12 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
     ? t('properties.detail.pricePerMonth', { amount: formatCurrency(mainPrice) })
     : formatCurrency(mainPrice);
   const locationLabel = publicLocationLabel(displayProperty);
-  const publicDescription = sanitizePublicDescription(
-    displayProperty.description,
-    displayProperty.address
-  );
+  const publicDescription = sanitizePublicDescription(displayProperty.description);
   const publicFeatures = (displayProperty.features || []).map((feature: string) =>
-    sanitizePublicDescription(feature, displayProperty.address)
+    sanitizePublicDescription(feature)
   ).filter(Boolean);
   const publicTags = (displayProperty.tags || []).map((tag: string) =>
-    sanitizePublicDescription(tag, displayProperty.address)
+    sanitizePublicDescription(tag)
   ).filter(Boolean);
 
   return (
@@ -598,7 +604,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Square className="h-6 w-6 mx-auto mb-2 text-primary" />
                   <p className="text-sm text-muted-foreground">{t('properties.area')}</p>
-                    <p className="font-semibold">{displayProperty.area}m²</p>
+                    <p className="font-semibold">{formatArea(displayProperty.area)}</p>
                 </div>
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Car className="h-6 w-6 mx-auto mb-2 text-primary" />
@@ -651,7 +657,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                   title={displayProperty.title}
                   neighborhood={displayProperty.neighborhood}
                   city={displayProperty.city}
-                  coordinates={property?.coordinates}
+                  coordinates={publicMapCoordinates(property || {})}
                   nearbyPlaces={property?.nearby_places}
                 />
               </ErrorBoundary>

@@ -37,7 +37,6 @@ interface Offer {
   closing_date?: string;
   lease_start_date?: string;
   lease_term_months?: number;
-  deposit?: number;
   admin_fee?: number;
   utilities_included?: string[];
   pets_policy?: string;

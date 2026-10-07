@@ -4,6 +4,7 @@ import { Textarea } from '../../../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select';
 import { Label } from '../../../ui/label';
 import { PropertyFormData } from '../PropertyWizard';
+import { parseAreaInput } from '../../../../utils/format';
 
 interface BasicDetailsStepProps {
   data: PropertyFormData;
@@ -118,8 +119,10 @@ export const BasicDetailsStep: React.FC<BasicDetailsStepProps> = ({
           <Input
             id="area"
             type="number"
+            step="0.01"
+            min="0"
             value={data.area || ''}
-            onChange={(e) => onUpdate({ area: parseInt(e.target.value) || 0 })}
+            onChange={(e) => onUpdate({ area: parseAreaInput(e.target.value) })}
             placeholder="Ej: 75"
             className={`mt-1 ${inputClasses}`}
           />

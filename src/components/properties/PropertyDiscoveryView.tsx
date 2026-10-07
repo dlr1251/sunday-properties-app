@@ -18,7 +18,7 @@ import { useAllProperties, useVisitScheduling } from '../../hooks/useSupabase';
 import { useChat } from '../../hooks/useChat';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
-import { formatListingPrice } from '../../utils/format';
+import { formatArea, formatListingPrice } from '../../utils/format';
 import {
   SlidersHorizontal,
   Grid3X3,
@@ -690,7 +690,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
       }`}>
         {paginatedProperties.map((property) => {
           // Check if current user is the owner
-          const isOwner = user?.id === property.owner_id;
+          const isOwner = Boolean(property.isOwner);
           
           return (
             <PropertyCard
@@ -698,7 +698,7 @@ export function PropertyDiscoveryView({ onPropertyClick }: PropertyDiscoveryView
               id={property.id}
               slug={property.slug}
               title={property.title}
-              area={typeof property.area === 'string' ? property.area : `${property.area}m²`}
+              area={typeof property.area === 'string' ? property.area : formatArea(property.area)}
               location={property.location || `${property.neighborhood}, ${property.city}`}
               bedrooms={property.bedrooms}
               bathrooms={property.bathrooms}

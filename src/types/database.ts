@@ -64,6 +64,7 @@ export interface Database {
             lng: number;
             note?: string;
           }> | null;
+          public_coordinates: { lat: number; lng: number } | null;
           property_type: string;
           status: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -103,6 +104,7 @@ export interface Database {
             lng: number;
             note?: string;
           }> | null;
+          public_coordinates?: { lat: number; lng: number } | null;
           property_type: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -142,6 +144,7 @@ export interface Database {
             lng: number;
             note?: string;
           }> | null;
+          public_coordinates?: { lat: number; lng: number } | null;
           property_type?: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area?: number;
@@ -799,6 +802,15 @@ export interface Database {
           status: string;
           created_at: string;
           updated_at: string;
+        }[];
+      };
+      property_counts_by_owner: {
+        Args: { owner_ids: string[] };
+        Returns: {
+          owner_id: string;
+          total: number;
+          published: number;
+          sold: number;
         }[];
       };
     };

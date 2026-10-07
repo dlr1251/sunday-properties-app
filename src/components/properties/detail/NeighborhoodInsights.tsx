@@ -21,7 +21,6 @@ interface NeighborhoodInsightsProps {
 export const NeighborhoodInsights: React.FC<NeighborhoodInsightsProps> = ({
   city,
   neighborhood,
-  address,
 }) => {
   // Mock data - in production this would come from an API or database
   const amenities = [
@@ -48,7 +47,6 @@ export const NeighborhoodInsights: React.FC<NeighborhoodInsightsProps> = ({
           <p className="text-gray-600 text-sm">
             {neighborhood}, {city}
           </p>
-          <p className="text-gray-500 text-sm mt-1">{address}</p>
         </div>
 
         {/* Amenities */}

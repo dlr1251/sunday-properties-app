@@ -74,11 +74,7 @@ export const useVisits = (userId?: string) => {
         .select(`
           *,
           property:properties!visits_property_id_fkey (
-            id,
-            title,
-            address,
-            owner_id,
-            images
+            id, title, neighborhood, city, images
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,

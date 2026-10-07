@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { PUBLIC_PROPERTY_SELECT } from '../../lib/propertyPrivacy';
 import { toast } from 'sonner';
 
 export interface PropertyUpdateData {
@@ -13,7 +14,6 @@ export interface PropertyUpdateData {
   price?: number | null;
   rent_monthly?: number | null;
   lease_term_months?: number | null;
-  deposit?: number | null;
   admin_fee?: number | null;
   utilities_included?: string[];
   pets_policy?: string | null;
@@ -48,14 +48,7 @@ export const usePropertyEdit = () => {
         .from('properties')
         .update(updateData)
         .eq('id', propertyId)
-        .select(`
-          *,
-          profiles:owner_id (
-            full_name,
-            email,
-            phone
-          )
-        `)
+        .select(PUBLIC_PROPERTY_SELECT)
         .single();
 
       if (error) throw error;

@@ -1,4 +1,6 @@
 import { supabase } from '../../supabase';
+import { fetchPropertyCountsByOwner } from '../../propertyCounts';
+import { privatePropertiesTable } from '../../propertyPrivacy';
 import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError, createNotFoundError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
@@ -82,12 +84,7 @@ export class AgentsRepository {
     return tryCatch(async () => {
       let query = supabase
         .from('profiles')
-        .select(`
-          *,
-          properties:properties!properties_owner_id_fkey(count),
-          active_properties:properties(count, status.eq.published),
-          sold_properties:properties(count, status.eq.sold)
-        `)
+        .select('*')
         .eq('role', 'agent')
         .order('created_at', { ascending: false });
 
@@ -128,17 +125,20 @@ export class AgentsRepository {
         throw createDatabaseError('Error al cargar los agentes', error);
       }
 
-      // Transform data and add computed fields
-      const agents = (data || []).map(agent => ({
-        ...agent,
-        properties_count: agent.properties?.[0]?.count || 0,
-        active_properties_count: agent.active_properties?.[0]?.count || 0,
-        sold_properties_count: agent.sold_properties?.[0]?.count || 0,
-        total_sales_value: 0, // Would be calculated from sold properties
-        commission_earned: 0, // Would be calculated from commissions
-        rating: 4.5, // Would be calculated from reviews
-        reviews_count: 0, // Would be counted from reviews table
-      }));
+      const counts = await fetchPropertyCountsByOwner((data || []).map((agent) => agent.id));
+      const agents = (data || []).map((agent) => {
+        const c = counts.get(agent.id);
+        return {
+          ...agent,
+          properties_count: c?.total ?? 0,
+          active_properties_count: c?.published ?? 0,
+          sold_properties_count: c?.sold ?? 0,
+          total_sales_value: 0,
+          commission_earned: 0,
+          rating: 4.5,
+          reviews_count: 0,
+        };
+      });
 
       return agents;
     });
@@ -151,12 +151,7 @@ export class AgentsRepository {
     return tryCatch(async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          properties:properties!properties_owner_id_fkey(count),
-          active_properties:properties(count, status.eq.published),
-          sold_properties:properties(count, status.eq.sold)
-        `)
+        .select('*')
         .eq('id', id)
         .eq('role', 'agent')
         .single();
@@ -169,16 +164,17 @@ export class AgentsRepository {
         throw createDatabaseError('Error al cargar el agente', error);
       }
 
-      // Transform data and add computed fields
+      const counts = await fetchPropertyCountsByOwner([data.id]);
+      const c = counts.get(data.id);
       const agent = {
         ...data,
-        properties_count: data.properties?.[0]?.count || 0,
-        active_properties_count: data.active_properties?.[0]?.count || 0,
-        sold_properties_count: data.sold_properties?.[0]?.count || 0,
-        total_sales_value: 0, // Would be calculated from sold properties
-        commission_earned: 0, // Would be calculated from commissions
-        rating: 4.5, // Would be calculated from reviews
-        reviews_count: 0, // Would be counted from reviews table
+        properties_count: c?.total ?? 0,
+        active_properties_count: c?.published ?? 0,
+        sold_properties_count: c?.sold ?? 0,
+        total_sales_value: 0,
+        commission_earned: 0,
+        rating: 4.5,
+        reviews_count: 0,
       };
 
       return agent;
@@ -223,12 +219,7 @@ export class AgentsRepository {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
-        .select(`
-          *,
-          properties:properties!properties_owner_id_fkey(count),
-          active_properties:properties(count, status.eq.published),
-          sold_properties:properties(count, status.eq.sold)
-        `)
+        .select('*')
         .single();
 
       if (error) {
@@ -236,12 +227,11 @@ export class AgentsRepository {
         throw createDatabaseError('Error al crear el agente', error);
       }
 
-      // Transform data and add computed fields
       const agent = {
         ...data,
-        properties_count: data.properties?.[0]?.count || 0,
-        active_properties_count: data.active_properties?.[0]?.count || 0,
-        sold_properties_count: data.sold_properties?.[0]?.count || 0,
+        properties_count: 0,
+        active_properties_count: 0,
+        sold_properties_count: 0,
         total_sales_value: 0,
         commission_earned: 0,
         rating: 4.5,
@@ -329,17 +319,8 @@ export class AgentsRepository {
         throw new AppError('Usuario no autenticado', 'AUTH_ERROR');
       }
 
-      // Check if agent has active properties
-      const { data: agentData } = await supabase
-        .from('profiles')
-        .select(`
-          properties:properties(count, status.eq.published)
-        `)
-        .eq('id', agentId)
-        .eq('role', 'agent')
-        .single();
-
-      if (agentData?.properties?.[0]?.count > 0) {
+      const counts = await fetchPropertyCountsByOwner([agentId]);
+      if ((counts.get(agentId)?.published ?? 0) > 0) {
         throw new AppError(
           'No se puede eliminar el agente porque tiene propiedades activas',
           'BUSINESS_ERROR'
@@ -389,7 +370,7 @@ export class AgentsRepository {
     return tryCatch(async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('verification_status, specializations, properties:properties(status, price)')
+        .select('id, verification_status, specializations')
         .eq('role', 'agent');
 
       if (error) {
@@ -401,12 +382,23 @@ export class AgentsRepository {
       const verified = data?.filter(a => a.verification_status === 'verified').length || 0;
       const pending = data?.filter(a => a.verification_status === 'pending').length || 0;
 
-      const allProperties = data?.flatMap(a => a.properties || []) || [];
-      const active_properties = allProperties.filter(p => p.status === 'published').length;
-      const sold_properties = allProperties.filter(p => p.status === 'sold').length;
-      const total_sales_value = allProperties
-        .filter(p => p.status === 'sold')
-        .reduce((sum, p) => sum + (p.price || 0), 0);
+      const agentIds = (data || []).map((agent) => agent.id);
+      const counts = await fetchPropertyCountsByOwner(agentIds);
+      let active_properties = 0;
+      let sold_properties = 0;
+      for (const c of counts.values()) {
+        active_properties += c.published;
+        sold_properties += c.sold;
+      }
+
+      let total_sales_value = 0;
+      if (agentIds.length > 0) {
+        const { data: soldRows } = await privatePropertiesTable()
+          .select('price')
+          .in('owner_id', agentIds)
+          .eq('status', 'sold');
+        total_sales_value = (soldRows || []).reduce((sum, row) => sum + (row.price || 0), 0);
+      }
 
       // Calculate top specializations
       const specializationCount: Record<string, number> = {};

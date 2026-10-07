@@ -88,7 +88,7 @@ export function useHolisticNegotiation({
     try {
       // Obtener datos de la propiedad y negociación actual
       const { data: propertyData, error: propertyError } = await supabase
-        .from('properties')
+        .from('properties_private' as 'properties')
         .select('*')
         .eq('id', propertyId)
         .single();

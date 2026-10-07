@@ -311,7 +311,7 @@ export const useNegotiation = () => {
         .select(`
           *,
           buyer:users!offers_buyer_id_fkey(*),
-          property:properties!offers_property_id_fkey(*)
+          property:properties!offers_property_id_fkey (id, title, neighborhood, city, price, images)
         `)
         .in('id', offerIds);
 
@@ -382,7 +382,7 @@ export const useNegotiation = () => {
           *,
           buyer:users!offers_buyer_id_fkey(*),
           seller:users!offers_seller_id_fkey(*),
-          property:properties!offers_property_id_fkey(*)
+          property:properties!offers_property_id_fkey (id, title, neighborhood, city, price, images)
         `)
         .eq('id', offerId)
         .single();

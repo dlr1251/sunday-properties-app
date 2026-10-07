@@ -1,7 +1,43 @@
 import { supabase } from '../../supabase';
+import { privatePropertiesTable } from '../../propertyPrivacy';
 import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError, createNotFoundError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
+
+type SellerProfile = { name: string | null; email: string | null; phone: string | null };
+
+async function loadSellersByPropertyIds(propertyIds: string[]): Promise<{
+  ownerByProperty: Map<string, { owner_id: string; address?: string | null }>;
+  sellers: Map<string, SellerProfile>;
+}> {
+  const unique = [...new Set(propertyIds.filter(Boolean))];
+  const ownerByProperty = new Map<string, { owner_id: string; address?: string | null }>();
+  const sellers = new Map<string, SellerProfile>();
+  if (unique.length === 0) return { ownerByProperty, sellers };
+
+  const { data: privates } = await privatePropertiesTable()
+    .select('id, owner_id, address')
+    .in('id', unique);
+  for (const row of privates ?? []) {
+    ownerByProperty.set(row.id, { owner_id: row.owner_id, address: row.address });
+  }
+
+  const ownerIds = [...new Set((privates ?? []).map((row) => row.owner_id).filter(Boolean))];
+  if (ownerIds.length === 0) return { ownerByProperty, sellers };
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, name, email, phone')
+    .in('id', ownerIds);
+  for (const profile of profiles ?? []) {
+    sellers.set(profile.id, {
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone,
+    });
+  }
+  return { ownerByProperty, sellers };
+}
 
 // Deal interface (combining offer, property, and related data)
 export interface Deal {
@@ -108,7 +144,8 @@ export class DealsRepository {
           *,
           property:property_id (
             title,
-            address,
+            neighborhood,
+            city,
             city,
             price,
             images
@@ -117,13 +154,6 @@ export class DealsRepository {
             name,
             email,
             phone
-          ),
-          seller:property_id (
-            owner_id (
-              name,
-              email,
-              phone
-            )
           ),
           agent:agent_id (
             name,
@@ -171,13 +201,19 @@ export class DealsRepository {
         throw createDatabaseError('Error al cargar las negociaciones', error);
       }
 
-      // Transform offers into deals
-      const deals = (data || []).map(offer => ({
+      const { ownerByProperty, sellers } = await loadSellersByPropertyIds(
+        (data || []).map((offer) => offer.property_id)
+      );
+
+      const deals = (data || []).map(offer => {
+        const priv = ownerByProperty.get(offer.property_id);
+        const seller = priv ? sellers.get(priv.owner_id) : undefined;
+        return {
         id: offer.id,
         offer_id: offer.id,
         property_id: offer.property_id,
         buyer_id: offer.buyer_id,
-        seller_id: offer.property?.owner_id || '',
+        seller_id: priv?.owner_id || '',
         agent_id: offer.agent_id,
         lawyer_id: offer.lawyer_id,
         status: this.mapOfferStatusToDealStatus(offer.status),
@@ -191,7 +227,7 @@ export class DealsRepository {
         updated_at: offer.updated_at,
         property: offer.property ? {
           title: offer.property.title,
-          address: offer.property.address,
+          address: priv?.address || '',
           city: offer.property.city,
           price: offer.property.price,
           images: offer.property.images || []
@@ -201,10 +237,10 @@ export class DealsRepository {
           email: offer.buyer.email,
           phone: offer.buyer.phone
         } : undefined,
-        seller: offer.seller?.owner_id ? {
-          name: offer.seller.owner_id.name,
-          email: offer.seller.owner_id.email,
-          phone: offer.seller.owner_id.phone
+        seller: seller ? {
+          name: seller.name,
+          email: seller.email,
+          phone: seller.phone
         } : undefined,
         agent: offer.agent ? {
           name: offer.agent.name,
@@ -218,7 +254,8 @@ export class DealsRepository {
         } : undefined,
         last_activity: offer.updated_at,
         progress_percentage: this.calculateProgress(offer.status)
-      }));
+      };
+      });
 
       return deals;
     });
@@ -273,7 +310,8 @@ export class DealsRepository {
           *,
           property:property_id (
             title,
-            address,
+            neighborhood,
+            city,
             city,
             price,
             images
@@ -282,13 +320,6 @@ export class DealsRepository {
             name,
             email,
             phone
-          ),
-          seller:property_id (
-            owner_id (
-              name,
-              email,
-              phone
-            )
           ),
           agent:agent_id (
             name,
@@ -312,13 +343,16 @@ export class DealsRepository {
         throw createDatabaseError('Error al cargar la negociación', error);
       }
 
-      // Transform offer into deal
+      const { ownerByProperty, sellers } = await loadSellersByPropertyIds([data.property_id]);
+      const priv = ownerByProperty.get(data.property_id);
+      const seller = priv ? sellers.get(priv.owner_id) : undefined;
+
       const deal: Deal = {
         id: data.id,
         offer_id: data.id,
         property_id: data.property_id,
         buyer_id: data.buyer_id,
-        seller_id: data.property?.owner_id || '',
+        seller_id: priv?.owner_id || '',
         agent_id: data.agent_id,
         lawyer_id: data.lawyer_id,
         status: this.mapOfferStatusToDealStatus(data.status),
@@ -332,7 +366,7 @@ export class DealsRepository {
         updated_at: data.updated_at,
         property: data.property ? {
           title: data.property.title,
-          address: data.property.address,
+          address: priv?.address || '',
           city: data.property.city,
           price: data.property.price,
           images: data.property.images || []
@@ -342,10 +376,10 @@ export class DealsRepository {
           email: data.buyer.email,
           phone: data.buyer.phone
         } : undefined,
-        seller: data.seller?.owner_id ? {
-          name: data.seller.owner_id.name,
-          email: data.seller.owner_id.email,
-          phone: data.seller.owner_id.phone
+        seller: seller ? {
+          name: seller.name,
+          email: seller.email,
+          phone: seller.phone
         } : undefined,
         agent: data.agent ? {
           name: data.agent.name,

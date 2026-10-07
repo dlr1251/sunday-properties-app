@@ -111,7 +111,7 @@ export const NegotiationsView: React.FC = () => {
         .from('negotiations')
         .select(`
           *,
-          property:properties(id, title, address, price),
+          property:properties(id, title, neighborhood, city, price),
           buyer:profiles!negotiations_buyer_id_fkey(id, full_name, email),
           seller:profiles!negotiations_seller_id_fkey(id, full_name, email),
           lawyer:profiles!negotiations_lawyer_id_fkey(id, full_name),

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { PropertyGrid } from './PropertyGrid';
 import { supabase } from '../../lib/supabase';
+import { PUBLIC_PROPERTY_SELECT, mapPublicProperty } from '../../lib/propertyPrivacy';
 import { formatCurrency } from '../../utils/format';
 import type { Property } from '../../types/entities';
 
@@ -71,7 +72,7 @@ export const PublishedPropertiesGrid: React.FC<PublishedPropertiesGridProps> = (
       try {
         const { data, error } = await supabase
           .from('properties')
-          .select('*')
+          .select(PUBLIC_PROPERTY_SELECT)
           .eq('status', 'published')
           .order('published_at', { ascending: false, nullsFirst: false })
           .limit(limit);
@@ -81,7 +82,7 @@ export const PublishedPropertiesGrid: React.FC<PublishedPropertiesGridProps> = (
           console.error('Error fetching published properties:', error);
           setProperties([]);
         } else {
-          setProperties((data as Property[]) || []);
+          setProperties(((data || []).map((row) => mapPublicProperty(row as Record<string, unknown>)) as Property[]));
         }
       } catch (err) {
         if (!cancelled) {

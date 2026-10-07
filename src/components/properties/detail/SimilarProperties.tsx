@@ -6,7 +6,7 @@ import { Badge } from '../../ui/badge';
 import { ChevronLeft, ChevronRight, MapPin, Bed, Bath, Square } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatListingPrice } from '../../../utils/format';
+import { formatArea, formatListingPrice } from '../../../utils/format';
 
 interface SimilarPropertiesProps {
   currentPropertyId: string;
@@ -217,7 +217,7 @@ export const SimilarProperties: React.FC<SimilarPropertiesProps> = ({
                         </div>
                         <div className="flex items-center gap-1">
                           <Square className="h-4 w-4 text-gray-500" />
-                          <span>{property.area}m²</span>
+                          <span>{formatArea(property.area)}</span>
                         </div>
                       </div>
                     </div>

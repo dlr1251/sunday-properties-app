@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
+import { PUBLIC_PROPERTY_SELECT, mapPublicProperty } from '../../lib/propertyPrivacy';
 import { formatListingPrice, getListingPriceValue, listingAmount } from '../../utils/format';
 import {
   Map,
@@ -121,7 +122,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
       try {
         const { data, error } = await supabase
           .from('properties')
-          .select('*')
+          .select(PUBLIC_PROPERTY_SELECT)
           .eq('status', 'published')
           .order('created_at', { ascending: false })
           .limit(20);
@@ -130,7 +131,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           console.error('Error fetching properties:', error);
           setProperties([]);
         } else {
-          setProperties(data as Property[] || []);
+          setProperties((data || []).map((row) => mapPublicProperty(row as Record<string, unknown>)) as Property[]);
         }
       } catch (err) {
         console.error('Unexpected error fetching properties:', err);

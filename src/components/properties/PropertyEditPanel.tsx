@@ -28,7 +28,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, parseAreaInput } from '../../utils/format';
 
 interface OfferedTimeline {
   deedSigningDate?: string;
@@ -145,7 +145,6 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
           price: formData.listing_type === 'sale' ? formData.price : null,
           rent_monthly: formData.listing_type === 'rental' ? (formData.rent_monthly ?? null) : null,
           lease_term_months: formData.listing_type === 'rental' ? (formData.lease_term_months ?? null) : null,
-          deposit: formData.listing_type === 'rental' ? (formData.deposit ?? null) : null,
           admin_fee: formData.listing_type === 'rental' ? (formData.admin_fee ?? null) : null,
           utilities_included: formData.listing_type === 'rental' ? (formData.utilities_included ?? []) : [],
           pets_policy: formData.listing_type === 'rental' ? (formData.pets_policy ?? null) : null,
@@ -162,8 +161,7 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
           updated_at: new Date().toISOString()
         })
         .eq('id', property.id)
-        .eq('owner_id', user.id) // Extra security check
-        .select()
+        .select('id, slug')
         .single();
 
       if (error) throw error;
@@ -375,8 +373,10 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
                       <Input
                         id="area"
                         type="number"
+                        step="0.01"
+                        min="0"
                         value={formData.area}
-                        onChange={(e) => handleInputChange('area', parseInt(e.target.value) || 0)}
+                        onChange={(e) => handleInputChange('area', parseAreaInput(e.target.value))}
                         placeholder={t('common.example', { value: '80' })}
                         className="h-10 lg:h-12 text-sm lg:text-base"
                       />
@@ -410,17 +410,6 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
                             min="1"
                             value={formData.lease_term_months ?? ''}
                             onChange={(e) => handleInputChange('lease_term_months', parseInt(e.target.value) || null)}
-                            className="h-10 lg:h-12 text-sm lg:text-base"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="deposit" className="text-sm lg:text-base">{t('properties.edit.deposit')}</Label>
-                          <Input
-                            id="deposit"
-                            type="number"
-                            min="0"
-                            value={formData.deposit ?? ''}
-                            onChange={(e) => handleInputChange('deposit', parseInt(e.target.value) || null)}
                             className="h-10 lg:h-12 text-sm lg:text-base"
                           />
                         </div>

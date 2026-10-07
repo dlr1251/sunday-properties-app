@@ -28,7 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { useDateFnsLocale } from '../../../i18n/useDateFnsLocale';
 import { toast } from 'sonner';
 import { supabase } from '../../../lib/supabase';
-import { formatCurrency } from '../../../utils/format';
+import { formatArea, formatCurrency, parseAreaInput } from '../../../utils/format';
 import { Skeleton } from '../../ui/skeleton';
 
 interface PropertyDetailViewProps {
@@ -66,7 +66,6 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         price: data.price || 0,
         rent_monthly: data.rent_monthly || 0,
         lease_term_months: data.lease_term_months || null,
-        deposit: data.deposit || null,
         admin_fee: data.admin_fee || null,
         utilities_included: data.utilities_included || [],
         pets_policy: data.pets_policy || '',
@@ -403,11 +402,13 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
                   {isEditing ? (
                     <Input
                       type="number"
+                      step="0.01"
+                      min="0"
                       value={formData.area}
-                      onChange={(e) => setFormData({ ...formData, area: parseInt(e.target.value) || 0 })}
+                      onChange={(e) => setFormData({ ...formData, area: parseAreaInput(e.target.value) })}
                     />
                   ) : (
-                    <p className="text-sm font-medium">{property.area} m²</p>
+                    <p className="text-sm font-medium">{formatArea(property.area)}</p>
                   )}
                 </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { privatePropertiesTable } from '../../lib/propertyPrivacy';
 import { toast } from 'sonner';
 
 export type ResourceType = 'user' | 'property' | 'negotiation' | 'document';
@@ -40,50 +41,36 @@ export function useResourceDetail<T = any>({
       let query;
 
       switch (resourceType) {
-        case 'user':
-          query = supabase
+        case 'user': {
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select(`
-              *,
-              properties_owned:properties!properties_owner_id_fkey(
-                id,
-                title,
-                address,
-                status,
-                price,
-                created_at
-              ),
-              properties_agent:properties!properties_agent_id_fkey(
-                id,
-                title,
-                address,
-                status,
-                price,
-                created_at
-              )
-            `)
+            .select('*')
             .eq('id', resourceId)
             .single();
-          break;
+          if (profileError) throw profileError;
+
+          const [{ data: owned }, { data: agentProps }] = await Promise.all([
+            privatePropertiesTable()
+              .select('id, title, neighborhood, city, status, price, created_at')
+              .eq('owner_id', resourceId),
+            privatePropertiesTable()
+              .select('id, title, neighborhood, city, status, price, created_at')
+              .eq('agent_id', resourceId),
+          ]);
+
+          setData({
+            ...profile,
+            properties_owned: owned ?? [],
+            properties_agent: agentProps ?? [],
+          } as T);
+          setLoading(false);
+          return;
+        }
 
         case 'property':
           query = supabase
-            .from('properties')
-            .select(`
-              *,
-              owner:profiles!properties_owner_id_fkey(
-                id,
-                full_name,
-                email,
-                phone
-              ),
-              agent:profiles!properties_agent_id_fkey(
-                id,
-                full_name,
-                email,
-                phone
-              )
-            `)
+            .from('properties_private' as 'properties')
+            .select('*')
             .eq('id', resourceId)
             .single();
           break;
@@ -96,7 +83,8 @@ export function useResourceDetail<T = any>({
               property:properties(
                 id,
                 title,
-                address,
+                neighborhood,
+                city,
                 price
               ),
               participants:negotiation_participants(

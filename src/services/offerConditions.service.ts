@@ -527,7 +527,7 @@ export class OfferConditionsService {
 
       // Get property owner
       const { data: property } = await supabase
-        .from('properties')
+        .from('properties_private' as 'properties')
         .select('owner_id')
         .eq('id', offer.property_id)
         .single();

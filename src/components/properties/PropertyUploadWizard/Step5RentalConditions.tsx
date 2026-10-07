@@ -13,7 +13,6 @@ interface Step5RentalConditionsProps {
   formatPrice: (price: number) => string;
   onRentMonthlyChange: (value: string) => void;
   onLeaseTermMonthsChange: (value: string) => void;
-  onDepositChange: (value: string) => void;
   onAdminFeeChange: (value: string) => void;
   onUtilitiesIncludedChange: (utilities: string[]) => void;
   onPetsPolicyChange: (value: string) => void;
@@ -24,7 +23,6 @@ export const Step5RentalConditions: React.FC<Step5RentalConditionsProps> = ({
   formatPrice,
   onRentMonthlyChange,
   onLeaseTermMonthsChange,
-  onDepositChange,
   onAdminFeeChange,
   onUtilitiesIncludedChange,
   onPetsPolicyChange,
@@ -55,32 +53,16 @@ export const Step5RentalConditions: React.FC<Step5RentalConditionsProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="leaseTermMonths">{t('properties.wizard.rental.leaseTerm')}</Label>
-          <Input
-            id="leaseTermMonths"
-            type="number"
-            min="1"
-            placeholder={t('common.example', { value: '12' })}
-            value={toNumString(propertyData.leaseTermMonths)}
-            onChange={(e) => onLeaseTermMonthsChange(e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="deposit">{t('properties.wizard.rental.deposit')}</Label>
-          <Input
-            id="deposit"
-            type="number"
-            min="0"
-            placeholder={t('common.optional')}
-            value={propertyData.deposit > 0 ? String(propertyData.deposit) : ''}
-            onChange={(e) => onDepositChange(e.target.value)}
-          />
-          {propertyData.deposit > 0 && (
-            <p className="text-sm text-muted-foreground mt-1">{formatPrice(propertyData.deposit)}</p>
-          )}
-        </div>
+      <div>
+        <Label htmlFor="leaseTermMonths">{t('properties.wizard.rental.leaseTerm')}</Label>
+        <Input
+          id="leaseTermMonths"
+          type="number"
+          min="1"
+          placeholder={t('common.example', { value: '12' })}
+          value={toNumString(propertyData.leaseTermMonths)}
+          onChange={(e) => onLeaseTermMonthsChange(e.target.value)}
+        />
       </div>
 
       <div>
