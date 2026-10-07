@@ -3,10 +3,11 @@
  * Seed REAL properties for Sunday Properties.
  *
  * Accounts:
- *   - Peter Pichler (owner) — Brisas del Estadio sale
- *   - Mónica Luque (owner) — Campo Nuevo rental
- *   - Pablo Noreña (owner) — Lauret rental
- *   - Daniel Luque (agent) — assigned to all listings
+ *   - Propietario Brisas del Estadio (owner) — Brisas del Estadio sale
+ *   - Propietaria El Escorial 701 (owner) — El Escorial rental
+ *   - Propietaria Campo Nuevo (owner) — Campo Nuevo rental
+ *   - Propietario Casa Lauret (owner) — Lauret rental
+ *   - Assigned agent — assigned to all listings
  *
  * Usage:
  *   npm run seed:real-properties
@@ -98,10 +99,10 @@ const DEFAULT_PASSWORD = 'RealProp2026!';
 
 /** @type {Record<string, { email: string; fullName: string; role: 'user' | 'agent' }>} */
 const ACCOUNTS = {
-  peter: { email: 'peter.pichler@sunday.com', fullName: 'Peter Pichler', role: 'user' },
-  amelia: { email: 'amelia.patino@sunday.com', fullName: 'Amelia Patiño', role: 'user' },
-  monica: { email: 'monica.luque@sunday.com', fullName: 'Mónica Luque', role: 'user' },
-  pablo: { email: 'pablo.norena@sunday.com', fullName: 'Pablo Noreña', role: 'user' },
+  brisas: { email: 'brisas-estadio@sunday.com', fullName: 'Propietario Brisas del Estadio', role: 'user' },
+  escorial: { email: 'escorial-701@sunday.com', fullName: 'Propietaria El Escorial 701', role: 'user' },
+  campoNuevo: { email: 'campo-nuevo@sunday.com', fullName: 'Propietaria Campo Nuevo', role: 'user' },
+  lauret: { email: 'casa-lauret@sunday.com', fullName: 'Propietario Casa Lauret', role: 'user' },
   daniel: { email: 'daniel@luquelaw.co', fullName: 'Daniel Luque', role: 'agent' }
 };
 
@@ -132,11 +133,11 @@ const IMG = {
     'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=800&fit=crop'
   ],
   escorial: [
-    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/AMELIA-PATINO-_ENTRADA.webp',
-    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/AMELIA-PATINO_BIBLIOTECA.webp',
-    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/AMELIA-PATINO_COCINA.webp',
-    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/AMELIA-PATINO_HABITACION.webp',
-    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/AMELIA-PATINO_HABITACION2.webp'
+    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/entrada.webp',
+    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/biblioteca.webp',
+    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/cocina.webp',
+    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/habitacion-1.webp',
+    'https://prtyuwdkrrqhtwolcrav.supabase.co/storage/v1/object/public/property-photos/escorial-701/habitacion-2.webp'
   ]
 };
 
@@ -147,12 +148,12 @@ const REAL_PROPERTIES = [
     title: 'Brisas del Estadio — Apartamento dúplex en venta',
     description: `For sale: dúplex de 75 m² (40 m² principal + 35 m² altillo), completamente remodelado en Conjunto Residencial Brisas del Estadio P.H.
 
-Apartamento 517 + parqueadero privado S-24. Piso 5 (sin ascensor). Smart home, ventanas europeas de doble vidrio, puerta con cerradura digital, cocina integral con lavavajillas, 2 baños completos, amoblado.
+Apartamento + parqueadero privado. Piso 5 (sin ascensor). Smart home, ventanas europeas de doble vidrio, puerta con cerradura digital, cocina integral con lavavajillas, 2 baños completos, amoblado.
 
-Ubicación estratégica junto al Estadio, alta valorización. Gestión de venta con respaldo legal Luque Law (POA Peter Pichler). Visitas con cita previa.
+Ubicación estratégica junto al Estadio, alta valorización. Gestión de venta con respaldo legal Luque Law (poder del propietario). Visitas con cita previa.
 
 Publicado en FincaRaiz: https://www.fincaraiz.com.co/apartamento-en-venta-en-laureles-medellin/194112531 (código 194112531).`,
-    address: 'Carrera 74 No. 53-162, Apto 517',
+    address: 'Brisas del Estadio, Estadio',
     neighborhood: 'Estadio',
     city: 'Medellín',
     coordinates: { lat: 6.2568, lng: -75.5901 },
@@ -182,8 +183,8 @@ Publicado en FincaRaiz: https://www.fincaraiz.com.co/apartamento-en-venta-en-lau
     visit_price: 49000,
     accepts_crypto: false,
     financing: true,
-    ownerKey: 'peter',
-    tags: ['venta', 'brisas-del-estadio', 'duplex', 'peter-pichler']
+    ownerKey: 'brisas',
+    tags: ['venta', 'brisas-del-estadio', 'duplex']
   },
   {
     key: 'escorial-701',
@@ -217,8 +218,8 @@ Visitas con cita previa. Gestión de arriendo con Sunday Properties.`,
     legal_documents: [],
     features: ['Biblioteca', 'Balcón', '4 habitaciones', '3 baños', '140 m²'],
     visit_price: 49000,
-    ownerKey: 'amelia',
-    tags: ['arriendo', 'conquistadores', 'el-escorial', 'amelia-patino']
+    ownerKey: 'escorial',
+    tags: ['arriendo', 'conquistadores', 'el-escorial']
   },
   {
     key: 'campo-nuevo',
@@ -229,7 +230,7 @@ Visitas con cita previa. Gestión de arriendo con Sunday Properties.`,
 Gimnasio, zonas verdes, BBQ, excelente iluminación y acabados. Cocina integral, 2 habitaciones, 2 baños, parqueadero y acceso controlado.
 
 Contrato de arrendamiento claro con respaldo legal. Ideal para parejas o profesionales.`,
-    address: 'Carrera 80 # 32-15, Campo Nuevo',
+    address: 'Campo Nuevo',
     neighborhood: 'Campo Nuevo',
     city: 'Medellín',
     coordinates: { lat: 6.175, lng: -75.58 },
@@ -253,7 +254,7 @@ Contrato de arrendamiento claro con respaldo legal. Ideal para parejas o profesi
     legal_documents: [],
     features: ['Gimnasio', 'Zonas verdes', 'BBQ', 'Parqueadero', 'Portería'],
     visit_price: 49000,
-    ownerKey: 'monica',
+    ownerKey: 'campoNuevo',
     tags: ['arriendo', 'campo-nuevo']
   },
   {
@@ -263,7 +264,7 @@ Contrato de arrendamiento claro con respaldo legal. Ideal para parejas o profesi
     description: `Hermosa casa en el corazón de Laureles, ideal para familias o ejecutivos.
 
 Jardín privado, zona de parrilla y fácil acceso a parques, restaurantes y transporte. Contrato de arrendamiento estándar con opción de renovación.`,
-    address: 'Calle 70 # 45-20, Laureles',
+    address: 'Laureles',
     neighborhood: 'Laureles',
     city: 'Medellín',
     coordinates: { lat: 6.2458, lng: -75.5942 },
@@ -287,12 +288,12 @@ Jardín privado, zona de parrilla y fácil acceso a parques, restaurantes y tran
     legal_documents: [],
     features: ['Jardín', 'Zona BBQ', 'Parqueadero', 'Seguridad'],
     visit_price: 49000,
-    ownerKey: 'pablo',
+    ownerKey: 'lauret',
     tags: ['arriendo', 'laureles']
   }
 ];
 
-/** Legacy placeholder title — remove after migration */
+/** Legacy placeholder title (owner name in historical row) — delete if still present */
 const LEGACY_TITLES = ['Propiedad Peter Pitchler - Venta'];
 
 async function findOrCreateAccount({ email, fullName, role }) {
@@ -536,9 +537,9 @@ async function main() {
   }
 
   console.log('\n🔐 Test account passwords (if newly created):', DEFAULT_PASSWORD);
-  console.log('   Peter:', ACCOUNTS.peter.email);
-  console.log('   Mónica:', ACCOUNTS.monica.email);
-  console.log('   Daniel (agent):', ACCOUNTS.daniel.email);
+  console.log('   Brisas owner:', ACCOUNTS.brisas.email);
+  console.log('   Escorial owner:', ACCOUNTS.escorial.email);
+  console.log('   Agent:', ACCOUNTS.daniel.email);
   console.log('\n✅ Real properties seed complete.\n');
 }
 
