@@ -76,15 +76,15 @@ const PUBLIC_SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydHl1d2RrcnJxaHR3b2xjcmF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4OTA1MDUsImV4cCI6MjA3NjQ2NjUwNX0.0n7zBh6TvTdHtEDn_lNE0IaPkIVK3Ujhf6hZ2yNFOGo';
 
 export function getSupabasePublicConfig(): { url: string; anonKey: string } {
+  // Prefer VITE_* (Production). Skip leftover NEXT_PUBLIC_* keys — they are
+  // older than the current anon key and 401 on Preview.
   const url = (
     process.env.VITE_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL ||
     process.env.SUPABASE_URL ||
     PUBLIC_SUPABASE_URL
   ).trim();
   const anonKey = (
     process.env.VITE_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.SUPABASE_ANON_KEY ||
     PUBLIC_SUPABASE_ANON_KEY
   ).trim();
@@ -334,7 +334,10 @@ export async function fetchPublishedListingForOg(
     },
   });
 
-  if (!response.ok) return null;
+  if (!response.ok) {
+    console.error('[listing-og] properties lookup failed', response.status);
+    return null;
+  }
   const rows = (await response.json()) as ListingForOg[];
   if (!Array.isArray(rows) || rows.length === 0) return null;
   const listing = rows[0];
@@ -349,7 +352,8 @@ export async function renderListingIndexHtml(
   let listing: ListingForOg | null = null;
   try {
     listing = await fetchPublishedListingForOg(slugOrId);
-  } catch {
+  } catch (error) {
+    console.error('[listing-og] properties lookup threw', error);
     listing = null;
   }
   const meta = buildListingMeta(listing) || genericSiteMeta();
