@@ -11,7 +11,8 @@ export const DEFAULT_DESCRIPTION =
 
 /**
  * Explicit allow-list for the OG/server lookup.
- * Never add address, minimum_offer_price, owner_id, coordinates, or legal docs.
+ * Never add address, minimum_offer_price, owner_id, coordinates,
+ * legal docs, deposit, agent_id, or negotiation_terms.
  */
 export const LISTING_OG_COLUMNS = [
   'id',
@@ -35,10 +36,14 @@ export const LISTING_OG_FORBIDDEN_COLUMNS = [
   'owner_id',
   'coordinates',
   'legal_docs',
+  'legal_documents',
   'documents',
   'phone',
   'email',
   'owner_name',
+  'deposit',
+  'agent_id',
+  'negotiation_terms',
 ] as const;
 
 export type ListingForOg = {

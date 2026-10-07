@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 import { formatCurrency, getListingPriceValue } from '../../utils/format';
-import { applyPropertyKeyFilter, isPropertyUuid, propertyEditPath, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
+import { applyPropertyKeyFilter, propertyEditPath, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -126,7 +126,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
 
       let canManage = false;
       if (user) {
-        const privateRow = await fetchPrivatePropertyByKey(propertyId, isPropertyUuid(propertyId));
+        const privateRow = await fetchPrivatePropertyByKey(propertyId);
         canManage = Boolean(privateRow.data);
       }
 

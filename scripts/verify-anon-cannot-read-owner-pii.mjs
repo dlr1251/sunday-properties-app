@@ -2,8 +2,10 @@
 /**
  * Run AFTER applying:
  *   supabase/migrations/20261006000000_lock_down_profile_pii.sql
+ *   supabase/migrations/20261006120000_add_public_coordinates.sql
  *   supabase/migrations/20261007000000_lock_down_property_secrets.sql
- * to the live project. Uses only the public anon key.
+ * to the live project (A, then frontend deploy, then B). Uses only the
+ * public anon key.
  *
  *   node scripts/verify-anon-cannot-read-owner-pii.mjs
  *

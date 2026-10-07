@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { applyPropertyKeyFilter } from '../utils/propertyPath';
 import {
   approximateNeighborhoodCoords,
   isValidCoordinates,
@@ -8,7 +9,10 @@ import {
 /**
  * Columns the anon key (and a random signed-in user) may read on
  * public.properties. Keep in sync with
+ * supabase/migrations/20261006120000_add_public_coordinates.sql
+ * (additive; apply first) and
  * supabase/migrations/20261007000000_lock_down_property_secrets.sql
+ * (revokes; apply after the frontend deploy).
  *
  * Do not add address, exact coordinates, owner/agent ids, offer floors,
  * commissions, legal docs, negotiation terms, or rental deposits
@@ -116,9 +120,8 @@ export async function fetchOwnedPropertyIds(userId: string): Promise<string[]> {
   return (data ?? []).map((row) => row.id);
 }
 
-export async function fetchPrivatePropertyByKey(key: string, isUuid: boolean) {
-  const query = privatePropertiesTable().select('*');
-  return isUuid ? query.eq('id', key).maybeSingle() : query.eq('slug', key).maybeSingle();
+export async function fetchPrivatePropertyByKey(key: string) {
+  return applyPropertyKeyFilter(privatePropertiesTable().select('*'), key).maybeSingle();
 }
 
 function collectPropertyIds<T extends Record<string, any>>(rows: T[]): string[] {

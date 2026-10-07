@@ -1,26 +1,26 @@
 -- =============================================================================
--- Lock down listing secrets from the public anon key and from random users
+-- Migration B (revokes): lock down listing secrets
 -- =============================================================================
--- DO NOT apply this to the live project until the matching frontend is deployed.
--- select('*') on public.properties will fail for anon after the REVOKE.
---
--- Safe order (same release):
---   1. Deploy the frontend in this PR to Vercel (explicit safe-column selects,
+-- DO NOT apply this until:
+--   1. 20261006120000_add_public_coordinates.sql is applied (additive;
+--      safe before the frontend deploy), AND
+--   2. the matching frontend is deployed (explicit safe-column selects,
 --      properties_private for owner/admin).
---   2. Confirm home, /properties, /properties/:slug, search, map, and share
---      still render.
---   3. Apply THIS file in the Supabase SQL editor of project prtyuwdkrrqhtwolcrav
+--
+-- Release order:
+--   A. Apply 20261006120000_add_public_coordinates.sql
+--   B. Deploy this frontend to Vercel. Confirm home, /properties,
+--      /properties/:slug, search, map, and share still render.
+--   C. Apply THIS file in the Supabase SQL editor of project prtyuwdkrrqhtwolcrav
 --      (or `supabase db push` against that project). Do not run it from an
 --      agent against production.
---   4. Verify with:
+--   D. Verify with:
 --        node scripts/verify-anon-cannot-read-owner-pii.mjs
 --      Expect PASS: anon cannot read address, minimum_offer_price, or deposit.
 --
--- Why frontend and this SQL must ship together:
---   Live public queries use select('*'). After REVOKE, that request fails
---   for the whole row. The new bundle only asks for the granted columns.
---   Applying SQL first would 403 the live site; deploying the bundle first
---   without SQL still leaks address / minimum_offer_price through REST.
+-- Applying THIS file first 403s live select('*'). Deploying the bundle
+-- without A 400s public_coordinates. Deploying the bundle without THIS
+-- file still leaks address / minimum_offer_price / deposit through REST.
 --
 -- What this does:
 --   Live had GRANT ALL on properties to anon, plus RLS
@@ -33,6 +33,9 @@
 --   After this migration, anon and a random authenticated user can SELECT
 --   only public-safe columns. Owners and staff read secrets through
 --   public.properties_private (SECURITY DEFINER view).
+--   Policies on profiles and property_visit_availability that joined
+--   properties.owner_id / agent_id go through private.property_owner_id
+--   and private.is_agent_for_owner.
 -- =============================================================================
 
 CREATE SCHEMA IF NOT EXISTS private;
@@ -50,24 +53,43 @@ AS $$
 $$;
 
 REVOKE ALL ON FUNCTION private.current_profile_role() FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.current_profile_role() FROM anon;
 GRANT EXECUTE ON FUNCTION private.current_profile_role() TO authenticated;
 
--- Neighborhood-level pin (~1.1 km). Maps keep working without a street pin.
-ALTER TABLE public.properties
-  ADD COLUMN IF NOT EXISTS public_coordinates jsonb
-  GENERATED ALWAYS AS (
-    CASE
-      WHEN (coordinates ? 'lat')
-       AND (coordinates ? 'lng')
-       AND ((coordinates->>'lat') ~ '^-?[0-9]+(\.[0-9]+)?$')
-       AND ((coordinates->>'lng') ~ '^-?[0-9]+(\.[0-9]+)?$')
-      THEN jsonb_build_object(
-        'lat', round((coordinates->>'lat')::numeric, 2),
-        'lng', round((coordinates->>'lng')::numeric, 2)
-      )
-      ELSE NULL
-    END
-  ) STORED;
+-- Invoker policies on other tables cannot SELECT properties.owner_id /
+-- agent_id after the column REVOKE. These helpers run as the owner.
+CREATE OR REPLACE FUNCTION private.property_owner_id(p_property_id uuid)
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT owner_id FROM public.properties WHERE id = p_property_id;
+$$;
+
+CREATE OR REPLACE FUNCTION private.is_agent_for_owner(p_owner_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.properties
+    WHERE agent_id = auth.uid()
+      AND owner_id = p_owner_id
+  );
+$$;
+
+REVOKE ALL ON FUNCTION private.property_owner_id(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.property_owner_id(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION private.property_owner_id(uuid) TO authenticated;
+
+REVOKE ALL ON FUNCTION private.is_agent_for_owner(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.is_agent_for_owner(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION private.is_agent_for_owner(uuid) TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Column privileges
@@ -211,5 +233,88 @@ GRANT SELECT ON TABLE public.properties_private TO authenticated;
 COMMENT ON VIEW public.properties_private IS
   'Full property rows for the owning user, assigned agent, or staff. Not available to anon.';
 
-COMMENT ON COLUMN public.properties.public_coordinates IS
-  'Neighborhood-level lat/lng (2 decimal degrees). Safe to expose on public listing queries.';
+-- ---------------------------------------------------------------------------
+-- Invoker policies that read properties.owner_id / agent_id
+-- ---------------------------------------------------------------------------
+-- Live audit (pg_policy): only these two policies join properties for
+-- protected columns. Storage policies do not. Same-table RLS on
+-- properties (owner_id = auth.uid()) does not need a helper.
+
+DROP POLICY IF EXISTS "Participants can read counterpart profiles" ON public.profiles;
+CREATE POLICY "Participants can read counterpart profiles"
+  ON public.profiles
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.conversations c
+      WHERE auth.uid() = ANY (c.participants)
+        AND profiles.id = ANY (c.participants)
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM public.negotiations n
+      WHERE (
+          auth.uid() IN (n.buyer_id, n.seller_id, n.lawyer_id, n.agent_id)
+          OR auth.uid() = ANY (n.participants)
+        )
+        AND profiles.id IN (n.buyer_id, n.seller_id, n.lawyer_id, n.agent_id)
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM public.visits v
+      WHERE (v.visitor_id = auth.uid() AND private.property_owner_id(v.property_id) = profiles.id)
+         OR (private.property_owner_id(v.property_id) = auth.uid() AND v.visitor_id = profiles.id)
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM public.offers o
+      WHERE (o.buyer_id = auth.uid() AND private.property_owner_id(o.property_id) = profiles.id)
+         OR (private.property_owner_id(o.property_id) = auth.uid() AND o.buyer_id = profiles.id)
+         OR (o.buyer_id = auth.uid() AND o.seller_id = profiles.id)
+         OR (o.seller_id = auth.uid() AND o.buyer_id = profiles.id)
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM public.cases c
+      WHERE auth.uid() IN (c.buyer_id, c.seller_id, c.lawyer_id)
+        AND profiles.id IN (c.buyer_id, c.seller_id, c.lawyer_id)
+    )
+    OR private.is_agent_for_owner(profiles.id)
+  );
+
+DROP POLICY IF EXISTS "Owners can manage their property availability" ON public.property_visit_availability;
+CREATE POLICY "Owners can manage their property availability"
+  ON public.property_visit_availability
+  FOR ALL
+  TO authenticated
+  USING (private.property_owner_id(property_id) = auth.uid())
+  WITH CHECK (private.property_owner_id(property_id) = auth.uid());
+
+-- Unused SELECT * INTO property failed after REVOKE (column privileges
+-- apply to invoker functions). The row was never read.
+CREATE OR REPLACE FUNCTION public.get_offer_net_efficiency_index(p_offer_id uuid)
+RETURNS numeric
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    offer RECORD;
+    net_value DECIMAL;
+    closing_days INTEGER;
+    efficiency_index DECIMAL;
+BEGIN
+    SELECT * INTO offer FROM offers WHERE id = p_offer_id;
+
+    net_value := offer.price * 0.95;
+    closing_days := EXTRACT(DAYS FROM (offer.closing_date - CURRENT_DATE));
+
+    IF closing_days > 0 THEN
+        efficiency_index := net_value / closing_days;
+    ELSE
+        efficiency_index := 0;
+    END IF;
+
+    RETURN efficiency_index;
+END;
+$$;
