@@ -77,7 +77,7 @@ export function DocumentDetailView({ documentId, documentType, onUpdate }: Docum
       // Fetch related property if exists
       if (doc.property_id) {
         const { data: property } = await supabase
-          .from('properties')
+          .from('properties_private' as 'properties')
           .select('id, title, address')
           .eq('id', doc.property_id)
           .single();

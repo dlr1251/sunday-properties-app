@@ -1,5 +1,5 @@
 import React from 'react';
-import { supabase } from '../../../lib/supabase';
+import { privatePropertiesTable } from '../../../lib/propertyPrivacy';
 
 export type UsePropertiesQuery = {
   search?: string;
@@ -20,7 +20,7 @@ export function usePropertiesData(query: UsePropertiesQuery) {
   async function load() {
     setIsLoading(true);
     setError(null);
-    let q = supabase.from('properties').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range((page - 1) * limit, page * limit - 1);
+    let q = privatePropertiesTable().select('*', { count: 'exact' }).order('created_at', { ascending: false }).range((page - 1) * limit, page * limit - 1);
     if (search) q = q.ilike('title', `%${search}%`);
     if (status && status !== 'all') q = q.eq('status', status);
     if (city) q = q.ilike('city', `%${city}%`);

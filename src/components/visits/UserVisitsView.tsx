@@ -76,14 +76,14 @@ export const UserVisitsView: React.FC = () => {
     if (user?.id) {
       fetchVisits({ visitorId: user.id });
       const refreshReceived = async () => {
-        const { data: userProperties } = await supabase.from('properties').select('id').eq('owner_id', user!.id);
+        const { data: userProperties } = await supabase.from('properties_private' as 'properties').select('id').eq('owner_id', user!.id);
         if (userProperties?.length) {
           const propertyIds = userProperties.map((p: { id: string }) => p.id);
           const { data: visitsData } = await supabase
             .from('visits')
             .select(`
               *,
-              property:properties!visits_property_id_fkey (id, title, address, owner_id, images),
+              property:properties!visits_property_id_fkey (id, title, neighborhood, city, images),
               visitor:profiles!visits_visitor_id_fkey (id, full_name, email, phone, avatar_url)
             `)
             .in('property_id', propertyIds)
@@ -112,7 +112,7 @@ export const UserVisitsView: React.FC = () => {
       try {
         // First, get all properties owned by this user
         const { data: userProperties, error: propError } = await supabase
-          .from('properties')
+          .from('properties_private' as 'properties')
           .select('id')
           .eq('owner_id', user.id);
 
@@ -138,8 +138,8 @@ export const UserVisitsView: React.FC = () => {
             property:properties!visits_property_id_fkey (
               id,
               title,
-              address,
-              owner_id,
+              neighborhood,
+              city,
               images
             ),
             visitor:profiles!visits_visitor_id_fkey (
@@ -235,7 +235,7 @@ export const UserVisitsView: React.FC = () => {
         // Also refresh received visits
         const refreshReceived = async () => {
           const { data: userProperties } = await supabase
-            .from('properties')
+            .from('properties_private' as 'properties')
             .select('id')
             .eq('owner_id', user.id);
           
@@ -246,11 +246,7 @@ export const UserVisitsView: React.FC = () => {
               .select(`
                 *,
                 property:properties!visits_property_id_fkey (
-                  id,
-                  title,
-                  address,
-                  owner_id,
-                  images
+                  id, title, neighborhood, city, images
                 ),
                 visitor:profiles!visits_visitor_id_fkey (
                   id,

@@ -162,8 +162,7 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
           updated_at: new Date().toISOString()
         })
         .eq('id', property.id)
-        .eq('owner_id', user.id) // Extra security check
-        .select()
+        .select('id, slug')
         .single();
 
       if (error) throw error;

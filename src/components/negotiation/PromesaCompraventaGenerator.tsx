@@ -134,7 +134,8 @@ export const PromesaCompraventaGenerator: React.FC<PromesaCompraventaGeneratorPr
           property:properties(
             id,
             title,
-            address,
+            neighborhood,
+            city,
             city,
             property_type,
             area,

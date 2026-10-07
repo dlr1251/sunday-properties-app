@@ -68,7 +68,7 @@ export function useNegotiationsListData(userId: string | undefined) {
           .or(`buyer_id.eq.${userId},seller_id.eq.${userId},lawyer_id.eq.${userId},agent_id.eq.${userId}`)
           .order('updated_at', { ascending: false }),
         supabase
-          .from('properties')
+          .from('properties_private' as 'properties')
           .select('id, title, price, neighborhood, city, address, created_at')
           .eq('owner_id', userId)
       ]);

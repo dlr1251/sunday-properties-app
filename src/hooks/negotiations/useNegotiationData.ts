@@ -175,22 +175,8 @@ export function useNegotiationData(negotiationId: string) {
 
         // Obtener la propiedad con toda la información disponible
         const { data: property, error: propertyError } = await supabase
-          .from('properties')
-          .select(`
-            *,
-            owner:profiles!properties_owner_id_fkey(
-              id,
-              full_name,
-              email,
-              phone
-            ),
-            agent:profiles!properties_agent_id_fkey(
-              id,
-              full_name,
-              email,
-              phone
-            )
-          `)
+          .from('properties_private' as 'properties')
+          .select('*')
           .eq('id', negotiation.property_id)
           .single();
 

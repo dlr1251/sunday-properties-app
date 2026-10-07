@@ -64,6 +64,7 @@ export interface Database {
             lng: number;
             note?: string;
           }> | null;
+          public_coordinates: { lat: number; lng: number } | null;
           property_type: string;
           status: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -103,6 +104,7 @@ export interface Database {
             lng: number;
             note?: string;
           }> | null;
+          public_coordinates?: { lat: number; lng: number } | null;
           property_type: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area: number;
@@ -142,6 +144,7 @@ export interface Database {
             lng: number;
             note?: string;
           }> | null;
+          public_coordinates?: { lat: number; lng: number } | null;
           property_type?: string;
           status?: 'draft' | 'pending' | 'published' | 'inactive' | 'sold' | 'rejected';
           area?: number;

@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase';
+import { hydrateSensitivePropertyFields } from '../../propertyPrivacy';
 import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError, createNotFoundError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
@@ -78,10 +79,7 @@ export class OffersRepository {
           *,
           property:properties!offers_property_id_fkey (
             id,
-            title,
-            address,
-            price,
-            owner_id
+            title, neighborhood, city, price
           ),
           buyer:profiles!offers_buyer_id_fkey (
             id,
@@ -123,7 +121,7 @@ export class OffersRepository {
         throw createDatabaseError('Error al cargar las ofertas', error);
       }
 
-      return data || [];
+      return hydrateSensitivePropertyFields(data || []);
     });
   }
 
@@ -138,10 +136,7 @@ export class OffersRepository {
           *,
           property:properties!offers_property_id_fkey (
             id,
-            title,
-            address,
-            price,
-            owner_id
+            title, neighborhood, city, price
           ),
           buyer:profiles!offers_buyer_id_fkey (
             id,
@@ -161,7 +156,8 @@ export class OffersRepository {
         throw createDatabaseError('Error al cargar la oferta', error);
       }
 
-      return data;
+      const [row] = await hydrateSensitivePropertyFields([data]);
+      return row;
     });
   }
 
@@ -199,10 +195,7 @@ export class OffersRepository {
           *,
           property:properties!offers_property_id_fkey (
             id,
-            title,
-            address,
-            price,
-            owner_id
+            title, neighborhood, city, price
           ),
           buyer:profiles!offers_buyer_id_fkey (
             id,
@@ -252,10 +245,7 @@ export class OffersRepository {
           *,
           property:properties!offers_property_id_fkey (
             id,
-            title,
-            address,
-            price,
-            owner_id
+            title, neighborhood, city, price
           ),
           buyer:profiles!offers_buyer_id_fkey (
             id,
@@ -319,10 +309,7 @@ export class OffersRepository {
           *,
           property:properties!offers_property_id_fkey (
             id,
-            title,
-            address,
-            price,
-            owner_id
+            title, neighborhood, city, price
           ),
           buyer:profiles!offers_buyer_id_fkey (
             id,
@@ -373,10 +360,7 @@ export class OffersRepository {
           *,
           property:properties!offers_property_id_fkey (
             id,
-            title,
-            address,
-            price,
-            owner_id,
+            title, neighborhood, city, price,
             owner:profiles!properties_owner_id_fkey (
               id,
               full_name,
@@ -419,7 +403,7 @@ export class OffersRepository {
         throw createDatabaseError('Error al cargar las ofertas del comprador', error);
       }
 
-      return data || [];
+      return hydrateSensitivePropertyFields(data || []);
     });
   }
 

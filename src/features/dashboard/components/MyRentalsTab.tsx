@@ -116,7 +116,8 @@ export const MyRentalsTab: React.FC = () => {
           property:properties!contracts_property_id_fkey (
             id,
             title,
-            address,
+            neighborhood,
+            city,
             images
           ),
           tenant:profiles!contracts_buyer_id_fkey (

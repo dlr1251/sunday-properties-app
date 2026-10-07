@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Property } from '../../types/entities';
 import { supabase } from '../../lib/supabase';
+import { PUBLIC_PROPERTY_SELECT, mapPublicProperty } from '../../lib/propertyPrivacy';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, listingAmount } from '../../utils/format';
 import {
@@ -37,7 +38,7 @@ export const FeaturedProperty: React.FC<FeaturedPropertyProps> = ({
         // Get a random featured property (premium or verified)
         const { data, error } = await supabase
           .from('properties')
-          .select('*')
+          .select(PUBLIC_PROPERTY_SELECT)
           .eq('status', 'published')
           .or('premium.eq.true,verified.eq.true')
           .order('created_at', { ascending: false })
@@ -49,7 +50,7 @@ export const FeaturedProperty: React.FC<FeaturedPropertyProps> = ({
         } else if (data && data.length > 0) {
           // Select a random property from the top 10
           const randomIndex = Math.floor(Math.random() * Math.min(data.length, 3));
-          setFeaturedProperty(data[randomIndex] as Property);
+          setFeaturedProperty(mapPublicProperty(data[randomIndex] as Record<string, unknown>) as Property);
         }
       } catch (err) {
         console.error('Unexpected error fetching featured property:', err);

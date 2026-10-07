@@ -7,11 +7,11 @@ import { PropertyMap, type PropertyMarker } from './PropertyMap';
 import { OpenInGoogleMapsButton } from './OpenInGoogleMapsButton';
 import { propertyPath } from '@/utils/propertyPath';
 import {
-  approximateNeighborhoodCoords,
   getBoundsCenter,
   isValidCoordinates,
   publicLocationLabel,
 } from '@/utils/publicLocation';
+import { publicMapCoordinates } from '@/lib/propertyPrivacy';
 
 export interface PropertyForMap {
   id: string;
@@ -21,6 +21,7 @@ export interface PropertyForMap {
   city?: string;
   price?: number | string;
   coordinates?: { lat: number; lng: number } | null;
+  public_coordinates?: { lat: number; lng: number } | null;
   images?: string[];
   verified?: boolean;
   premium?: boolean;
@@ -44,7 +45,7 @@ export const PropertiesMapView: React.FC<PropertiesMapViewProps> = ({
     return properties
       .map((property) => ({
         ...property,
-        approx: approximateNeighborhoodCoords(property.coordinates),
+        approx: publicMapCoordinates(property),
       }))
       .filter((property) => isValidCoordinates(property.approx));
   }, [properties]);

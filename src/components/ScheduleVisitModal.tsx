@@ -283,47 +283,8 @@ export function ScheduleVisitModal({
         throw error;
       }
 
-      // Get property owner to create notification
-      const { data: propertyData, error: propError } = await supabase
-        .from('properties')
-        .select('owner_id')
-        .eq('id', propertyId)
-        .single();
-      
-      if (propError) {
-        console.error('Error fetching property owner:', propError);
-      } else if (propertyData?.owner_id) {
-        // Create notification for property owner
-        const { error: notifError } = await supabase
-          .from('notifications')
-          .insert({
-            user_id: propertyData.owner_id,
-            type: 'visit_request',
-            title: t('properties.detail.schedule.notificationTitle'),
-            message: t('properties.detail.schedule.notificationMessage', {
-              title: propertyTitle,
-              date: pendingVisitData.scheduledDate,
-              time: pendingVisitData.scheduledTime,
-            }),
-            data: {
-              visit_id: pendingVisitData.id,
-              property_id: propertyId,
-              visitor_id: user.id,
-              scheduled_date: pendingVisitData.scheduledDate,
-              scheduled_time: pendingVisitData.scheduledTime
-            },
-            read: false
-          });
-        
-        if (notifError) {
-          console.error('Error creating notification for owner:', notifError);
-          // Don't throw - notification failure shouldn't fail the visit
-        } else {
-          console.log('✅ Notification created for property owner:', propertyData.owner_id);
-        }
-      } else {
-        console.warn('Property owner not found for property:', propertyId);
-      }
+      // Owner id is not readable on public listing queries. Owners see the
+      // visit from their dashboard via property_id.
 
       if (onVisitScheduled) {
         await onVisitScheduled({

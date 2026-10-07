@@ -48,7 +48,8 @@ export function useResourceDetail<T = any>({
               properties_owned:properties!properties_owner_id_fkey(
                 id,
                 title,
-                address,
+                neighborhood,
+                city,
                 status,
                 price,
                 created_at
@@ -56,7 +57,8 @@ export function useResourceDetail<T = any>({
               properties_agent:properties!properties_agent_id_fkey(
                 id,
                 title,
-                address,
+                neighborhood,
+                city,
                 status,
                 price,
                 created_at
@@ -68,22 +70,8 @@ export function useResourceDetail<T = any>({
 
         case 'property':
           query = supabase
-            .from('properties')
-            .select(`
-              *,
-              owner:profiles!properties_owner_id_fkey(
-                id,
-                full_name,
-                email,
-                phone
-              ),
-              agent:profiles!properties_agent_id_fkey(
-                id,
-                full_name,
-                email,
-                phone
-              )
-            `)
+            .from('properties_private' as 'properties')
+            .select('*')
             .eq('id', resourceId)
             .single();
           break;
@@ -96,7 +84,8 @@ export function useResourceDetail<T = any>({
               property:properties(
                 id,
                 title,
-                address,
+                neighborhood,
+                city,
                 price
               ),
               participants:negotiation_participants(

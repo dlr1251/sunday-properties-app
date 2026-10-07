@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase';
+import { fetchOwnedPropertyIds, hydrateSensitivePropertyFields } from '../../propertyPrivacy';
 import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError, createNotFoundError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
@@ -66,11 +67,7 @@ export class VisitsRepository {
           *,
           property:properties!visits_property_id_fkey (
             id,
-            title,
-            address,
-            neighborhood,
-            city,
-            owner_id
+            title, neighborhood, city
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,
@@ -83,8 +80,9 @@ export class VisitsRepository {
 
       // Apply user filter based on type
       if (type === 'incoming') {
-        // Visits to properties owned by the user
-        query = query.eq('property.owner_id', userId);
+        const ownedIds = await fetchOwnedPropertyIds(userId);
+        if (ownedIds.length === 0) return [];
+        query = query.in('property_id', ownedIds);
       } else if (type === 'scheduled') {
         // Visits scheduled by the user
         query = query.eq('visitor_id', userId);
@@ -106,7 +104,7 @@ export class VisitsRepository {
       if (filters?.search) {
         query = query.or(`
           property.title.ilike.%${filters.search}%,
-          property.address.ilike.%${filters.search}%,
+          property.neighborhood.ilike.%${filters.search}%,
           visitor.name.ilike.%${filters.search}%
         `);
       }
@@ -119,9 +117,11 @@ export class VisitsRepository {
       }
 
       // Transform data and add type information
-      const visits = (data || []).map(visit => ({
+      const ownedIds = new Set(type === 'incoming' ? await fetchOwnedPropertyIds(userId) : []);
+      const hydrated = await hydrateSensitivePropertyFields(data || []);
+      const visits = hydrated.map(visit => ({
         ...visit,
-        type: visit.property?.owner_id === userId ? 'incoming' : 'scheduled'
+        type: type === 'incoming' || ownedIds.has(visit.property_id) ? 'incoming' : 'scheduled'
       }));
 
       return visits;
@@ -139,11 +139,7 @@ export class VisitsRepository {
           *,
           property:properties!visits_property_id_fkey (
             id,
-            title,
-            address,
-            neighborhood,
-            city,
-            owner_id
+            title, neighborhood, city
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,
@@ -200,11 +196,7 @@ export class VisitsRepository {
           *,
           property:properties!visits_property_id_fkey (
             id,
-            title,
-            address,
-            neighborhood,
-            city,
-            owner_id
+            title, neighborhood, city
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,
@@ -264,11 +256,7 @@ export class VisitsRepository {
           *,
           property:properties!visits_property_id_fkey (
             id,
-            title,
-            address,
-            neighborhood,
-            city,
-            owner_id
+            title, neighborhood, city
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,
@@ -311,11 +299,7 @@ export class VisitsRepository {
           *,
           property:properties!visits_property_id_fkey (
             id,
-            title,
-            address,
-            neighborhood,
-            city,
-            owner_id
+            title, neighborhood, city
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,
@@ -360,11 +344,7 @@ export class VisitsRepository {
           *,
           property:properties!visits_property_id_fkey (
             id,
-            title,
-            address,
-            neighborhood,
-            city,
-            owner_id
+            title, neighborhood, city
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,

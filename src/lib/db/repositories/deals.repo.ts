@@ -108,7 +108,8 @@ export class DealsRepository {
           *,
           property:property_id (
             title,
-            address,
+            neighborhood,
+            city,
             city,
             price,
             images
@@ -273,7 +274,8 @@ export class DealsRepository {
           *,
           property:property_id (
             title,
-            address,
+            neighborhood,
+            city,
             city,
             price,
             images

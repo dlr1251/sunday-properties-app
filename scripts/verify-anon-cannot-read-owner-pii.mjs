@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
- * Run AFTER applying supabase/migrations/20261006000000_lock_down_profile_pii.sql
+ * Run AFTER applying:
+ *   supabase/migrations/20261006000000_lock_down_profile_pii.sql
+ *   supabase/migrations/20261007000000_lock_down_property_secrets.sql
  * to the live project. Uses only the public anon key.
  *
  *   node scripts/verify-anon-cannot-read-owner-pii.mjs
  *
- * Exit 0: anon cannot read owner email / phone / full_name.
+ * Exit 0: anon cannot read owner email/phone/full_name, listing addresses,
+ *         or minimum_offer_price.
  * Exit 1: leak still present.
  */
 const url = (
@@ -29,6 +32,17 @@ function hasPii(value) {
   return Boolean(value.email || value.phone || value.full_name || value.name);
 }
 
+function hasListingSecret(row) {
+  if (!row || typeof row !== 'object') return false;
+  if (row.address) return true;
+  if (row.minimum_offer_price != null) return true;
+  if (row.owner_id) return true;
+  if (row.legal_documents && Array.isArray(row.legal_documents) && row.legal_documents.length > 0) {
+    return true;
+  }
+  return false;
+}
+
 async function get(path) {
   const res = await fetch(`${url}${path}`, { headers });
   const text = await res.text();
@@ -39,6 +53,18 @@ async function get(path) {
     body = text;
   }
   return { status: res.status, body };
+}
+
+function deniedSensitiveColumn(result) {
+  if (result.status === 200 && Array.isArray(result.body)) {
+    return result.body.every((row) => !hasListingSecret(row));
+  }
+  if (result.status === 401 || result.status === 403) return true;
+  if (typeof result.body === 'object' && result.body && result.body.code === '42501') return true;
+  if (typeof result.body === 'object' && result.body && /permission denied/i.test(result.body.message || '')) {
+    return true;
+  }
+  return false;
 }
 
 const leaks = [];
@@ -65,11 +91,49 @@ if (embedded.status === 200 && Array.isArray(embedded.body)) {
   }
 }
 
+const address = await get('/rest/v1/properties?select=id,slug,address&status=eq.published');
+if (!deniedSensitiveColumn(address)) {
+  leaks.push('GET /properties?select=address still returns street addresses to anon');
+}
+
+const minOffer = await get(
+  '/rest/v1/properties?select=id,slug,minimum_offer_price&status=eq.published'
+);
+if (!deniedSensitiveColumn(minOffer)) {
+  leaks.push('GET /properties?select=minimum_offer_price still returns offer floors to anon');
+}
+
+const star = await get('/rest/v1/properties?select=*&status=eq.published&limit=4');
+if (star.status === 200 && Array.isArray(star.body)) {
+  const leaked = star.body.filter(hasListingSecret);
+  if (leaked.length > 0) {
+    leaks.push(`GET /properties?select=* returned secrets on ${leaked.length} published listing(s)`);
+  }
+} else if (star.status === 200) {
+  leaks.push('GET /properties?select=* unexpected body (status 200)');
+}
+
+const coords = await get('/rest/v1/properties?select=id,coordinates&status=eq.published');
+if (coords.status === 200 && Array.isArray(coords.body) && coords.body.some((row) => row.coordinates)) {
+  leaks.push('GET /properties?select=coordinates still returns precise pins to anon');
+}
+
+const safe = await get(
+  '/rest/v1/properties?select=id,slug,title,neighborhood,city,public_coordinates,price,status&status=eq.published'
+);
+if (safe.status !== 200 || !Array.isArray(safe.body) || safe.body.length === 0) {
+  leaks.push(
+    `GET safe public columns failed (status=${safe.status}); listings should still be readable`
+  );
+}
+
 if (leaks.length > 0) {
-  console.error('FAIL: anon key can still read owner personal data:');
+  console.error('FAIL: anon key can still read owner personal data or listing secrets:');
   for (const line of leaks) console.error(` - ${line}`);
   process.exit(1);
 }
 
-console.log('PASS: anon key cannot read owner email, phone, or full_name.');
-console.log(`profiles status=${profiles.status}; properties embed status=${embedded.status}`);
+console.log('PASS: anon key cannot read owner PII, address, or minimum_offer_price.');
+console.log(
+  `profiles status=${profiles.status}; embed status=${embedded.status}; address status=${address.status}; min_offer status=${minOffer.status}; star status=${star.status}; safe status=${safe.status} rows=${Array.isArray(safe.body) ? safe.body.length : 0}`
+);

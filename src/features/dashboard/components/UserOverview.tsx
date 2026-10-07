@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import { privatePropertiesTable } from '../../../lib/propertyPrivacy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avatar';
 import { getAvatarUrl } from '../../../utils/avatar';
@@ -29,7 +30,7 @@ export const UserOverview: React.FC = () => {
       
       try {
         const [propertiesRes, favoritesRes, visitsRes, offersRes] = await Promise.all([
-          supabase.from('properties').select('id', { count: 'exact', head: true }).eq('owner_id', user.id),
+          privatePropertiesTable().select('id', { count: 'exact', head: true }).eq('owner_id', user.id),
           supabase.from('favorites').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
           supabase.from('visits').select('id', { count: 'exact', head: true }).eq('visitor_id', user.id),
           supabase.from('offers').select('id', { count: 'exact', head: true }).eq('buyer_id', user.id)

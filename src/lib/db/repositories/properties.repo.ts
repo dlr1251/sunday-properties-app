@@ -3,6 +3,11 @@ import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError, createNotFoundError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
 import { isPropertyUuid } from '../../../utils/propertyPath';
+import {
+  PUBLIC_PROPERTY_SELECT,
+  mapPublicProperty,
+  privatePropertiesTable,
+} from '../../propertyPrivacy';
 
 // Property interface (matching database schema)
 export interface Property {
@@ -68,7 +73,7 @@ export class PropertiesRepository {
     return tryCatch(async () => {
       let query = supabase
         .from('properties')
-        .select('*')
+        .select(PUBLIC_PROPERTY_SELECT)
         .eq('status', 'published')
         .order('created_at', { ascending: false });
 
@@ -95,7 +100,8 @@ export class PropertiesRepository {
         query = query.or(`
           title.ilike.%${filters.search}%,
           description.ilike.%${filters.search}%,
-          address.ilike.%${filters.search}%
+          neighborhood.ilike.%${filters.search}%,
+          city.ilike.%${filters.search}%
         `);
       }
       if (filters.verified !== undefined) {
@@ -103,9 +109,6 @@ export class PropertiesRepository {
       }
       if (filters.premium !== undefined) {
         query = query.eq('premium', filters.premium);
-      }
-      if (filters.ownerId) {
-        query = query.eq('owner_id', filters.ownerId);
       }
 
       const { data, error } = await query;
@@ -115,7 +118,7 @@ export class PropertiesRepository {
         throw createDatabaseError('Error al cargar las propiedades', error);
       }
 
-      return data || [];
+      return (data || []).map((row) => mapPublicProperty(row as Record<string, unknown>)) as Property[];
     });
   }
 
@@ -124,16 +127,8 @@ export class PropertiesRepository {
    */
   async getPendingProperties(): Promise<Result<Property[], AppError>> {
     return tryCatch(async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select(`
-          *,
-          owner:profiles!properties_owner_id_fkey (
-            id,
-            full_name,
-            email
-          )
-        `)
+      const { data, error } = await privatePropertiesTable()
+        .select('*')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
@@ -234,7 +229,7 @@ export class PropertiesRepository {
       const keyColumn = isPropertyUuid(id) ? 'id' : 'slug';
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
+        .select(PUBLIC_PROPERTY_SELECT)
         .eq(keyColumn, id)
         .single();
 
@@ -246,7 +241,7 @@ export class PropertiesRepository {
         throw createDatabaseError('Error al cargar la propiedad', error);
       }
 
-      return data;
+      return mapPublicProperty(data as Record<string, unknown>) as Property;
     });
   }
 
@@ -269,14 +264,7 @@ export class PropertiesRepository {
         .from('properties')
         .update(updateData)
         .eq('id', id)
-        .select(`
-          *,
-          owner:profiles!properties_owner_id_fkey (
-            id,
-            name,
-            email
-          )
-        `)
+        .select(PUBLIC_PROPERTY_SELECT)
         .single();
 
       if (error) {
@@ -315,16 +303,8 @@ export class PropertiesRepository {
    */
   async getPropertiesByOwner(ownerId: string): Promise<Result<Property[], AppError>> {
     return tryCatch(async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select(`
-          *,
-          owner:profiles!properties_owner_id_fkey (
-            id,
-            name,
-            email
-          )
-        `)
+      const { data, error } = await privatePropertiesTable()
+        .select('*')
         .eq('owner_id', ownerId)
         .order('created_at', { ascending: false });
 
@@ -399,12 +379,12 @@ export class PropertiesRepository {
     return tryCatch(async () => {
       let supabaseQuery = supabase
         .from('properties')
-        .select('*')
+        .select(PUBLIC_PROPERTY_SELECT)
         .eq('status', 'published')
         .or(`
           title.ilike.%${query}%,
           description.ilike.%${query}%,
-          address.ilike.%${query}%,
+          neighborhood.ilike.%${query}%,
           city.ilike.%${query}%
         `)
         .order('created_at', { ascending: false });
@@ -427,7 +407,7 @@ export class PropertiesRepository {
         throw createDatabaseError('Error al buscar propiedades', error);
       }
 
-      return data || [];
+      return (data || []).map((row) => mapPublicProperty(row as Record<string, unknown>)) as Property[];
     });
   }
 }

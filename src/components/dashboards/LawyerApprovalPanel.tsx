@@ -31,8 +31,8 @@ export function LawyerApprovalPanel() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('properties')
-        .select('id,title,address,city,neighborhood,price,images,owner_id,legal_docs')
+        .from('properties_private' as 'properties')
+        .select('id,title,address,city,neighborhood,price,images,owner_id,legal_documents')
         .eq('status', 'submitted')
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -48,7 +48,7 @@ export function LawyerApprovalPanel() {
     try {
       // Get property details first
       const { data: property, error: propError } = await supabase
-        .from('properties')
+        .from('properties_private' as 'properties')
         .select('title, owner_id')
         .eq('id', id)
         .single();
@@ -80,7 +80,7 @@ export function LawyerApprovalPanel() {
     try {
       // Get property details first
       const { data: property, error: propError } = await supabase
-        .from('properties')
+        .from('properties_private' as 'properties')
         .select('title, owner_id')
         .eq('id', id)
         .single();
@@ -112,7 +112,7 @@ export function LawyerApprovalPanel() {
     try {
       // Get property details first
       const { data: property, error: propError } = await supabase
-        .from('properties')
+        .from('properties_private' as 'properties')
         .select('title, owner_id')
         .eq('id', id)
         .single();

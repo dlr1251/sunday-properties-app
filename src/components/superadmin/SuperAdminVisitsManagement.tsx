@@ -27,7 +27,7 @@ export function SuperAdminVisitsManagement() {
         .from('visit_requests')
         .select(`
           *,
-          property:properties(id, title, address),
+          property:properties(id, title, neighborhood, city),
           buyer:profiles!visit_requests_buyer_id_fkey(id, full_name, email)
         `)
         .order('created_at', { ascending: false });

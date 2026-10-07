@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import {
+  PUBLIC_PROPERTY_EMBED,
+  PUBLIC_PROPERTY_SELECT,
+  fetchOwnedPropertyIds,
+  hydrateSensitivePropertyFields,
+  mapPublicProperty,
+  privatePropertiesTable,
+} from '../lib/propertyPrivacy';
 
 // Simple hook for fetching user properties
 export const useUserProperties = (userId?: string) => {
@@ -19,8 +27,7 @@ export const useUserProperties = (userId?: string) => {
       setError(null);
 
       try {
-      const { data, error } = await supabase
-        .from('properties')
+      const { data, error } = await privatePropertiesTable()
         .select('*')
           .eq('owner_id', userId)
         .order('created_at', { ascending: false });
@@ -167,7 +174,7 @@ export const useAllProperties = (currentUserId?: string, listingType?: 'sale' | 
       try {
         let query = supabase
           .from('properties')
-          .select('*')
+          .select(PUBLIC_PROPERTY_SELECT)
           .eq('status', 'published')
           .order('created_at', { ascending: false });
 
@@ -182,11 +189,12 @@ export const useAllProperties = (currentUserId?: string, listingType?: 'sale' | 
           throw error;
         }
 
-        // Ownership is derived from the current session only. Do not embed
-        // profiles: owner email/phone/full_name must stay off public listing queries.
+        const ownedIds = currentUserId
+          ? new Set(await fetchOwnedPropertyIds(currentUserId))
+          : new Set<string>();
         const propertiesWithOwnership = data?.map(property => ({
-          ...property,
-          isOwner: property.owner_id === currentUserId,
+          ...mapPublicProperty(property),
+          isOwner: ownedIds.has(property.id),
         })) || [];
 
         setProperties(propertiesWithOwnership);
@@ -227,7 +235,7 @@ export const useVisitScheduling = () => {
       // First get property details to find owner
       const { data: property, error: propertyError } = await supabase
         .from('properties')
-        .select('owner_id, title')
+        .select('title')
         .eq('id', visitData.property_id)
         .single();
 
@@ -249,30 +257,10 @@ export const useVisitScheduling = () => {
         .single();
 
       if (visitError) throw visitError;
+      void property;
 
-      // Create notification for property owner
-      const { error: notificationError } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: property.owner_id,
-          type: 'visit_request',
-          title: 'Nueva solicitud de visita',
-          message: `Tienes una nueva solicitud de visita para "${property.title}" el ${visitData.scheduled_date} a las ${visitData.scheduled_time}`,
-          data: {
-            visit_id: visit.id,
-            property_id: visitData.property_id,
-            visitor_id: user.id,
-            visitor_name: visitData.visitor_name,
-            scheduled_date: visitData.scheduled_date,
-            scheduled_time: visitData.scheduled_time
-          },
-          read: false
-        });
-
-      if (notificationError) {
-        console.error('Error creating notification:', notificationError);
-        // Don't fail the whole operation for notification error
-      }
+      // Owner id is not readable on public listing queries. The visit row is
+      // enough; owners load incoming requests from their own properties.
 
       return { success: true, visit };
 
@@ -299,8 +287,7 @@ export const useVisitManagement = (userId?: string) => {
     setLoading(true);
     try {
       // First get all properties owned by this user
-      const { data: userProperties, error: propError } = await supabase
-        .from('properties')
+      const { data: userProperties, error: propError } = await privatePropertiesTable()
         .select('id')
         .eq('owner_id', userId);
 
@@ -320,9 +307,7 @@ export const useVisitManagement = (userId?: string) => {
         .select(`
           *,
           properties:properties!visits_property_id_fkey (
-            title,
-            address,
-            city
+            ${PUBLIC_PROPERTY_EMBED}
           ),
           visitor:profiles!visits_visitor_id_fkey (
             id,
@@ -336,10 +321,10 @@ export const useVisitManagement = (userId?: string) => {
 
       if (allError) throw allError;
 
-      // Filter pending visits
-      const pending = (allData || []).filter(v => v.status === 'pending');
+      const visits = await hydrateSensitivePropertyFields(allData || []);
+      const pending = visits.filter(v => v.status === 'pending');
       setPendingVisits(pending);
-      setAllVisits(allData || []);
+      setAllVisits(visits);
     } catch (error) {
       console.error('Error fetching visits:', error);
     } finally {
@@ -472,7 +457,7 @@ export const useProperties = (filters?: {
       try {
         let query = supabase
           .from('properties')
-          .select('*')
+          .select(PUBLIC_PROPERTY_SELECT)
           .order('created_at', { ascending: false });
 
         // Apply filters
@@ -507,7 +492,7 @@ export const useProperties = (filters?: {
 
         // Transform data to include primary image
         const transformedProperties = (data || []).map(property => ({
-          ...property,
+          ...mapPublicProperty(property),
           primary_image: property.images?.[0] ||
                         'https://picsum.photos/400/300?random=' + property.id,
         }));

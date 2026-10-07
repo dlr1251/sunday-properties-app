@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase';
+import { hydrateSensitivePropertyFields } from '../../propertyPrivacy';
 import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
@@ -90,7 +91,7 @@ export class CasesRepository {
           property:properties!cases_property_id_fkey (
             id,
             title,
-            address,
+            neighborhood,
             city,
             price,
             area,
@@ -105,7 +106,7 @@ export class CasesRepository {
         throw createDatabaseError(error);
       }
 
-      return data || [];
+      return hydrateSensitivePropertyFields(data || []);
     });
   }
 
@@ -139,7 +140,7 @@ export class CasesRepository {
           property:properties!cases_property_id_fkey (
             id,
             title,
-            address,
+            neighborhood,
             city,
             price,
             area,
@@ -204,7 +205,7 @@ export class CasesRepository {
           property:properties!cases_property_id_fkey (
             id,
             title,
-            address,
+            neighborhood,
             city,
             price
           )
@@ -245,7 +246,7 @@ export class CasesRepository {
           property:properties!cases_property_id_fkey (
             id,
             title,
-            address,
+            neighborhood,
             city,
             price
           )

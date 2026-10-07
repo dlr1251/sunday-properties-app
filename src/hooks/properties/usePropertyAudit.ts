@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import { privatePropertiesTable } from '../../lib/propertyPrivacy';
 import { toast } from 'sonner';
 
 interface PropertyChange {
@@ -66,7 +67,7 @@ export const usePropertyAudit = () => {
     try {
       // Get property details
       const { data: property } = await supabase
-        .from('properties')
+        .from('properties_private' as 'properties')
         .select('title, owner_id')
         .eq('id', propertyId)
         .single();

@@ -83,7 +83,7 @@ export const AdminNegotiationAssignment: React.FC<AdminNegotiationAssignmentProp
         .from('negotiations')
         .select(`
           *,
-          property:properties(id, title, address),
+          property:properties(id, title, neighborhood, city),
           buyer:profiles!negotiations_buyer_id_fkey(id, full_name),
           seller:profiles!negotiations_seller_id_fkey(id, full_name),
           lawyer:profiles!negotiations_lawyer_id_fkey(id, full_name)
