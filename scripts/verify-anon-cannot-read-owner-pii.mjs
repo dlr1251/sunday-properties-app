@@ -8,7 +8,7 @@
  *   node scripts/verify-anon-cannot-read-owner-pii.mjs
  *
  * Exit 0: anon cannot read owner email/phone/full_name, listing addresses,
- *         or minimum_offer_price.
+ *         minimum_offer_price, or deposit.
  * Exit 1: leak still present.
  */
 const url = (
@@ -36,6 +36,7 @@ function hasListingSecret(row) {
   if (!row || typeof row !== 'object') return false;
   if (row.address) return true;
   if (row.minimum_offer_price != null) return true;
+  if (row.deposit != null) return true;
   if (row.owner_id) return true;
   if (row.legal_documents && Array.isArray(row.legal_documents) && row.legal_documents.length > 0) {
     return true;
@@ -103,6 +104,11 @@ if (!deniedSensitiveColumn(minOffer)) {
   leaks.push('GET /properties?select=minimum_offer_price still returns offer floors to anon');
 }
 
+const deposit = await get('/rest/v1/properties?select=id,slug,deposit&status=eq.published');
+if (!deniedSensitiveColumn(deposit)) {
+  leaks.push('GET /properties?select=deposit still returns rental deposits to anon');
+}
+
 const star = await get('/rest/v1/properties?select=*&status=eq.published&limit=4');
 if (star.status === 200 && Array.isArray(star.body)) {
   const leaked = star.body.filter(hasListingSecret);
@@ -133,7 +139,7 @@ if (leaks.length > 0) {
   process.exit(1);
 }
 
-console.log('PASS: anon key cannot read owner PII, address, or minimum_offer_price.');
+console.log('PASS: anon key cannot read owner PII, address, minimum_offer_price, or deposit.');
 console.log(
-  `profiles status=${profiles.status}; embed status=${embedded.status}; address status=${address.status}; min_offer status=${minOffer.status}; star status=${star.status}; safe status=${safe.status} rows=${Array.isArray(safe.body) ? safe.body.length : 0}`
+  `profiles status=${profiles.status}; embed status=${embedded.status}; address status=${address.status}; min_offer status=${minOffer.status}; deposit status=${deposit.status}; star status=${star.status}; safe status=${safe.status} rows=${Array.isArray(safe.body) ? safe.body.length : 0}`
 );

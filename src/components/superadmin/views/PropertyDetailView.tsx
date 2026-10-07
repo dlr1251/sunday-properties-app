@@ -66,7 +66,6 @@ export function PropertyDetailView({ propertyId, onUpdate }: PropertyDetailViewP
         price: data.price || 0,
         rent_monthly: data.rent_monthly || 0,
         lease_term_months: data.lease_term_months || null,
-        deposit: data.deposit || null,
         admin_fee: data.admin_fee || null,
         utilities_included: data.utilities_included || [],
         pets_policy: data.pets_policy || '',

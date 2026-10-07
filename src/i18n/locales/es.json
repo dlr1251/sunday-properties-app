@@ -823,11 +823,10 @@
         "monthlyRent": "Canon de arriendo mensual (COP) *",
         "perMonth": "{{amount}} / mes",
         "leaseTerm": "Plazo del contrato (meses) *",
-        "deposit": "Depósito (COP)",
         "adminFee": "Cuota de administración / agencia (COP)",
         "utilitiesIncluded": "Servicios incluidos",
         "petsPolicy": "Política de mascotas",
-        "petsPlaceholder": "Ej: Se permiten mascotas pequeñas con depósito adicional."
+        "petsPlaceholder": "Ej: Se permiten mascotas pequeñas."
       },
       "utilities": {
         "agua": "Agua",
@@ -958,7 +957,6 @@
       "deliveryDate": "Fecha de entrega",
       "deliveryHint": "Entrega de la propiedad al comprador",
       "leaseTerm": "Plazo del contrato (meses)",
-      "deposit": "Depósito (COP)",
       "adminFee": "Cuota de administración / agencia (COP)",
       "petsPolicy": "Política de mascotas",
       "specifications": "Especificaciones",
@@ -1349,7 +1347,6 @@
       "monthlyRent": "Canon mensual (COP) *",
       "leaseStart": "Inicio del contrato *",
       "termMonths": "Plazo (meses) *",
-      "deposit": "Depósito (COP)",
       "adminFee": "Cuota admin/agencia (COP)",
       "utilitiesIncluded": "Servicios incluidos",
       "petsPolicy": "Política de mascotas",
@@ -2934,7 +2931,7 @@
         },
         "clarity": {
           "title": "Claridad",
-          "description": "Lenguaje directo para clientes internacionales sobre visitas, depósitos y pasos de cierre."
+          "description": "Lenguaje directo para clientes internacionales sobre visitas y pasos de cierre."
         },
         "trust": {
           "title": "Confianza",

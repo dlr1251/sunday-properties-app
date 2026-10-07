@@ -9,7 +9,7 @@ import {
 } from './propertyPrivacy';
 
 describe('public property columns', () => {
-  it('never includes exact addresses, offer floors, owner ids, or legal docs', () => {
+  it('never includes exact addresses, offer floors, owner ids, legal docs, or deposits', () => {
     for (const column of SENSITIVE_PROPERTY_COLUMNS) {
       expect(PUBLIC_PROPERTY_COLUMNS).not.toContain(column);
       expect(PUBLIC_PROPERTY_SELECT.split(',')).not.toContain(column);
@@ -48,12 +48,14 @@ describe('mapPublicProperty', () => {
       address: 'Carrera 70 No. 1-23',
       minimum_offer_price: 370000000,
       owner_id: 'owner-1',
+      deposit: 4900000,
     });
 
     expect(mapped.coordinates).toEqual({ lat: 6.26, lng: -75.59 });
     expect(mapped).not.toHaveProperty('address');
     expect(mapped).not.toHaveProperty('minimum_offer_price');
     expect(mapped).not.toHaveProperty('owner_id');
+    expect(mapped).not.toHaveProperty('deposit');
   });
 });
 

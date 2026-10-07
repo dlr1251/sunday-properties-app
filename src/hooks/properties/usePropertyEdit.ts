@@ -14,7 +14,6 @@ export interface PropertyUpdateData {
   price?: number | null;
   rent_monthly?: number | null;
   lease_term_months?: number | null;
-  deposit?: number | null;
   admin_fee?: number | null;
   utilities_included?: string[];
   pets_policy?: string | null;

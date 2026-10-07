@@ -823,11 +823,10 @@
         "monthlyRent": "Monthly rent (COP) *",
         "perMonth": "{{amount}} / mo",
         "leaseTerm": "Lease term (months) *",
-        "deposit": "Deposit (COP)",
         "adminFee": "Admin / agency fee (COP)",
         "utilitiesIncluded": "Utilities included",
         "petsPolicy": "Pets policy",
-        "petsPlaceholder": "E.g. Small pets allowed with additional deposit."
+        "petsPlaceholder": "E.g. Small pets allowed."
       },
       "utilities": {
         "agua": "Water",
@@ -958,7 +957,6 @@
       "deliveryDate": "Delivery date",
       "deliveryHint": "Delivery of the property to the buyer",
       "leaseTerm": "Lease term (months)",
-      "deposit": "Deposit (COP)",
       "adminFee": "Admin / agency fee (COP)",
       "petsPolicy": "Pets policy",
       "specifications": "Specifications",
@@ -1349,7 +1347,6 @@
       "monthlyRent": "Monthly rent (COP) *",
       "leaseStart": "Lease start *",
       "termMonths": "Term (months) *",
-      "deposit": "Deposit (COP)",
       "adminFee": "Admin/agency fee (COP)",
       "utilitiesIncluded": "Utilities included",
       "petsPolicy": "Pets policy",
@@ -2934,7 +2931,7 @@
         },
         "clarity": {
           "title": "Clarity",
-          "description": "Plain language for international clients on visits, deposits, and closing steps."
+          "description": "Plain language for international clients on visits and closing steps."
         },
         "trust": {
           "title": "Trust",

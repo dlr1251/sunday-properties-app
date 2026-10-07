@@ -183,7 +183,6 @@ export const PropertyEditPage: React.FC = () => {
           price: formData.listing_type === 'sale' ? formData.price : null,
           rent_monthly: formData.listing_type === 'rental' ? (formData.rent_monthly ?? null) : null,
           lease_term_months: formData.listing_type === 'rental' ? (formData.lease_term_months ?? null) : null,
-          deposit: formData.listing_type === 'rental' ? (formData.deposit ?? null) : null,
           admin_fee: formData.listing_type === 'rental' ? (formData.admin_fee ?? null) : null,
           utilities_included: formData.listing_type === 'rental' ? (formData.utilities_included ?? []) : [],
           pets_policy: formData.listing_type === 'rental' ? (formData.pets_policy ?? null) : null,

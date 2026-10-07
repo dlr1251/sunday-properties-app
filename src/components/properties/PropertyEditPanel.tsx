@@ -145,7 +145,6 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
           price: formData.listing_type === 'sale' ? formData.price : null,
           rent_monthly: formData.listing_type === 'rental' ? (formData.rent_monthly ?? null) : null,
           lease_term_months: formData.listing_type === 'rental' ? (formData.lease_term_months ?? null) : null,
-          deposit: formData.listing_type === 'rental' ? (formData.deposit ?? null) : null,
           admin_fee: formData.listing_type === 'rental' ? (formData.admin_fee ?? null) : null,
           utilities_included: formData.listing_type === 'rental' ? (formData.utilities_included ?? []) : [],
           pets_policy: formData.listing_type === 'rental' ? (formData.pets_policy ?? null) : null,
@@ -409,17 +408,6 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
                             min="1"
                             value={formData.lease_term_months ?? ''}
                             onChange={(e) => handleInputChange('lease_term_months', parseInt(e.target.value) || null)}
-                            className="h-10 lg:h-12 text-sm lg:text-base"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="deposit" className="text-sm lg:text-base">{t('properties.edit.deposit')}</Label>
-                          <Input
-                            id="deposit"
-                            type="number"
-                            min="0"
-                            value={formData.deposit ?? ''}
-                            onChange={(e) => handleInputChange('deposit', parseInt(e.target.value) || null)}
                             className="h-10 lg:h-12 text-sm lg:text-base"
                           />
                         </div>

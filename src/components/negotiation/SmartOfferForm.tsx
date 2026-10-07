@@ -134,7 +134,6 @@ export function SmartOfferForm({
   const [monthlyRent, setMonthlyRent] = useState<number>(propertyPrice || 0);
   const [leaseStartDate, setLeaseStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [leaseTermMonths, setLeaseTermMonths] = useState<number>(12);
-  const [deposit, setDeposit] = useState<number>(0);
   const [adminFee, setAdminFee] = useState<number>(0);
   const [utilitiesIncluded, setUtilitiesIncluded] = useState<string[]>([]);
   const [petsPolicy, setPetsPolicy] = useState<string>('');
@@ -220,7 +219,6 @@ export function SmartOfferForm({
               monthly_rent: monthlyRent,
               lease_start_date: leaseStartDate,
               lease_term_months: leaseTermMonths,
-              deposit,
               admin_fee: adminFee,
               utilities_included: utilitiesIncluded,
               pets_policy: petsPolicy,
@@ -358,16 +356,6 @@ export function SmartOfferForm({
                         min="1"
                         value={leaseTermMonths}
                         onChange={(e) => setLeaseTermMonths(parseInt(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">{t('negotiations.smartOffer.deposit')}</label>
-                      <input
-                        className="w-full border border-input bg-background rounded-md px-3 py-2"
-                        type="number"
-                        min="0"
-                        value={deposit}
-                        onChange={(e) => setDeposit(parseInt(e.target.value) || 0)}
                       />
                     </div>
                     <div className="space-y-2">

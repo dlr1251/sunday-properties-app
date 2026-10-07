@@ -14,7 +14,7 @@
 --      agent against production.
 --   4. Verify with:
 --        node scripts/verify-anon-cannot-read-owner-pii.mjs
---      Expect PASS: anon cannot read address or minimum_offer_price.
+--      Expect PASS: anon cannot read address, minimum_offer_price, or deposit.
 --
 -- Why frontend and this SQL must ship together:
 --   Live public queries use select('*'). After REVOKE, that request fails
@@ -27,7 +27,9 @@
 --   "Allow public access to published properties" USING (status = 'published')
 --   and "Allow authenticated users to manage properties" USING (true).
 --   Anyone with the anon key could read address, the confidential minimum
---   offer, precise coordinates, owner_id, and legal_documents.
+--   offer, precise coordinates, owner_id, legal_documents, and deposit.
+--   Deposit is withheld from the public column list: Ley 820 art. 16
+--   forbids requiring a deposit on Colombian urban housing leases.
 --   After this migration, anon and a random authenticated user can SELECT
 --   only public-safe columns. Owners and staff read secrets through
 --   public.properties_private (SECURITY DEFINER view).
@@ -114,7 +116,6 @@ GRANT SELECT (
   listing_type,
   rent_monthly,
   lease_term_months,
-  deposit,
   admin_fee,
   utilities_included,
   pets_policy,

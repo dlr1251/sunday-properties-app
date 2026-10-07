@@ -11,7 +11,8 @@ import {
  * supabase/migrations/20261007000000_lock_down_property_secrets.sql
  *
  * Do not add address, exact coordinates, owner/agent ids, offer floors,
- * commissions, legal docs, or negotiation terms.
+ * commissions, legal docs, negotiation terms, or rental deposits
+ * (Ley 820 art. 16 — Colombian housing leases cannot require deposits).
  */
 export const PUBLIC_PROPERTY_COLUMNS = [
   'id',
@@ -49,7 +50,6 @@ export const PUBLIC_PROPERTY_COLUMNS = [
   'listing_type',
   'rent_monthly',
   'lease_term_months',
-  'deposit',
   'admin_fee',
   'utilities_included',
   'pets_policy',
@@ -64,6 +64,7 @@ export const SENSITIVE_PROPERTY_COLUMNS = [
   'owner_id',
   'agent_id',
   'negotiation_terms',
+  'deposit',
 ] as const;
 
 export const PUBLIC_PROPERTY_SELECT = PUBLIC_PROPERTY_COLUMNS.join(',');

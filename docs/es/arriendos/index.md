@@ -49,7 +49,7 @@ Apartamento moderno, funcional y bien ubicado. Ideal para profesionales o pareja
 ## Preguntas frecuentes sobre arriendos
 
 **¿Necesito codeudor o fiador?**  
-Depende del propietario. Muchos aceptan depósito + historial crediticio limpio. Lo indicamos claramente en cada publicación.
+Depende del propietario. En vivienda urbana colombiana no se puede exigir depósito (Ley 820 de 2003, art. 16). Cada publicación indica si pide codeudor o historial crediticio.
 
 **¿Puedo llevar mascotas?**  
 Cada propiedad tiene su política de mascotas explícita (ver sección de cada anuncio).

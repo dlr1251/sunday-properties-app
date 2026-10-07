@@ -49,7 +49,7 @@ Modern, functional apartment in a well-connected emerging area. Perfect for prof
 ## Frequently asked questions
 
 **Do I need a co-signer / guarantor?**  
-Depends on the owner. Many accept a deposit + clean credit history. Clearly stated per listing.
+Depends on the owner. Colombian urban housing leases cannot require a deposit (Law 820 of 2003, art. 16). Each listing states whether a co-signer or credit history is requested.
 
 **Can I bring pets?**  
 Each property has an explicit pet policy (see the listing).
