@@ -32,7 +32,7 @@ import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency } from '../../utils/format';
-import { isPropertyUuid, propertyPath } from '../../utils/propertyPath';
+import { applyPropertyKeyFilter, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
 
 interface OfferedTimeline {
   deedSigningDate?: string;
@@ -89,9 +89,13 @@ export const PropertyEditPage: React.FC = () => {
   const [formData, setFormData] = useState<Property | null>(null);
 
   useEffect(() => {
-    if (propertyId) {
-      fetchProperty();
+    if (!propertyId) return;
+    const redirectTo = propertyKeyRedirectPath(propertyId, '/edit');
+    if (redirectTo) {
+      navigate(`${redirectTo}${window.location.search}`, { replace: true });
+      return;
     }
+    fetchProperty();
   }, [propertyId]);
 
   const fetchProperty = async () => {
@@ -102,9 +106,7 @@ export const PropertyEditPage: React.FC = () => {
       let query = supabase
         .from('properties')
         .select('*');
-      query = isPropertyUuid(propertyId)
-        ? query.eq('id', propertyId)
-        : query.eq('slug', propertyId);
+      query = applyPropertyKeyFilter(query, propertyId);
       const { data, error } = await query.single();
 
       if (error) throw error;

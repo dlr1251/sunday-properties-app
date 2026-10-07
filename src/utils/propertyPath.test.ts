@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
+  applyPropertyKeyFilter,
   isPropertyUuid,
-  slugify,
-  propertyKey,
-  propertyPath,
   propertyEditPath,
+  propertyKey,
+  propertyKeyRedirectPath,
+  propertyPath,
+  slugify,
 } from './propertyPath';
 
 describe('slugify', () => {
@@ -43,5 +45,39 @@ describe('propertyPath', () => {
 
   it('falls back to id when slug is missing', () => {
     expect(propertyPath({ id: 'abc-uuid' })).toBe('/properties/abc-uuid');
+  });
+});
+
+describe('propertyKeyRedirectPath', () => {
+  it('redirects mixed-case slugs to the lowercase URL', () => {
+    expect(propertyKeyRedirectPath('El-Escorial-701')).toBe('/properties/el-escorial-701');
+    expect(propertyKeyRedirectPath('El-Escorial-701', '/edit')).toBe(
+      '/properties/el-escorial-701/edit'
+    );
+    expect(propertyKeyRedirectPath('el-escorial-701')).toBeNull();
+    expect(propertyKeyRedirectPath('abd51c41-1234-5678-9abc-def012345678')).toBeNull();
+  });
+});
+
+describe('applyPropertyKeyFilter', () => {
+  it('uses ilike for slugs and eq for UUIDs', () => {
+    const slugCalls: Array<[string, string]> = [];
+    const uuidCalls: Array<[string, string]> = [];
+    const slugQuery = {
+      eq(column: string, value: string) {
+        uuidCalls.push([column, value]);
+        return slugQuery;
+      },
+      ilike(column: string, value: string) {
+        slugCalls.push([column, value]);
+        return slugQuery;
+      },
+    };
+    applyPropertyKeyFilter(slugQuery, 'El-Escorial-701');
+    expect(slugCalls).toEqual([['slug', 'El-Escorial-701']]);
+    expect(uuidCalls).toEqual([]);
+
+    applyPropertyKeyFilter(slugQuery, 'abd51c41-1234-5678-9abc-def012345678');
+    expect(uuidCalls).toEqual([['id', 'abd51c41-1234-5678-9abc-def012345678']]);
   });
 });

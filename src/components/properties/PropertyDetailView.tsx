@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
 import { formatCurrency, getListingPriceValue } from '../../utils/format';
-import { isPropertyUuid, propertyEditPath, propertyPath } from '../../utils/propertyPath';
+import { applyPropertyKeyFilter, propertyEditPath, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -92,6 +92,11 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
 
   // Fetch property data
   useEffect(() => {
+    const redirectTo = propertyKeyRedirectPath(propertyId);
+    if (redirectTo) {
+      navigate(`${redirectTo}${window.location.search}`, { replace: true });
+      return;
+    }
     fetchPropertyData();
   }, [propertyId, user]);
 
@@ -110,9 +115,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
           *,
           nearby_places
         `);
-      query = isPropertyUuid(propertyId)
-        ? query.eq('id', propertyId)
-        : query.eq('slug', propertyId);
+      query = applyPropertyKeyFilter(query, propertyId);
 
       const { data, error } = await query.maybeSingle();
 
@@ -145,7 +148,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
         meta.setAttribute('content', publicDescription.slice(0, 160));
       }
 
-      if (data.slug && propertyId !== data.slug && isPropertyUuid(propertyId)) {
+      if (data.slug && propertyId !== data.slug) {
         const path = window.location.pathname;
         if (path === `/properties/${propertyId}`) {
           navigate(propertyPath(data), { replace: true });

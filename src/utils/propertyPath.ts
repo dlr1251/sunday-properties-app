@@ -34,3 +34,30 @@ export function propertyPath(property: PropertyPathSource): string {
 export function propertyEditPath(property: PropertyPathSource): string {
   return `${propertyPath(property)}/edit`;
 }
+
+function escapeIlikeExact(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
+/** Case-insensitive slug match; UUIDs stay exact. */
+export function applyPropertyKeyFilter<
+  Q extends { eq: (column: string, value: string) => Q; ilike: (column: string, value: string) => Q },
+>(query: Q, propertyId: string): Q {
+  return isPropertyUuid(propertyId)
+    ? query.eq('id', propertyId)
+    : query.ilike('slug', escapeIlikeExact(propertyId));
+}
+
+/**
+ * If the public listing key is a mixed-case slug, return the lowercase
+ * canonical path (plus optional suffix such as `/edit`).
+ */
+export function propertyKeyRedirectPath(
+  propertyId: string,
+  suffix = ''
+): string | null {
+  if (!propertyId || isPropertyUuid(propertyId)) return null;
+  const lower = propertyId.toLowerCase();
+  if (propertyId === lower) return null;
+  return `/properties/${lower}${suffix}`;
+}

@@ -5,8 +5,17 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/((?!docs/|assets/)(?!.*\\.[a-zA-Z0-9]+$).*)",
+      "source": "/properties/:slugOrId",
+      "destination": "/api/listing-html?slugOrId=:slugOrId"
+    },
+    {
+      "source": "/((?!api/|docs/|assets/)(?!.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/listing-html.ts": {
+      "includeFiles": "build/index.html"
+    }
+  }
 }
