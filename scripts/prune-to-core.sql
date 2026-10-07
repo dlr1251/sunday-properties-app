@@ -97,7 +97,7 @@ DELETE FROM public.properties
 WHERE title NOT IN (
   'Casa Lauret - Arriendo en Laureles',
   'Apartamento Campo Nuevo - Arriendo',
-  'Propiedad Peter Pitchler - Venta',
+  'Brisas del Estadio — Apartamento dúplex en venta',
   'Apartamento Moderno en El Poblado'   -- remove this line if you want ONLY the 3 real ones
 );
 

@@ -62,11 +62,11 @@ describe('googleMapsNeighborhoodUrl', () => {
 describe('sanitizePublicDescription', () => {
   it('redacts apartment, house number, and the listing street', () => {
     const raw =
-      'Apto 517 + parqueadero privado S-24. El conjunto está sobre la Carrera 74. Dirección: Carrera 74 No. 53-162.';
-    const clean = sanitizePublicDescription(raw, 'Carrera 74 No. 53-162, Apto 517');
-    expect(clean).not.toMatch(/Carrera\s*74/i);
-    expect(clean).not.toMatch(/Apto\s*517/i);
-    expect(clean).not.toMatch(/No\.\s*53-162/i);
+      'Apto 101 + parqueadero privado. El conjunto está sobre la Carrera 80. Dirección: Carrera 80 No. 12-34.';
+    const clean = sanitizePublicDescription(raw, 'Carrera 80 No. 12-34, Apto 101');
+    expect(clean).not.toMatch(/Carrera\s*80/i);
+    expect(clean).not.toMatch(/Apto\s*101/i);
+    expect(clean).not.toMatch(/No\.\s*12-34/i);
     expect(clean).not.toMatch(/sobre la,/i);
     expect(clean).toMatch(/parqueadero/i);
   });

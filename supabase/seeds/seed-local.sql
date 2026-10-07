@@ -127,7 +127,7 @@ BEGIN
 END $$;
 
 -- ============================================
--- REAL PROPERTIES (Lauret / Campo Nuevo rentals + Peter Pitchler sale)
+-- REAL PROPERTIES (Lauret / Campo Nuevo rentals + El Poblado sale placeholder)
 -- ============================================
 -- These are the production/real properties the user wants to promote.
 -- They use listing_type correctly and reference real legal docs from ai_food/.
@@ -161,7 +161,7 @@ BEGIN
         ) VALUES (
             'Casa Lauret - Arriendo en Laureles',
             'Hermosa casa en el corazón de Laureles, ideal para familias o ejecutivos que buscan comodidad y excelente ubicación. Incluye jardín privado, zona de parrilla y fácil acceso a parques, restaurantes y transporte público. Documentos legales completos disponibles (CLYT, Paz y Salvo, etc.). Contrato de arrendamiento estándar con opción de renovación.',
-            'Calle 70 # 45-20, Laureles', 'Laureles', 'Medellín',
+            'Laureles', 'Laureles', 'Medellín',
             '{"lat": 6.2458, "lng": -75.5942}'::jsonb,
             4, 3, 220, 2, 'house', 4,
             NULL, v_owner_id, v_agent_id, 'published', true, true,
@@ -188,7 +188,7 @@ BEGIN
         ) VALUES (
             'Apartamento Campo Nuevo - Arriendo',
             'Moderno apartamento en Campo Nuevo con excelente iluminación natural y acabados de primera. Ideal para parejas o profesionales que buscan un espacio funcional, seguro y bien conectado. Incluye parqueadero, depósito y acceso controlado. Se entrega con contrato de arrendamiento claro y respaldo legal completo (CLYT actualizado).',
-            'Carrera 80 # 32-15, Campo Nuevo', 'Campo Nuevo', 'Medellín',
+            'Campo Nuevo', 'Campo Nuevo', 'Medellín',
             '{"lat": 6.175, "lng": -75.58}'::jsonb,
             2, 2, 78, 1, 'apartment', 3,
             NULL, v_owner_id, v_agent_id, 'published', true, false,
@@ -203,8 +203,8 @@ BEGIN
         RAISE NOTICE 'Inserted real rental: Apartamento Campo Nuevo - Arriendo';
     END IF;
 
-    -- 3. Sale - Peter Pitchler
-    IF NOT EXISTS (SELECT 1 FROM properties WHERE title = 'Propiedad Peter Pitchler - Venta') THEN
+    -- 3. Sale - El Poblado placeholder (legacy owner-named title is deleted by seed-real-properties)
+    IF NOT EXISTS (SELECT 1 FROM properties WHERE title = 'Apartamento El Poblado — Venta') THEN
         INSERT INTO public.properties (
             title, description, address, neighborhood, city, coordinates,
             bedrooms, bathrooms, area, parking, property_type, strata,
@@ -213,9 +213,9 @@ BEGIN
             listing_type, visit_price, accepts_crypto, financing,
             created_at, updated_at, published_at
         ) VALUES (
-            'Propiedad Peter Pitchler - Venta',
+            'Apartamento El Poblado — Venta',
             'Excelente oportunidad de inversión o vivienda propia. Propiedad bien ubicada con alto potencial de valorización. Documentación en regla (CLYT, escrituras, paz y salvos). Ideal para compradores que buscan transparencia y un proceso ágil con acompañamiento legal. Precio negociable para compradores serios.',
-            'Calle 10A # 43-55, El Poblado', 'El Poblado', 'Medellín',
+            'El Poblado', 'El Poblado', 'Medellín',
             '{"lat": 6.2091, "lng": -75.5678}'::jsonb,
             3, 2, 95, 1, 'apartment', 5,
             720000000, 680000000, v_owner_id, v_agent_id, 'published', true, true,
@@ -226,7 +226,7 @@ BEGIN
             NOW() - INTERVAL '7 days', NOW(), NOW() - INTERVAL '6 days'
         );
         v_real_count := v_real_count + 1;
-        RAISE NOTICE 'Inserted real sale: Propiedad Peter Pitchler - Venta';
+        RAISE NOTICE 'Inserted real sale: Apartamento El Poblado — Venta';
     END IF;
 
     RAISE NOTICE 'Real properties seeded: % new', v_real_count;
