@@ -7,6 +7,7 @@ import {
   buildListingMeta,
   fetchPublishedListingForOg,
   firstListingOgImage,
+  parseListingSlug,
   formatOgListingPrice,
   genericSiteMeta,
 } from './listingMeta';
@@ -27,6 +28,15 @@ const SAMPLE_HTML = `<!DOCTYPE html>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>`;
+
+describe('parseListingSlug', () => {
+  it('reads the rewrite query or the public path, never /api/listing-html', () => {
+    expect(parseListingSlug('/api/listing-html?slugOrId=el-escorial-701')).toBe('el-escorial-701');
+    expect(parseListingSlug('/properties/brisas-del-estadio')).toBe('brisas-del-estadio');
+    expect(parseListingSlug('/api/listing-html', 'El-Escorial-701')).toBe('El-Escorial-701');
+    expect(parseListingSlug('/api/listing-html')).toBe('');
+  });
+});
 
 describe('LISTING_OG_COLUMNS', () => {
   it('selects only the explicit public allow-list', () => {

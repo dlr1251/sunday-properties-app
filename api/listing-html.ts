@@ -5,6 +5,7 @@ import {
   applyListingMetaToHtml,
   canonicalListingPath,
   genericSiteMeta,
+  parseListingSlug,
   renderListingIndexHtml,
 } from '../src/utils/listingMeta';
 import { isPropertyUuid } from '../src/utils/propertyPath';
@@ -48,15 +49,10 @@ function requestOrigin(req: NodeReq): string {
 }
 
 function slugFromRequest(req: NodeReq): string {
-  const fromQuery = queryValue(req, 'slugOrId');
-  if (fromQuery) return decodeURIComponent(fromQuery);
-  const url = new URL(req.url || '/', 'https://www.sundayproperties.co');
-  const parts = url.pathname.split('/').filter(Boolean);
-  const propertiesIndex = parts.indexOf('properties');
-  if (propertiesIndex >= 0 && parts[propertiesIndex + 1]) {
-    return decodeURIComponent(parts[propertiesIndex + 1]);
-  }
-  return decodeURIComponent(parts[parts.length - 1] || '');
+  const parsed = parseListingSlug(req.url || '', queryValue(req, 'slugOrId'));
+  if (parsed) return parsed;
+  const forwarded = header(req, 'x-forwarded-uri') || header(req, 'x-invoke-path');
+  return forwarded ? parseListingSlug(forwarded) : '';
 }
 
 async function loadIndexHtml(req: NodeReq): Promise<string> {
@@ -110,18 +106,57 @@ export default async function handler(req: NodeReq, res: NodeRes): Promise<void>
 
     const template = await loadIndexHtml(req);
     if (!slugOrId) {
-      send(res, 200, applyListingMetaToHtml(template, genericSiteMeta()));
+      send(res, 200, applyListingMetaToHtml(template, genericSiteMeta()), {
+        'x-sunday-listing': 'generic',
+      });
       return;
     }
 
     const { html } = await renderListingIndexHtml(template, slugOrId);
-    send(res, 200, html);
+    send(res, 200, html, { 'x-sunday-listing': slugOrId });
   } catch {
     try {
       const template = await loadIndexHtml(req);
-      send(res, 200, applyListingMetaToHtml(template, genericSiteMeta()));
+      send(res, 200, applyListingMetaToHtml(template, genericSiteMeta()), {
+        'x-sunday-listing': 'error',
+      });
     } catch {
       send(res, 200, '<!DOCTYPE html><html><body><div id="root"></div></body></html>');
     }
   }
+}
+
+export async function GET(request: Request): Promise<Response> {
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  const query: Record<string, string> = {};
+  new URL(request.url).searchParams.forEach((value, key) => {
+    query[key] = value;
+  });
+
+  let status = 200;
+  const responseHeaders: Record<string, string> = {};
+  let body = '';
+
+  await handler(
+    { url: request.url, headers, query },
+    {
+      set statusCode(value: number) {
+        status = value;
+      },
+      get statusCode() {
+        return status;
+      },
+      setHeader(name, value) {
+        responseHeaders[name] = value;
+      },
+      end(chunk) {
+        body = chunk || '';
+      },
+    }
+  );
+
+  return new Response(body || null, { status, headers: responseHeaders });
 }

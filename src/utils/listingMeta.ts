@@ -91,6 +91,28 @@ export function getSupabasePublicConfig(): { url: string; anonKey: string } {
   return { url: url.replace(/\/$/, ''), anonKey };
 }
 
+/** Read `/properties/:slug` or `?slugOrId=` from a request URL. Never treat `/api/...` as a listing. */
+export function parseListingSlug(urlOrPath: string, querySlug?: string | null): string {
+  const fromQuery = (querySlug || '').trim();
+  if (fromQuery) return decodeURIComponent(fromQuery);
+
+  try {
+    const url = new URL(urlOrPath, SITE_ORIGIN);
+    const fromSearch = url.searchParams.get('slugOrId');
+    if (fromSearch) return decodeURIComponent(fromSearch);
+    urlOrPath = url.pathname;
+  } catch {
+    // treat as a raw path
+  }
+
+  const parts = urlOrPath.split('/').filter(Boolean);
+  const propertiesIndex = parts.indexOf('properties');
+  if (propertiesIndex >= 0 && parts[propertiesIndex + 1] && parts[propertiesIndex + 1] !== 'api') {
+    return decodeURIComponent(parts[propertiesIndex + 1]);
+  }
+  return '';
+}
+
 export function canonicalListingPath(slugOrId: string): string {
   const trimmed = slugOrId.trim();
   if (isPropertyUuid(trimmed)) return `/properties/${trimmed.toLowerCase()}`;
