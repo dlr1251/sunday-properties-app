@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase';
+import { fetchPropertyCountsByOwner } from '../../propertyCounts';
 import { Result, ok, err, tryCatch } from '../../utils/result';
 import { AppError, createDatabaseError, createNotFoundError } from '../../utils/errors';
 import { logError } from '../../utils/logger';
@@ -88,7 +89,6 @@ export class UsersRepository {
         .from('profiles')
         .select(`
           *,
-          properties:properties!properties_owner_id_fkey(count),
           offers:offers!offers_buyer_id_fkey(count),
           visits:visits!visits_visitor_id_fkey(count)
         `)
@@ -103,10 +103,10 @@ export class UsersRepository {
         throw createDatabaseError('Error al cargar el usuario', error);
       }
 
-      // Transform data and add computed fields
+      const counts = await fetchPropertyCountsByOwner([data.id]);
       const user = {
         ...data,
-        properties_count: data.properties?.[0]?.count || 0,
+        properties_count: counts.get(data.id)?.total ?? 0,
         offers_count: data.offers?.[0]?.count || 0,
         visits_count: data.visits?.[0]?.count || 0
       };
@@ -208,11 +208,9 @@ export class UsersRepository {
         throw new AppError('Usuario no autenticado', 'AUTH_ERROR');
       }
 
-      // First, check if user has any active data
       const { data: userData_check } = await supabase
         .from('profiles')
         .select(`
-          properties:properties!properties_owner_id_fkey(count),
           offers:offers!offers_buyer_id_fkey(count),
           visits:visits!visits_visitor_id_fkey(count)
         `)
@@ -220,7 +218,8 @@ export class UsersRepository {
         .single();
 
       if (userData_check) {
-        const hasProperties = (userData_check.properties?.[0]?.count || 0) > 0;
+        const counts = await fetchPropertyCountsByOwner([userId]);
+        const hasProperties = (counts.get(userId)?.total ?? 0) > 0;
         const hasOffers = (userData_check.offers?.[0]?.count || 0) > 0;
         const hasVisits = (userData_check.visits?.[0]?.count || 0) > 0;
 
@@ -292,7 +291,6 @@ export class UsersRepository {
         })
         .select(`
           *,
-          properties:properties!properties_owner_id_fkey(count),
           offers:offers!offers_buyer_id_fkey(count),
           visits:visits!visits_visitor_id_fkey(count)
         `)
@@ -303,10 +301,9 @@ export class UsersRepository {
         throw createDatabaseError('Error al crear el usuario', error);
       }
 
-      // Transform data and add computed fields
       const user = {
         ...data,
-        properties_count: data.properties?.[0]?.count || 0,
+        properties_count: 0,
         offers_count: data.offers?.[0]?.count || 0,
         visits_count: data.visits?.[0]?.count || 0
       };

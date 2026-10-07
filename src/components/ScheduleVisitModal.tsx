@@ -205,8 +205,7 @@ export function ScheduleVisitModal({
           *,
           property:properties!visits_property_id_fkey (
             id,
-            title,
-            owner_id
+            title
           )
         `)
         .single();

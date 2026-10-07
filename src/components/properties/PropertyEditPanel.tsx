@@ -28,7 +28,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, parseAreaInput } from '../../utils/format';
 
 interface OfferedTimeline {
   deedSigningDate?: string;
@@ -373,8 +373,10 @@ export const PropertyEditPanel: React.FC<PropertyEditPanelProps> = ({
                       <Input
                         id="area"
                         type="number"
+                        step="0.01"
+                        min="0"
                         value={formData.area}
-                        onChange={(e) => handleInputChange('area', parseInt(e.target.value) || 0)}
+                        onChange={(e) => handleInputChange('area', parseAreaInput(e.target.value))}
                         placeholder={t('common.example', { value: '80' })}
                         className="h-10 lg:h-12 text-sm lg:text-base"
                       />

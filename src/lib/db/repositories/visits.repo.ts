@@ -382,10 +382,14 @@ export class VisitsRepository {
     cancelled: number;
   }, AppError>> {
     return tryCatch(async () => {
-      const { data, error } = await supabase
-        .from('visits')
-        .select('status')
-        .or(`visitor_id.eq.${userId},property.owner_id.eq.${userId}`);
+      const ownedIds = await fetchOwnedPropertyIds(userId);
+      let query = supabase.from('visits').select('status');
+      if (ownedIds.length > 0) {
+        query = query.or(`visitor_id.eq.${userId},property_id.in.(${ownedIds.join(',')})`);
+      } else {
+        query = query.eq('visitor_id', userId);
+      }
+      const { data, error } = await query;
 
       if (error) {
         logError('Failed to fetch visit stats', { userId, error });

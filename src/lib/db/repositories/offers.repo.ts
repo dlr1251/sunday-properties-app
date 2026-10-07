@@ -360,17 +360,7 @@ export class OffersRepository {
           *,
           property:properties!offers_property_id_fkey (
             id,
-            title, neighborhood, city, price,
-            owner:profiles!properties_owner_id_fkey (
-              id,
-              full_name,
-              email,
-              phone,
-              location,
-              verification_status,
-              avatar_url,
-              bio
-            )
+            title, neighborhood, city, price
           ),
           buyer:profiles!offers_buyer_id_fkey (
             id,

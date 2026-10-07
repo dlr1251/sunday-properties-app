@@ -1,4 +1,5 @@
 import { getIntlLocale } from '../../i18n';
+import { formatArea } from '../utils/format';
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -62,10 +63,6 @@ export const PropertyComparison: React.FC<PropertyComparisonProps> = ({
       currency: 'COP',
       minimumFractionDigits: 0,
     }).format(amount);
-  };
-
-  const formatArea = (area: number) => {
-    return `${area.toLocaleString()} m²`;
   };
 
   const handleFavoriteToggle = async (propertyId: string) => {

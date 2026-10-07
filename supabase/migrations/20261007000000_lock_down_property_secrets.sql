@@ -8,15 +8,17 @@
 --      properties_private for owner/admin).
 --
 -- Release order:
---   A. Apply 20261006120000_add_public_coordinates.sql
---   B. Deploy this frontend to Vercel. Confirm home, /properties,
---      /properties/:slug, search, map, and share still render.
---   C. Apply THIS file in the Supabase SQL editor of project prtyuwdkrrqhtwolcrav
---      (or `supabase db push` against that project). Do not run it from an
---      agent against production.
---   D. Verify with:
---        node scripts/verify-anon-cannot-read-owner-pii.mjs
---      Expect PASS: anon cannot read address, minimum_offer_price, or deposit.
+--   A.  20261006120000_add_public_coordinates.sql — APPLIED in production.
+--   A2. 20261006130000_area_numeric.sql — area integer → numeric(8,2);
+--       no grant or row-value changes. Apply before this file.
+--   B.  Deploy this frontend to Vercel. Confirm home, /properties,
+--       /properties/:slug, search, map, and share still render.
+--   C.  Apply THIS file in the Supabase SQL editor of project prtyuwdkrrqhtwolcrav
+--       (or `supabase db push` against that project). Do not run it from an
+--       agent against production.
+--   D.  Verify with:
+--         node scripts/verify-anon-cannot-read-owner-pii.mjs
+--       Expect PASS: anon cannot read address, minimum_offer_price, or deposit.
 --
 -- Applying THIS file first 403s live select('*'). Deploying the bundle
 -- without A 400s public_coordinates. Deploying the bundle without THIS
@@ -36,6 +38,9 @@
 --   Policies on profiles and property_visit_availability that joined
 --   properties.owner_id / agent_id go through private.property_owner_id
 --   and private.is_agent_for_owner.
+--   Per-person listing counts go through public.property_counts_by_owner
+--   (admin/super_admin or the owner themselves). PostgREST embeds through
+--   properties.owner_id fail after the column REVOKE.
 -- =============================================================================
 
 CREATE SCHEMA IF NOT EXISTS private;
@@ -232,6 +237,40 @@ GRANT SELECT ON TABLE public.properties_private TO authenticated;
 
 COMMENT ON VIEW public.properties_private IS
   'Full property rows for the owning user, assigned agent, or staff. Not available to anon.';
+
+-- ---------------------------------------------------------------------------
+-- Per-person listing counts (PostgREST owner_id embeds fail after REVOKE)
+-- ---------------------------------------------------------------------------
+-- Restricted to admin / super_admin or the owner themselves. Lawyer is not
+-- included: they already read their assigned rows through properties_private.
+
+CREATE OR REPLACE FUNCTION public.property_counts_by_owner(owner_ids uuid[])
+RETURNS TABLE(owner_id uuid, total bigint, published bigint, sold bigint)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    p.owner_id,
+    COUNT(*)::bigint AS total,
+    COUNT(*) FILTER (WHERE p.status = 'published')::bigint AS published,
+    COUNT(*) FILTER (WHERE p.status = 'sold')::bigint AS sold
+  FROM public.properties p
+  WHERE p.owner_id = ANY (owner_ids)
+    AND (
+      p.owner_id = auth.uid()
+      OR private.current_profile_role() IN ('admin', 'super_admin')
+    )
+  GROUP BY p.owner_id;
+$$;
+
+REVOKE ALL ON FUNCTION public.property_counts_by_owner(uuid[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.property_counts_by_owner(uuid[]) FROM anon;
+GRANT EXECUTE ON FUNCTION public.property_counts_by_owner(uuid[]) TO authenticated;
+
+COMMENT ON FUNCTION public.property_counts_by_owner(uuid[]) IS
+  'Listing counts per owner_id. Callers see only their own row, or every requested owner if they are admin/super_admin.';
 
 -- ---------------------------------------------------------------------------
 -- Invoker policies that read properties.owner_id / agent_id

@@ -314,7 +314,7 @@ export const UserVisitsView: React.FC = () => {
       // Fetch property data including price and negotiation rules
       const { data: propertyData, error: propertyError } = await supabase
         .from('properties')
-        .select('id, price, negotiation_rules')
+        .select('id, price')
         .eq('id', visit.property_id)
         .single();
 
@@ -326,7 +326,7 @@ export const UserVisitsView: React.FC = () => {
       setOfferPropertyData({
         id: propertyData.id,
         price: propertyData.price || 0,
-        negotiationRules: propertyData.negotiation_rules || {}
+        negotiationRules: {}
       });
       setShowOfferForm(true);
     } catch (error) {

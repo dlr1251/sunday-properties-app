@@ -10,7 +10,9 @@ import {
  * Columns the anon key (and a random signed-in user) may read on
  * public.properties. Keep in sync with
  * supabase/migrations/20261006120000_add_public_coordinates.sql
- * (additive; apply first) and
+ * (additive; applied in production),
+ * supabase/migrations/20261006130000_area_numeric.sql
+ * (area integer → numeric(8,2); apply before the revokes), and
  * supabase/migrations/20261007000000_lock_down_property_secrets.sql
  * (revokes; apply after the frontend deploy).
  *

@@ -132,8 +132,32 @@ export function formatRelativeTime(date: string | Date): string {
   return formatDate(dateObj);
 }
 
-export function formatArea(area: number): string {
-  return `${formatNumber(area)} m²`;
+/**
+ * Floor area. Whole numbers have no decimals (80 m²); fractions use the
+ * active locale (es-CO → 45,54 m²). Accepts a comma or a dot in strings.
+ */
+export function formatArea(area: number | string | null | undefined): string {
+  const numeric = typeof area === 'number' ? area : parseAreaInput(String(area ?? ''));
+  if (!Number.isFinite(numeric)) return '';
+  const formatted = new Intl.NumberFormat(getIntlLocale(), {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(numeric);
+  return `${formatted} m²`;
+}
+
+/** Parse owner/admin area input. "45,54" and "45.54" both become 45.54. */
+export function parseAreaInput(value: string): number {
+  const trimmed = value.trim().replace(/\s/g, '').replace(/m²/gi, '');
+  if (!trimmed) return 0;
+  const lastComma = trimmed.lastIndexOf(',');
+  const lastDot = trimmed.lastIndexOf('.');
+  const normalized =
+    lastComma > lastDot
+      ? trimmed.replace(/\./g, '').replace(',', '.')
+      : trimmed.replace(/,/g, '');
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) ? numeric : 0;
 }
 
 export function formatPropertyDimensions(bedrooms: number, bathrooms: number): string {

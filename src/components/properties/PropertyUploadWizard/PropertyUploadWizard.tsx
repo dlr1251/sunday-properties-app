@@ -33,6 +33,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useVerification } from '../../../hooks/verification/useVerification';
 import { toast } from 'sonner';
 import { usePropertyUpload } from '../../../hooks/properties/usePropertyUpload';
+import { parseAreaInput } from '../../../utils/format';
 import { usePropertyAudit } from '../../../hooks/properties/usePropertyAudit';
 import { SuccessModal } from '../../ui/success-modal';
 import type { PropertyData } from './types';
@@ -183,7 +184,7 @@ export const PropertyUploadWizard: React.FC<UploadWizardProps> = ({ onComplete, 
 
   const handleNumericChange = useCallback((field: string, value: string) => {
     console.log('🔄 handleNumericChange called for field:', field, 'with value:', value);
-    const numValue = parseInt(value) || 0;
+    const numValue = field === 'area' ? parseAreaInput(value) : (parseInt(value) || 0);
     setPropertyData(prev => ({ ...prev, [field]: numValue }));
   }, []);
 

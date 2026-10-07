@@ -47,6 +47,7 @@ export const Step2PropertyDetails: React.FC<Step2PropertyDetailsProps> = ({
             id="area"
             type="number"
             min="0"
+            step="0.01"
             value={propertyData.area}
             onChange={handleNumericInputChange('area')}
           />

@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { PropertyCard } from '../PropertyCard';
-import { formatListingPrice, getListingPriceValue } from '../../utils/format';
+import { formatArea, formatListingPrice, getListingPriceValue } from '../../utils/format';
 import { PropertiesMapView } from '../maps/PropertiesMapView';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useAllProperties } from '../../hooks/useSupabase';
@@ -160,7 +160,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       id: property.id,
       slug: property.slug,
       title: property.title,
-      area: `${property.area}m²`,
+      area: formatArea(property.area),
       area_value: property.area,
       location: `${property.neighborhood}, ${property.city}`,
       neighborhood: property.neighborhood,

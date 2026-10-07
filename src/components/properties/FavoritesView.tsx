@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PropertyCard } from './PropertyCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { formatDate, formatListingPrice, getListingPriceValue } from '../../utils/format';
+import { formatArea, formatDate, formatListingPrice, getListingPriceValue } from '../../utils/format';
+import { PUBLIC_PROPERTY_EMBED, mapPublicProperty } from '../../lib/propertyPrivacy';
 import { 
   Heart, 
   Search, 
@@ -36,7 +37,6 @@ interface FavoriteProperty {
     bedrooms: number;
     bathrooms: number;
     parking: number;
-    address: string;
     neighborhood: string;
     city: string;
     property_type: string;
@@ -72,7 +72,7 @@ export const FavoritesView: React.FC = () => {
         .from('favorites')
         .select(`
           *,
-          property:properties(*)
+          property:properties(${PUBLIC_PROPERTY_EMBED})
         `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
@@ -82,7 +82,14 @@ export const FavoritesView: React.FC = () => {
         return;
       }
 
-      setFavorites(data || []);
+      setFavorites(
+        (data || []).map((favorite: any) => ({
+          ...favorite,
+          property: favorite.property
+            ? mapPublicProperty(favorite.property as Record<string, unknown>)
+            : favorite.property,
+        }))
+      );
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -325,7 +332,7 @@ export const FavoritesView: React.FC = () => {
                     </div>
                     <div className="flex items-center">
                       <Square className="h-4 w-4 mr-1 text-gray-600" />
-                      <span>{favorite.property.area}m²</span>
+                      <span>{formatArea(favorite.property.area)}</span>
                     </div>
                     {favorite.property.parking > 0 && (
                       <div className="flex items-center">

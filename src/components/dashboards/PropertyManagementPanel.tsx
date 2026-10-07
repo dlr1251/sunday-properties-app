@@ -39,7 +39,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { useAdminProperties } from '../../hooks/admin/useAdminProperties';
-import { formatCurrency, formatDate } from '../../utils/format';
+import { formatArea, formatCurrency, formatDate } from '../../utils/format';
 import { toast } from 'sonner';
 
 interface PropertyManagementPanelProps {
@@ -417,7 +417,7 @@ export function PropertyManagementPanel({
                         <div className="text-sm">
                           <p>{getPropertyTypeLabel(property.property_type)}</p>
                           <p className="text-muted-foreground">
-                            {property.area}m² • {property.bedrooms}hab • {property.bathrooms}bañ
+                            {formatArea(property.area)} • {property.bedrooms}hab • {property.bathrooms}bañ
                           </p>
                         </div>
                       </TableCell>

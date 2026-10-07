@@ -804,6 +804,15 @@ export interface Database {
           updated_at: string;
         }[];
       };
+      property_counts_by_owner: {
+        Args: { owner_ids: string[] };
+        Returns: {
+          owner_id: string;
+          total: number;
+          published: number;
+          sold: number;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

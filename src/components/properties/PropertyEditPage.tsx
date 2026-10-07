@@ -32,7 +32,7 @@ import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import { privatePropertiesTable } from '../../lib/propertyPrivacy';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatCurrency } from '../../utils/format';
+import { formatCurrency, parseAreaInput } from '../../utils/format';
 import { applyPropertyKeyFilter, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
 
 interface OfferedTimeline {
@@ -499,8 +499,10 @@ export const PropertyEditPage: React.FC = () => {
                     <Input
                       id="area"
                       type="number"
+                      step="0.01"
+                      min="0"
                       value={formData.area}
-                      onChange={(e) => handleInputChange('area', parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleInputChange('area', parseAreaInput(e.target.value))}
                       placeholder={t('common.example', { value: '80' })}
                     />
                   </div>

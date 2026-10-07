@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useDateFnsLocale } from '../../i18n/useDateFnsLocale';
-import { formatCurrency, getListingPriceValue } from '../../utils/format';
+import { formatArea, formatCurrency, getListingPriceValue } from '../../utils/format';
 import { applyPropertyKeyFilter, propertyEditPath, propertyKeyRedirectPath, propertyPath } from '../../utils/propertyPath';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -604,7 +604,7 @@ export const PropertyDetailView: React.FC<PropertyDetailProps> = ({ propertyId, 
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Square className="h-6 w-6 mx-auto mb-2 text-primary" />
                   <p className="text-sm text-muted-foreground">{t('properties.area')}</p>
-                    <p className="font-semibold">{displayProperty.area}m²</p>
+                    <p className="font-semibold">{formatArea(displayProperty.area)}</p>
                 </div>
                   <div className="text-center p-4 bg-muted rounded-lg hover:shadow-md transition-shadow">
                   <Car className="h-6 w-6 mx-auto mb-2 text-primary" />
