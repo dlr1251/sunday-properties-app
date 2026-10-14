@@ -1,0 +1,8 @@
+# Cloudflare Pages — do not rewrite API, docs, or hashed assets to the SPA.
+# Static files that exist in `build/` are served first; Functions win over these rules.
+/api/*     /api/:splat     200
+/docs/*    /docs/:splat    200
+/assets/*  /assets/:splat  200
+
+# Client-side routes (login, profile, /properties list, etc.)
+/*         /index.html     200

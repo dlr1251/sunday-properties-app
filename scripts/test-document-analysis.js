@@ -13,7 +13,7 @@ async function testDocumentAnalysis() {
   try {
     // Test 1: Check environment variables
     console.log('1. Environment Variables:');
-    console.log('   VITE_XAI_API_KEY:', import.meta.env.VITE_XAI_API_KEY ? '✅ Set' : '❌ Missing');
+    console.log('   XAI_API_KEY:', process.env.XAI_API_KEY ? '✅ Set' : '❌ Missing');
 
     // Test 2: Test basic Supabase connection
     console.log('\n2. Supabase Connection:');
@@ -30,7 +30,7 @@ async function testDocumentAnalysis() {
       const { generateText } = await import('ai');
       const { xai } = await import('@ai-sdk/xai');
 
-      const apiKey = import.meta.env.VITE_XAI_API_KEY;
+      const apiKey = process.env.XAI_API_KEY;
       if (!apiKey) {
         console.log('   ❌ API key missing');
       } else {

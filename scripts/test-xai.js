@@ -2,10 +2,10 @@
 import { generateText } from 'ai';
 import { xai } from '@ai-sdk/xai';
 
-const apiKey = process.env.VITE_XAI_API_KEY || process.env.XAI_API_KEY;
+const apiKey = process.env.XAI_API_KEY;
 
 if (!apiKey) {
-  console.error('❌ No API key found. Set VITE_XAI_API_KEY or XAI_API_KEY environment variable.');
+  console.error('❌ No API key found. Set the server-only XAI_API_KEY environment variable.');
   process.exit(1);
 }
 

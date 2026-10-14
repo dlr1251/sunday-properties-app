@@ -1,0 +1,4 @@
+# vercel.json currently declares no custom response headers.
+# Cache hashed Vite assets on the Pages CDN.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
