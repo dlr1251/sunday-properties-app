@@ -1,4 +1,4 @@
-import { DocumentAnalysisService } from './documentAnalysis';
+import { xaiClient } from './xaiClient';
 
 export interface NegotiationConditions {
   // Estructura de pagos por etapas
@@ -82,14 +82,8 @@ export class NegotiationSuggestionService {
     });
     
     try {
-      const documentAnalysisService = DocumentAnalysisService.getInstance() as any;
-      if (!documentAnalysisService.xaiService) {
-        console.warn('⚠️ XAI service not available, using default conditions');
-        return this.generateDefaultConditions(propertyData.price);
-      }
-      
       console.log('📤 Sending prompt to Grok...');
-      const response = await documentAnalysisService.xaiService.generateText(prompt);
+      const response = await xaiClient.generateText(prompt);
       console.log('✅ Grok response received:', response);
       
       // Parsear respuesta JSON

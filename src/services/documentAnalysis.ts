@@ -1,305 +1,14 @@
-import { generateText } from 'ai';
-import { xai } from '@ai-sdk/xai';
 import { PDFDocument } from 'pdf-lib';
 import { supabase } from '../lib/supabase';
-import { appendAiPromptDisclaimer } from '@/lib/ai/append-prompt-disclaimer';
 import * as pdfjsLib from 'pdfjs-dist';
+import { xaiClient, type XAIService } from './xaiClient';
 
 // Configure PDF.js worker - use local copy from public folder
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 console.log('🔧 PDF.js Worker configured:', pdfjsLib.GlobalWorkerOptions.workerSrc);
 
-// xAI integration using AI SDK with proper configuration
-class XAIService {
-  private apiKey: string;
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-  }
-
-  async generateText(prompt: string): Promise<string> {
-    try {
-      console.log('🤖 Calling xAI API directly');
-
-      const fullPrompt = appendAiPromptDisclaimer(prompt);
-
-      // Use direct API call (proven to work)
-      const response = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'grok-4-fast-reasoning',
-          messages: [{ role: 'user', content: fullPrompt }],
-          temperature: 0.1,
-          max_tokens: 2000,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('xAI API error response:', errorText);
-        throw new Error(`xAI API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ xAI API response received');
-
-      // Extract the response content
-      if (data.choices && data.choices[0]?.message?.content) {
-        return data.choices[0].message.content;
-      } else if (data.choices && data.choices[0]?.text) {
-        return data.choices[0].text;
-      } else {
-        console.warn('Unexpected xAI response format:', data);
-        return JSON.stringify(data);
-      }
-
-    } catch (error) {
-      console.error('xAI API call failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Upload a file to XAI Files API
-   * Supports PDF and other document formats up to 48MB
-   */
-  async uploadFile(file: File): Promise<{ id: string; filename: string; size: number }> {
-    try {
-      // Validate file size (48MB limit)
-      const maxSize = 48 * 1024 * 1024; // 48MB in bytes
-      if (file.size > maxSize) {
-        throw new Error(`File size ${(file.size / 1024 / 1024).toFixed(2)}MB exceeds maximum of 48MB`);
-      }
-
-      console.log(`📤 Uploading file to XAI Files API: ${file.name} (${(file.size / 1024).toFixed(2)}KB)`);
-
-      // Create FormData for multipart/form-data upload
-      const formData = new FormData();
-      formData.append('file', file);
-      // Purpose field is optional but helps categorize the file
-      // 'file-extract' is used for document analysis
-      formData.append('purpose', 'file-extract');
-
-      const response = await fetch('https://api.x.ai/v1/files', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          // Don't set Content-Type - browser will set it with boundary for multipart/form-data
-        },
-        body: formData,
-      });
-
-      console.log('📡 XAI Files API upload response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ XAI Files API error response:', errorText);
-        throw new Error(`XAI Files API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ File uploaded successfully:', data.id);
-      console.log('📄 File metadata:', { id: data.id, filename: data.filename, size: data.bytes });
-
-      return {
-        id: data.id,
-        filename: data.filename || file.name,
-        size: data.bytes || file.size,
-      };
-    } catch (error) {
-      console.error('❌ File upload failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Delete a file from XAI Files API
-   */
-  async deleteFile(fileId: string): Promise<boolean> {
-    try {
-      console.log(`🗑️ Deleting file from XAI: ${fileId}`);
-
-      const response = await fetch(`https://api.x.ai/v1/files/${fileId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.warn('⚠️ File deletion failed (non-critical):', errorText);
-        return false;
-      }
-
-      const data = await response.json();
-      console.log('✅ File deleted successfully:', data.deleted);
-      return data.deleted === true;
-    } catch (error) {
-      console.warn('⚠️ File deletion error (non-critical):', error);
-      return false;
-    }
-  }
-
-  /**
-   * Generate text with file attachment using XAI Files API
-   * Requires grok-4-fast or grok-4 model
-   */
-  async generateTextWithFile(prompt: string, fileId: string, model: string = 'grok-4-fast'): Promise<string> {
-    try {
-      console.log('🤖 Calling xAI API with file attachment');
-      console.log('📝 Prompt length:', prompt.length);
-      console.log('📄 File ID:', fileId);
-      console.log('🤖 Model:', model);
-
-      const fullPrompt = appendAiPromptDisclaimer(prompt);
-
-      // XAI Files API format: file IDs are included in message content
-      const response = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: fullPrompt
-                },
-                {
-                  type: 'file',
-                  file_id: fileId
-                }
-              ]
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 2000,
-        }),
-      });
-
-      console.log('📡 xAI API response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ xAI API error response:', errorText);
-        throw new Error(`xAI API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ xAI API response received');
-      console.log('📊 Response data keys:', Object.keys(data));
-
-      // Extract the response content
-      if (data.choices && data.choices[0]?.message?.content) {
-        console.log('📝 Response content length:', data.choices[0].message.content.length);
-        return data.choices[0].message.content;
-      } else if (data.choices && data.choices[0]?.text) {
-        console.log('📝 Response text length:', data.choices[0].text.length);
-        return data.choices[0].text;
-      } else {
-        console.warn('⚠️ Unexpected xAI response format:', data);
-        return JSON.stringify(data);
-      }
-
-    } catch (error) {
-      console.error('❌ xAI API call with file failed:', error);
-      throw error;
-    }
-  }
-
-  async generateTextWithImage(prompt: string, imageBase64: string | string[]): Promise<string> {
-    try {
-      // Handle both single image and multiple images
-      const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
-      
-      console.log('🤖 Calling xAI API with images');
-      console.log('📝 Prompt length:', prompt.length);
-      console.log('🖼️ Number of images:', images.length);
-      console.log('🖼️ First image base64 length:', images[0].length);
-      console.log('🔑 API Key available:', !!this.apiKey);
-
-      const fullPrompt = appendAiPromptDisclaimer(prompt);
-
-      // Build content array with text and all images
-      const content: any[] = [
-        { type: 'text', text: fullPrompt }
-      ];
-      
-      // Add all images to the content
-      // Note: XAI vision API only supports image formats (PNG, JPEG, etc.), not PDF
-      // PDFs should be converted to images before calling this method
-      for (const img of images) {
-        content.push({
-          type: 'image_url',
-          image_url: {
-            // Support PNG, JPEG, and other image formats
-            // PDFs should already be converted to images by this point
-            url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}`
-          }
-        });
-      }
-
-      // Use direct API call with multiple images
-      const response = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'grok-4-fast-reasoning',
-          messages: [
-            {
-              role: 'user',
-              content: content
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 2000,
-        }),
-      });
-
-      console.log('📡 xAI API response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ xAI API error response:', errorText);
-        throw new Error(`xAI API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ xAI API response received');
-      console.log('📊 Response data keys:', Object.keys(data));
-
-      // Extract the response content
-      if (data.choices && data.choices[0]?.message?.content) {
-        console.log('📝 Response content length:', data.choices[0].message.content.length);
-        return data.choices[0].message.content;
-      } else if (data.choices && data.choices[0]?.text) {
-        console.log('📝 Response text length:', data.choices[0].text.length);
-        return data.choices[0].text;
-      } else {
-        console.warn('⚠️ Unexpected xAI response format:', data);
-        return JSON.stringify(data);
-      }
-
-    } catch (error) {
-      console.error('❌ xAI API call failed:', error);
-      throw error;
-    }
-  }
-}
 
 export interface Annotation {
   annotationNumber?: string;
@@ -443,29 +152,10 @@ export interface DocumentData {
 
 export class DocumentAnalysisService {
   private static instance: DocumentAnalysisService;
-  private apiKey: string;
-  private xaiService: XAIService | null = null;
+  public xaiService: XAIService = xaiClient;
 
   private constructor() {
-    this.apiKey = (import.meta as any).env?.VITE_XAI_API_KEY || '';
-    console.log('🔑 XAI API Key status:', this.apiKey ? 'Found' : 'Missing', this.apiKey ? `(${this.apiKey.substring(0, 10)}...)` : '');
-
-    // Set xAI API key for AI SDK
-    if (this.apiKey) {
-      // Set environment variable for AI SDK
-      if (typeof process !== 'undefined') {
-        process.env.XAI_API_KEY = this.apiKey;
-      } else if (typeof globalThis !== 'undefined') {
-        // For browser environment
-        (globalThis as any).process = (globalThis as any).process || {};
-        (globalThis as any).process.env = (globalThis as any).process.env || {};
-        (globalThis as any).process.env.XAI_API_KEY = this.apiKey;
-      }
-
-      this.xaiService = new XAIService(this.apiKey);
-    } else {
-      console.warn('XAI API key not found. Document analysis will not work.');
-    }
+    this.xaiService = xaiClient;
   }
 
   public static getInstance(): DocumentAnalysisService {
@@ -938,8 +628,8 @@ export class DocumentAnalysisService {
    * Analyze document content with Grok using Files API (for PDFs)
    */
   private async analyzeWithGrokFile(documentType: 'clyt' | 'escritura' | 'cedula', file: File, fileId: string): Promise<DocumentData> {
-    if (!this.apiKey) {
-      throw new Error('API key de XAI no configurada');
+    if (!this.xaiService) {
+      throw new Error('Servicio de IA no disponible');
     }
 
     const prompts = {
@@ -1231,8 +921,8 @@ Responde SOLO con JSON válido.`
    * Analyze document content with Grok using vision capabilities
    */
   private async analyzeWithGrok(documentType: 'clyt' | 'escritura' | 'cedula', file: File, imageUrls?: string[]): Promise<DocumentData> {
-    if (!this.apiKey) {
-      throw new Error('API key de XAI no configurada');
+    if (!this.xaiService) {
+      throw new Error('Servicio de IA no disponible');
     }
 
     const prompts = {

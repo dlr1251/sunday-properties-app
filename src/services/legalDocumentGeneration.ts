@@ -1,55 +1,6 @@
 import { getIntlLocale } from '../i18n';
 import { supabase } from '../lib/supabase';
-import { appendAiPromptDisclaimer } from '@/lib/ai/append-prompt-disclaimer';
-
-// Reuse XAI service from documentAnalysis
-class XAIService {
-  private apiKey: string;
-
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-  }
-
-  async generateText(prompt: string): Promise<string> {
-    try {
-      console.log('🤖 Calling xAI API for legal document generation');
-
-      const fullPrompt = appendAiPromptDisclaimer(prompt);
-
-      const response = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'grok-4-fast-reasoning',
-          messages: [{ role: 'user', content: fullPrompt }],
-          temperature: 0.3, // Lower temperature for more consistent legal documents
-          max_tokens: 4000,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('xAI API error response:', errorText);
-        throw new Error(`xAI API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ xAI API response received');
-
-      if (data.choices && data.choices[0]?.message?.content) {
-        return data.choices[0].message.content;
-      }
-
-      throw new Error('Invalid response format from xAI');
-    } catch (error) {
-      console.error('Error calling xAI API:', error);
-      throw error;
-    }
-  }
-}
+import { xaiClient } from './xaiClient';
 
 export interface PropertyData {
   id: string;
@@ -117,15 +68,10 @@ export interface CaseData {
 
 export class LegalDocumentGenerationService {
   private static instance: LegalDocumentGenerationService;
-  private xaiService: XAIService | null = null;
+  private xaiService = xaiClient;
 
   private constructor() {
-    const apiKey = (import.meta as any).env?.VITE_XAI_API_KEY || '';
-    if (apiKey) {
-      this.xaiService = new XAIService(apiKey);
-    } else {
-      console.warn('XAI API key not found. Legal document generation will not work.');
-    }
+    this.xaiService = xaiClient;
   }
 
   public static getInstance(): LegalDocumentGenerationService {
@@ -189,7 +135,7 @@ ${caseData.offer.conditions && caseData.offer.conditions.length > 0 ? `- Condici
 
 Genera SOLO el contenido del documento, sin introducciones ni explicaciones adicionales.`;
 
-    return await this.xaiService.generateText(prompt);
+    return await this.xaiService.generateText(prompt, { temperature: 0.3, maxTokens: 4000 });
   }
 
   /**
@@ -272,7 +218,7 @@ ${caseData.offer.conditions && caseData.offer.conditions.length > 0 ? `- Condici
 
 Genera SOLO el contenido del documento legal, sin introducciones.`;
 
-    return await this.xaiService.generateText(prompt);
+    return await this.xaiService.generateText(prompt, { temperature: 0.3, maxTokens: 4000 });
   }
 
   /**
@@ -321,7 +267,7 @@ ${caseData.buyer.id_number ? `- CC: ${caseData.buyer.id_number}` : ''}
 
 Genera SOLO la minuta, sin explicaciones adicionales.`;
 
-    return await this.xaiService.generateText(prompt);
+    return await this.xaiService.generateText(prompt, { temperature: 0.3, maxTokens: 4000 });
   }
 
   /**
@@ -365,7 +311,7 @@ ${amendments.map((amendment, index) => `${index + 1}. ${amendment}`).join('\n')}
 
 Genera SOLO el documento OTROSÍ, sin introducciones.`;
 
-    return await this.xaiService.generateText(prompt);
+    return await this.xaiService.generateText(prompt, { temperature: 0.3, maxTokens: 4000 });
   }
 
   /**

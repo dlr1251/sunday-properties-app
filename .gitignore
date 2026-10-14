@@ -77,6 +77,10 @@ jspm_packages/
 # Vercel
 .vercel/
 
+# Cloudflare Wrangler
+.wrangler/
+.dev.vars
+
 # Temporary files
 *.tmp
 *.temp

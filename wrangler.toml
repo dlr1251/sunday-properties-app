@@ -1,0 +1,4 @@
+name = "sunday-properties"
+pages_build_output_dir = "build"
+compatibility_date = "2026-10-14"
+compatibility_flags = ["nodejs_compat"]

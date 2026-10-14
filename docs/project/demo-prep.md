@@ -34,8 +34,8 @@ VITE_GOOGLE_MAPS_API_KEY=<tu-api-key>
 # Stripe (Test Mode)
 VITE_STRIPE_PUBLIC_KEY=pk_test_...
 
-# XAI (para IA)
-VITE_XAI_API_KEY=<tu-api-key>
+# XAI (para IA — solo servidor, nunca VITE_)
+XAI_API_KEY=<tu-api-key>
 ```
 
 ### 3. Iniciar Supabase Local
