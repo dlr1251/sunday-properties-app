@@ -1,6 +1,7 @@
 import React from 'react';
 import { ModernNavbar } from './navigation/ModernNavbar';
 import { Footer } from './navigation/Footer';
+import { SunnyChatWidget } from './sunny/SunnyChatWidget';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ export const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
       <Footer />
+      <SunnyChatWidget />
     </div>
   );
 };

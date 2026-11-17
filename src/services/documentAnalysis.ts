@@ -1,5 +1,3 @@
-import { generateText } from 'ai';
-import { xai } from '@ai-sdk/xai';
 import { PDFDocument } from 'pdf-lib';
 import { supabase } from '../lib/supabase';
 import { appendAiPromptDisclaimer } from '@/lib/ai/append-prompt-disclaimer';
