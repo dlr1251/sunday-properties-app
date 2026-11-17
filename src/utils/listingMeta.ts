@@ -1,8 +1,8 @@
 import { publicLocationLabel, sanitizePublicDescription } from './publicLocation';
 import { isPropertyUuid } from './propertyPath';
+import { SITE_ORIGIN } from '../lib/siteUrl';
 
-/** Canonical public origin for share cards. Always the lowercase www host. */
-export const SITE_ORIGIN = 'https://www.sundayproperties.co';
+export { SITE_ORIGIN };
 export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-image.png`;
 export const DEFAULT_PAGE_TITLE = 'Sunday Properties — Rent and buy in Medellín';
 export const DEFAULT_OG_TITLE = 'Sunday Properties';

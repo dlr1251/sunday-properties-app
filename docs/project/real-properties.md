@@ -13,7 +13,7 @@ This document tracks the move from heavy test data to real properties.
 
 | Key            | Title                                           | Type   | Neighborhood | Owner           | Agent         | Notes |
 |----------------|-------------------------------------------------|--------|--------------|-----------------|---------------|-------|
-| brisas-estadio | Brisas del Estadio — Apartamento dúplex en venta | sale   | Estadio      | Propietario Brisas del Estadio | Agente asignado | Dúplex + parqueadero, 75 m². Lista **COP $390M** (confirmado 2026-09-02). FincaRaiz [194112531](https://www.fincaraiz.com.co/apartamento-en-venta-en-laureles-medellin/194112531). |
+| brisas-estadio | Brisas del Estadio — Apartamento dúplex en venta | sale   | Estadio      | Propietario Brisas del Estadio | Agente asignado | Dúplex + parqueadero. **TODO(daniel): confirm public area and oferta mínima.** Seed currently stores `area = 75` and `minimum_offer_price = 370000000` (`scripts/seed-real-properties.mjs`). Lista **COP $390M** (confirmado 2026-09-02). FincaRaiz [194112531](https://www.fincaraiz.com.co/apartamento-en-venta-en-laureles-medellin/194112531). |
 | escorial-701   | El Escorial 701 — Arriendo en Conquistadores    | rental | Conquistadores | Propietaria El Escorial 701 | Agente asignado | 140 m², 4 hab, **3 baños**, biblioteca, balcón. Canon **COP $6.000.000**. **Published** `abd51c41-…`. |
 | distrito-vera-1310 | Distrito Vera 1310 — Apartamento en venta   | sale   | Ciudad del Río | Propietario Distrito Vera 1310 | Agente asignado | Distrito Vera P.H. 99.27 m² construidos. Precio lista por confirmar. Fotos pendientes. |
 | campo-nuevo    | Apartamento Campo Nuevo — Arriendo              | rental | Campo Nuevo  | Propietaria Campo Nuevo    | Agente asignado  | 52 m², conjunto con gym/BBQ |
@@ -23,13 +23,15 @@ This document tracks the move from heavy test data to real properties.
 
 ## Accounts (seeded)
 
-| Role  | Email                         | Password (if new) |
-|-------|-------------------------------|-------------------|
-| Owner | brisas-estadio@sunday.com     | RealProp2026!     |
-| Owner | escorial-701@sunday.com       | RealProp2026!     |
-| Owner | campo-nuevo@sunday.com        | RealProp2026!     |
-| Owner | casa-lauret@sunday.com        | RealProp2026!     |
-| Agent | daniel@luquelaw.co            | RealProp2026!     |
+Shared seed passwords live only in `scripts/seed-real-properties.mjs`. Rotate them in Supabase Auth before treating a remote project as production. Do not paste those credentials into tickets or PRs.
+
+| Role  | Email                     |
+|-------|---------------------------|
+| Owner | brisas-estadio@sunday.com |
+| Owner | escorial-701@sunday.com   |
+| Owner | campo-nuevo@sunday.com    |
+| Owner | casa-lauret@sunday.com    |
+| Agent | daniel@luquelaw.co        |
 
 ## How to seed the real properties
 

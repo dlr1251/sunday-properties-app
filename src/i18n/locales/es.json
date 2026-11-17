@@ -330,6 +330,8 @@
     "passwordUpdated": "Tu contraseña ha sido actualizada.",
     "passwordUpdateFailed": "No se pudo actualizar la contraseña",
     "passwordRequirements": "La contraseña debe tener al menos 8 caracteres, una letra y un número",
+    "recoveryLinkInvalid": "Este enlace de recuperación no es válido o ya expiró. Solicita uno nuevo.",
+    "recoveryRequestNew": "Solicitar un nuevo enlace",
     "emailNotVerified": "Tu email aún no está verificado. Algunas acciones estarán restringidas (publicar propiedades, agendar visitas, realizar ofertas).",
     "resendVerification": "Reenviar correo de verificación",
     "verificationSent": "Correo de verificación enviado. Revisa tu bandeja de entrada.",
