@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { filterSunnyListingHits, mapSunnyListing } from './listings';
+import {
+  filterSunnyListingHits,
+  listingSearchParams,
+  mapSunnyListing,
+  parseListingSearchInput,
+  publicSunnyListingHits,
+} from './listings';
+import { resolveListingsApiOrigin, searchPublishedListingsViaHostApi } from './listings-host';
 import { sunnyCompanyFacts } from './company';
 import { BRAND_EMAIL, BRAND_PHONE } from '../../constants/brand';
 
@@ -30,6 +37,105 @@ describe('filterSunnyListingHits', () => {
     expect(filterSunnyListingHits(hits, { neighborhood: 'estadio' })).toHaveLength(1);
     expect(filterSunnyListingHits(hits, { query: 'BRISAS' })).toHaveLength(1);
     expect(filterSunnyListingHits(hits, { query: 'Laureles' })).toHaveLength(0);
+  });
+});
+
+describe('parseListingSearchInput', () => {
+  it('keeps public filters and drops unknown listing_type', () => {
+    const parsed = parseListingSearchInput({
+      query: '  Brisas  ',
+      city: 'Medellín',
+      listing_type: 'lease',
+      bedrooms_min: '2',
+      max_price: '500000000',
+      slug_or_id: 'brisas',
+    });
+    expect(parsed).toEqual({
+      query: 'Brisas',
+      city: 'Medellín',
+      bedrooms_min: 2,
+      max_price: 500_000_000,
+      slug_or_id: 'brisas',
+    });
+    expect(parseListingSearchInput({ listing_type: 'rental' }).listing_type).toBe('rental');
+    expect(parseListingSearchInput(new URLSearchParams())).toEqual({});
+  });
+
+  it('round-trips through listingSearchParams', () => {
+    const input = {
+      city: 'Medellín',
+      listing_type: 'sale' as const,
+      bedrooms_min: 3,
+    };
+    expect(parseListingSearchInput(listingSearchParams(input))).toEqual(input);
+  });
+});
+
+describe('publicSunnyListingHits', () => {
+  it('drops rows that still carry private fields and remaps a public hit', () => {
+    const leaked = {
+      ...hit(),
+      minimum_offer_price: 1,
+      owner_id: 'secret',
+      address: 'Calle 10',
+    };
+    const publicHit = hit({ images: ['https://cdn.example/brisas.jpg'] });
+    expect(publicSunnyListingHits([leaked, publicHit]).map((row) => row.slug)).toEqual(['brisas']);
+    expect(publicSunnyListingHits([publicHit])[0]).not.toHaveProperty('minimum_offer_price');
+    expect(publicSunnyListingHits([publicHit])[0]).not.toHaveProperty('address');
+    expect(publicSunnyListingHits([publicHit])[0]).not.toHaveProperty('owner_id');
+  });
+});
+
+describe('listings host API origin', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('prefers an explicit origin then VERCEL_URL', () => {
+    expect(resolveListingsApiOrigin({ VERCEL_URL: 'sunday-preview.vercel.app' })).toBe(
+      'https://sunday-preview.vercel.app',
+    );
+    expect(
+      resolveListingsApiOrigin({
+        SUNNY_LISTINGS_API_ORIGIN: 'https://api.example',
+        VERCEL_URL: 'ignored.vercel.app',
+      }),
+    ).toBe('https://api.example');
+    expect(resolveListingsApiOrigin({})).toBeNull();
+  });
+
+  it('fetches only public hits from the Hono listings route', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      expect(url).toContain('/api/sunny/listings?city=Medell');
+      expect(init?.method).toBe('GET');
+      expect((init?.headers as Record<string, string>)['x-vercel-protection-bypass']).toBe('bypass-secret');
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          hits: [
+            hit({ images: ['https://cdn.example/brisas.jpg'] }),
+            { ...hit({ slug: 'secret-loft' }), minimum_offer_price: 9 },
+          ],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await searchPublishedListingsViaHostApi(
+      { city: 'Medellín' },
+      {
+        VERCEL_URL: 'sunday-preview.vercel.app',
+        VERCEL_AUTOMATION_BYPASS_SECRET: 'bypass-secret',
+      },
+    );
+    expect(result).toEqual({
+      ok: true,
+      hits: [expect.objectContaining({ slug: 'brisas', title: 'Brisas del Estadio' })],
+    });
+    expect(result && result.ok ? result.hits[0] : null).not.toHaveProperty('minimum_offer_price');
   });
 });
 

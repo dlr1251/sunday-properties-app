@@ -14,8 +14,8 @@ import { withEve } from 'eve/vercel';
  * also skips the zero-config `api/` directory unless a service owns it
  * (`root: 'api'` or `root: '.'` + `entrypoint` under `api/`). The `api` service
  * is a Hono entrypoint (`api/index.ts`) so listing HTML, Sunny anon tickets,
- * and any later `api/` handlers still deploy. Public `/api/*` and
- * `/properties/:slug` go to that service; everything else goes to `web`.
+ * public listings, and any later `api/` handlers still deploy. Public `/api/*`
+ * and `/properties/:slug` go to that service; everything else goes to `web`.
  */
 export default await withEve({
   services: {

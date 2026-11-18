@@ -3,6 +3,7 @@ import { never } from 'eve/tools/approval';
 import { z } from 'zod';
 
 import { logPublicSupabaseError } from '../../src/lib/publicSupabase';
+import { searchPublishedListingsViaHostApi } from '../../src/lib/sunny/listings-host';
 import { searchPublishedListings } from '../../src/lib/sunny/listings';
 
 const inputSchema = z.object({
@@ -19,15 +20,26 @@ const inputSchema = z.object({
   slug_or_id: z.string().max(120).optional().describe('Exact published slug or property id.'),
 });
 
+/**
+ * Host Node step (not the workflow VM, not the inert sunny-none sandbox).
+ * Prefer the Hono `api` service, which has normal Node egress to Supabase.
+ */
+async function loadPublishedListings(input: z.infer<typeof inputSchema>) {
+  "use step";
+  const viaHost = await searchPublishedListingsViaHostApi(input);
+  if (viaHost) return viaHost;
+  return searchPublishedListings(input);
+}
+
 export default defineTool({
   description:
     'Search Sunday Properties listings that are publicly published. Returns only public-safe fields (no address, owner contact, minimum offer, deposit, or internal notes). Call this before answering any question about a specific property, price, area, neighborhood inventory, or availability. If it returns no rows, say you do not have a published match and offer a human follow-up.',
   approval: never(),
   inputSchema,
   async execute(input) {
-    let result: Awaited<ReturnType<typeof searchPublishedListings>>;
+    let result: Awaited<ReturnType<typeof loadPublishedListings>>;
     try {
-      result = await searchPublishedListings(input);
+      result = await loadPublishedListings(input);
     } catch (error) {
       logPublicSupabaseError('sunny-listings', error, { city: input.city });
       return {
