@@ -7,7 +7,9 @@ import {
   inventedPriceInReply,
 } from './sensitive-tool-guard';
 import {
+  PUBLISHED_LISTING_STATUS,
   SUNNY_LISTING_COLUMNS,
+  SUNNY_LISTING_CORE_COLUMNS,
   SUNNY_LISTING_SELECT,
   SUNNY_PRIVATE_COLUMNS,
 } from './listing-columns';
@@ -25,6 +27,14 @@ import { allowSunnyIp, resetSunnyRateLimitForTests } from './rate-limit';
 describe('Sunny listing privacy', () => {
   it('keeps SUNNY_LISTING_COLUMNS in sync with PUBLIC_PROPERTY_COLUMNS', () => {
     expect([...SUNNY_LISTING_COLUMNS].sort()).toEqual([...PUBLIC_PROPERTY_COLUMNS].sort());
+  });
+
+  it('uses published status and a public-safe core fallback select', () => {
+    expect(PUBLISHED_LISTING_STATUS).toBe('published');
+    for (const column of SUNNY_LISTING_CORE_COLUMNS) {
+      expect(SUNNY_LISTING_COLUMNS).toContain(column);
+      expect(PUBLIC_PROPERTY_COLUMNS).toContain(column);
+    }
   });
 
   it('never selects private columns', () => {

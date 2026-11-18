@@ -1,4 +1,8 @@
+import { logPublicSupabaseError, resolvePublicSupabaseConfig } from '../publicSupabase';
+import { matchesPublicLocation, normalizeSearch } from '../../utils/publicLocation';
 import {
+  PUBLISHED_LISTING_STATUS,
+  SUNNY_LISTING_CORE_SELECT,
   SUNNY_LISTING_SELECT,
   SUNNY_PRIVATE_COLUMNS,
   type SunnyPrivateColumn,
@@ -47,18 +51,8 @@ const ADDRESS_RE = new RegExp(
   'gi',
 );
 
-function getPublicSupabaseConfig(env: Readonly<Record<string, string | undefined>> = process.env): {
-  url: string;
-  anonKey: string;
-} {
-  const url = (
-    env.VITE_SUPABASE_URL ||
-    env.SUPABASE_URL ||
-    'https://prtyuwdkrrqhtwolcrav.supabase.co'
-  ).trim();
-  const anonKey = (env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '').trim();
-  return { url: url.replace(/\/$/, ''), anonKey };
-}
+const LISTING_FETCH_LIMIT = 40;
+const LISTING_RETURN_LIMIT = 8;
 
 function toNumber(value: unknown): number | null {
   if (value == null || value === '') return null;
@@ -134,54 +128,123 @@ export function publishedListingPrices(hits: readonly SunnyListingHit[]): number
   return amounts;
 }
 
-export async function searchPublishedListings(
+export function filterSunnyListingHits(
+  hits: readonly SunnyListingHit[],
   input: SunnyListingSearchInput,
-  env: Readonly<Record<string, string | undefined>> = process.env,
-): Promise<{ ok: true; hits: SunnyListingHit[] } | { ok: false; error: string }> {
-  const { url, anonKey } = getPublicSupabaseConfig(env);
-  if (!url || !anonKey) return { ok: false, error: 'listings_not_configured' };
+): SunnyListingHit[] {
+  let next = [...hits];
+  const city = input.city?.trim();
+  if (city) {
+    next = next.filter((hit) => matchesPublicLocation({ city: hit.city, neighborhood: hit.neighborhood }, city));
+  }
+  const neighborhood = input.neighborhood?.trim();
+  if (neighborhood) {
+    next = next.filter((hit) =>
+      matchesPublicLocation({ neighborhood: hit.neighborhood, city: hit.city }, neighborhood),
+    );
+  }
+  const needle = input.query?.trim();
+  if (needle && !input.slug_or_id) {
+    const folded = normalizeSearch(needle);
+    next = next.filter((hit) => {
+      const haystack = normalizeSearch(
+        [hit.title, hit.neighborhood, hit.city, hit.description].filter(Boolean).join(' '),
+      );
+      return haystack.includes(folded);
+    });
+  }
+  if (typeof input.max_price === 'number') {
+    next = next.filter((hit) => {
+      const amount = hit.listing_type === 'rental' ? hit.rent_monthly : hit.price;
+      return amount == null || amount <= input.max_price!;
+    });
+  }
+  return next.slice(0, LISTING_RETURN_LIMIT);
+}
 
-  const { createClient } = await import('@supabase/supabase-js');
-  const supabase = createClient(url, anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
+async function queryPublishedRows(
+  supabase: { from: (table: string) => any },
+  input: SunnyListingSearchInput,
+  select: string,
+) {
   let query = supabase
     .from('properties')
-    .select(SUNNY_LISTING_SELECT)
-    .eq('status', 'published')
-    .limit(8);
+    .select(select)
+    .eq('status', PUBLISHED_LISTING_STATUS)
+    .order('created_at', { ascending: false })
+    .limit(input.slug_or_id?.trim() ? 1 : LISTING_FETCH_LIMIT);
 
   if (input.slug_or_id?.trim()) {
     const key = input.slug_or_id.trim();
     const uuid = /^[0-9a-f-]{36}$/i.test(key);
     query = uuid ? query.eq('id', key) : query.ilike('slug', key);
   }
-  if (input.city?.trim()) query = query.ilike('city', `%${input.city.trim()}%`);
-  if (input.neighborhood?.trim()) {
-    query = query.ilike('neighborhood', `%${input.neighborhood.trim()}%`);
-  }
   if (input.listing_type) query = query.eq('listing_type', input.listing_type);
   if (typeof input.bedrooms_min === 'number') query = query.gte('bedrooms', input.bedrooms_min);
 
-  const needle = input.query?.trim();
-  if (needle && !input.slug_or_id) {
-    query = query.or(
-      `title.ilike.%${needle}%,neighborhood.ilike.%${needle}%,city.ilike.%${needle}%,description.ilike.%${needle}%`,
-    );
-  }
+  return query;
+}
 
-  const { data, error } = await query;
-  if (error) return { ok: false, error: 'listings_query_failed' };
-
-  let hits = (data ?? []).map((row) => mapSunnyListing(row as unknown as Record<string, unknown>));
-  if (typeof input.max_price === 'number') {
-    hits = hits.filter((hit) => {
-      const amount = hit.listing_type === 'rental' ? hit.rent_monthly : hit.price;
-      return amount == null || amount <= input.max_price!;
+export async function searchPublishedListings(
+  input: SunnyListingSearchInput,
+  env: Readonly<Record<string, string | undefined>> = process.env,
+): Promise<{ ok: true; hits: SunnyListingHit[] } | { ok: false; error: string }> {
+  const config = resolvePublicSupabaseConfig(env);
+  const { url, anonKey } = config;
+  if (!url || !anonKey) {
+    logPublicSupabaseError('sunny-listings', new Error('listings_not_configured'), {
+      urlSource: config.urlSource,
+      anonKeySource: config.anonKeySource,
+      hasUrl: Boolean(url),
+      hasAnonKey: Boolean(anonKey),
     });
+    return { ok: false, error: 'listings_not_configured' };
   }
-  return { ok: true, hits };
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(url, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    let { data, error } = await queryPublishedRows(supabase, input, SUNNY_LISTING_SELECT);
+    if (error) {
+      logPublicSupabaseError('sunny-listings', error, {
+        select: 'full',
+        url,
+        urlSource: config.urlSource,
+        anonKeySource: config.anonKeySource,
+        city: input.city,
+      });
+      const retry = await queryPublishedRows(supabase, input, SUNNY_LISTING_CORE_SELECT);
+      data = retry.data;
+      error = retry.error;
+      if (error) {
+        logPublicSupabaseError('sunny-listings', error, {
+          select: 'core',
+          url,
+          urlSource: config.urlSource,
+          anonKeySource: config.anonKeySource,
+          city: input.city,
+        });
+        return { ok: false, error: 'listings_query_failed' };
+      }
+    }
+
+    const hits = filterSunnyListingHits(
+      (data ?? []).map((row: unknown) => mapSunnyListing(row as Record<string, unknown>)),
+      input,
+    );
+    return { ok: true, hits };
+  } catch (error) {
+    logPublicSupabaseError('sunny-listings', error, {
+      url,
+      urlSource: config.urlSource,
+      anonKeySource: config.anonKeySource,
+      city: input.city,
+    });
+    return { ok: false, error: 'listings_query_failed' };
+  }
 }
 
 export function listingSelectContainsPrivate(): SunnyPrivateColumn[] {
