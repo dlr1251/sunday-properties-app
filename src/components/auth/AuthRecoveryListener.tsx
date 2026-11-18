@@ -9,8 +9,10 @@ export function AuthRecoveryListener() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        navigate('/reset-password', { replace: true });
+      if (event !== 'PASSWORD_RECOVERY') return;
+      const dest = `/reset-password${window.location.search}${window.location.hash}`;
+      if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== dest) {
+        navigate(dest, { replace: true });
       }
     });
 
