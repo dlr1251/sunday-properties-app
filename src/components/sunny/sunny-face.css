@@ -1,0 +1,206 @@
+.sunny-face-wrap {
+  display: block;
+  line-height: 0;
+  color: inherit;
+}
+
+.sunny-face-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sunny-breathe {
+  transform-origin: 50% 50%;
+  animation: sunny-breathe 3.6s ease-in-out infinite;
+}
+
+.sunny-squash {
+  transform-origin: 50% 80%;
+}
+
+.sunny-face-wrap.is-bounce .sunny-squash {
+  animation: sunny-squash 0.42s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+
+.sunny-marks {
+  transform-origin: 64px 64px;
+  transform-box: view-box;
+}
+
+.sunny-face-wrap.is-thinking .sunny-marks {
+  animation: sunny-orbit 7.5s linear infinite;
+}
+
+.sunny-eye-blink,
+.sunny-eye-scale {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sunny-eye-scale {
+  transition: transform 180ms ease;
+}
+
+.sunny-face-wrap.is-interactive:hover .sunny-eye-scale,
+.sunny-face-wrap.is-interactive:focus-visible .sunny-eye-scale {
+  transform: scale(1.12);
+}
+
+.sunny-face-wrap.is-blinking .sunny-eye-blink {
+  transform: scaleY(0.08);
+  transition: transform 70ms ease-in;
+}
+
+.sunny-smile,
+.sunny-smile-wide {
+  transition: opacity 160ms ease;
+}
+
+.sunny-smile-wide {
+  opacity: 0;
+}
+
+.sunny-face-wrap.is-interactive:hover .sunny-smile,
+.sunny-face-wrap.is-interactive:focus-visible .sunny-smile {
+  opacity: 0;
+}
+
+.sunny-face-wrap.is-interactive:hover .sunny-smile-wide,
+.sunny-face-wrap.is-interactive:focus-visible .sunny-smile-wide {
+  opacity: 1;
+}
+
+.sunny-sparkle {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sunny-face-wrap.is-interactive:hover .sunny-sparkle,
+.sunny-face-wrap.is-interactive:focus-visible .sunny-sparkle {
+  opacity: 1;
+  animation: sunny-twinkle 0.9s ease-in-out infinite;
+}
+
+.sunny-launcher {
+  box-shadow:
+    0 8px 22px rgba(26, 36, 65, 0.3),
+    0 0 0 1px rgba(245, 209, 90, 0.32);
+}
+
+.sunny-launcher:hover,
+.sunny-launcher:focus-visible {
+  box-shadow:
+    0 10px 26px rgba(26, 36, 65, 0.38),
+    0 0 0 1px rgba(240, 168, 13, 0.55),
+    0 0 18px rgba(245, 209, 90, 0.28);
+}
+
+.sunny-launcher.is-thinking {
+  animation: sunny-glow-pulse 1.7s ease-in-out infinite;
+}
+
+.sunny-face-wrap.is-thinking .sunny-face-svg {
+  filter: drop-shadow(0 0 6px rgba(245, 209, 90, 0.35));
+}
+
+@keyframes sunny-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes sunny-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sunny-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(18deg);
+  }
+}
+
+@keyframes sunny-squash {
+  0% {
+    transform: scale(1, 1);
+  }
+  35% {
+    transform: scale(0.9, 1.1);
+  }
+  65% {
+    transform: scale(1.08, 0.92);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+@keyframes sunny-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 22px rgba(26, 36, 65, 0.3),
+      0 0 0 1px rgba(245, 209, 90, 0.35),
+      0 0 0 0 rgba(240, 168, 13, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 8px 22px rgba(26, 36, 65, 0.3),
+      0 0 0 1px rgba(245, 209, 90, 0.7),
+      0 0 22px 4px rgba(240, 168, 13, 0.42);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sunny-breathe,
+  .sunny-squash,
+  .sunny-marks,
+  .sunny-sparkle,
+  .sunny-launcher.is-thinking,
+  .sunny-face-wrap.is-thinking .sunny-face-svg,
+  .sunny-face-wrap.is-bounce .sunny-squash {
+    animation: none !important;
+    filter: none;
+  }
+
+  .sunny-face-wrap.is-interactive:hover .sunny-eye-scale,
+  .sunny-face-wrap.is-interactive:focus-visible .sunny-eye-scale {
+    transform: none;
+  }
+
+  .sunny-face-wrap.is-interactive:hover .sunny-smile,
+  .sunny-face-wrap.is-interactive:focus-visible .sunny-smile {
+    opacity: 1;
+  }
+
+  .sunny-face-wrap.is-interactive:hover .sunny-smile-wide,
+  .sunny-face-wrap.is-interactive:focus-visible .sunny-smile-wide,
+  .sunny-face-wrap.is-interactive:hover .sunny-sparkle,
+  .sunny-face-wrap.is-interactive:focus-visible .sunny-sparkle {
+    opacity: 0;
+    animation: none;
+  }
+
+  .sunny-launcher.is-thinking {
+    box-shadow:
+      0 8px 22px rgba(26, 36, 65, 0.3),
+      0 0 0 1px rgba(245, 209, 90, 0.32);
+  }
+}
