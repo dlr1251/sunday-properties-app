@@ -1,3 +1,4 @@
+import { SITE_ORIGIN } from '../siteUrl';
 import {
   SUNNY_LISTING_SELECT,
   SUNNY_PRIVATE_COLUMNS,
@@ -36,8 +37,6 @@ export type SunnyListingSearchInput = {
   max_price?: number;
   slug_or_id?: string;
 };
-
-const SITE_ORIGIN = 'https://www.sundayproperties.co';
 
 const STREET_TYPE =
   '(?:carrera|cra\\.?|cr\\.?|calle|cll\\.?|cl\\.?|transversal|tv\\.?|diagonal|dg\\.?|avenida|av\\.?|circular|circ\\.?|autopista)';
