@@ -1,0 +1,15 @@
+{
+  "name": "sunday-properties",
+  "description": "Plugins for Sunday Properties: talk to Sunny and browse published listings in Medellín.",
+  "owner": {
+    "name": "Sunday Properties",
+    "url": "https://www.sundayproperties.co"
+  },
+  "plugins": [
+    {
+      "name": "sunday-properties",
+      "source": "./plugins/sunday-properties",
+      "description": "Habla con Sunny y consulta listados publicados de Sunday Properties."
+    }
+  ]
+}

@@ -15,4 +15,8 @@ describe('ChatGPT MCP hosting routes', () => {
     expect(new RegExp('^/mcp(?:/.*)?$').test('/mcp')).toBe(true);
     expect(new RegExp('^/mcp(?:/.*)?$').test('/mcp/')).toBe(true);
   });
+
+  it('gives the api function 60s so ask_sunny can wait for turn.settled', () => {
+    expect(vercelSource).toMatch(/maxDuration:\s*60/);
+  });
 });

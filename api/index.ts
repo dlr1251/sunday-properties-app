@@ -10,7 +10,7 @@ import { GET as sunnyListingsGet } from './sunny/listings';
  * Vercel Services skip the zero-config `api/` directory. This Hono app is the
  * `api` service entrypoint so every existing handler still ships:
  * `/api/listing-html`, `/api/sunny/anon`, `/api/sunny/listings`,
- * `/api/sunny/leads`, `/mcp` (ChatGPT Apps SDK), `/api/mcp/preview`,
+ * `/api/sunny/leads`, `/mcp` (ChatGPT Apps SDK + ask_sunny), `/api/mcp/preview`,
  * and `/properties/:slug` (OG HTML).
  * Import new `api/*.ts` handlers here when you add them.
  */
@@ -27,5 +27,7 @@ app.post('/api/sunny/leads', (c) => sunnyLeadsPost(c.req.raw));
 app.get('/api/mcp/preview', (c) => handlePreviewRequest(c.req.raw));
 app.get('/api/mcp/preview/widget', (c) => handlePreviewRequest(c.req.raw));
 app.on(['GET', 'POST', 'DELETE', 'OPTIONS'], '/mcp', (c) => handleMcpRequest(c.req.raw));
+
+export const maxDuration = 60;
 
 export default app;

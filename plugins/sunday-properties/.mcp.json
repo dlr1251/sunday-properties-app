@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sunday": {
+      "type": "http",
+      "url": "https://www.sundayproperties.co/mcp",
+      "timeout": 60000
+    }
+  }
+}

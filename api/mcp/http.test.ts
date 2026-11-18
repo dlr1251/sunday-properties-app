@@ -78,6 +78,7 @@ describe('Sunday MCP HTTP endpoint', () => {
       'show_listings',
       'listing_stats',
       'compare_listings',
+      'ask_sunny',
     ]);
 
     const called = await mcpRpc('tools/call', {
