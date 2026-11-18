@@ -109,6 +109,7 @@
             "test:run": "vitest run",
             "test:coverage": "vitest run --coverage",
             "typecheck": "tsc -p tsconfig.sunny.json --noEmit",
+            "typecheck:api": "tsc -p api/tsconfig.json",
             "eve:info": "npx eve info",
             "eve:build": "npx eve build",
             "eve:check-tools": "node scripts/check-eve-tools.mjs --expect=search_listings --expect=record_sunny_lead --expect=request_human_handoff",

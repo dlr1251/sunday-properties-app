@@ -1,4 +1,4 @@
-import { SITE_ORIGIN } from '../siteUrl';
+import { SITE_ORIGIN } from '../siteOrigin';
 import {
   SUNNY_LISTING_SELECT,
   SUNNY_PRIVATE_COLUMNS,

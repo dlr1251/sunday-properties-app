@@ -1,6 +1,6 @@
 import { publicLocationLabel, sanitizePublicDescription } from './publicLocation';
 import { isPropertyUuid } from './propertyPath';
-import { SITE_ORIGIN } from '../lib/siteUrl';
+import { SITE_ORIGIN } from '../lib/siteOrigin';
 
 export { SITE_ORIGIN };
 export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-image.png`;
