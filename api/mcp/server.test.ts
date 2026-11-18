@@ -69,14 +69,17 @@ describe('Sunday ChatGPT MCP server', () => {
       'show_listings',
       'listing_stats',
       'compare_listings',
+      'ask_sunny',
     ]);
-    for (const tool of listed.tools) {
+    const listingTools = listed.tools.filter((tool) => tool.name !== 'ask_sunny');
+    for (const tool of listingTools) {
       expect(tool.annotations?.readOnlyHint).toBe(true);
       expect(tool.annotations?.destructiveHint).toBe(false);
       expect((tool._meta as { securitySchemes?: { type: string }[] })?.securitySchemes?.[0]?.type).toBe(
         'noauth',
       );
     }
+    expect(listed.tools.find((tool) => tool.name === 'ask_sunny')?.annotations?.readOnlyHint).toBe(false);
     const show = listed.tools.find((tool) => tool.name === 'show_listings');
     expect((show?._meta as { ui?: { resourceUri?: string } })?.ui?.resourceUri).toBe(LISTINGS_WIDGET_URI);
     expect((show?._meta as { 'openai/outputTemplate'?: string })?.['openai/outputTemplate']).toBe(

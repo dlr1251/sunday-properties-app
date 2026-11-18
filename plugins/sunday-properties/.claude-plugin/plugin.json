@@ -1,0 +1,9 @@
+{
+  "name": "sunday-properties",
+  "description": "Habla con Sunny, la asistente de Sunday Properties, y consulta listados publicados en Medellín.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Sunday Properties",
+    "url": "https://www.sundayproperties.co"
+  }
+}

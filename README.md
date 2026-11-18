@@ -118,6 +118,48 @@ Hace falta un endpoint HTTPS estable (el dominio de producción, no un preview),
 
 ---
 
+## Claude: hablar con Sunny (Daniel)
+
+El mismo servidor MCP en `/mcp` expone `ask_sunny` además de las tools de listados. Claude (Desktop, claude.ai o Claude Code) llama a `/mcp`; el servidor reenvía el mensaje a Sunny por `/eve/v1` con `SUNNY_MCP_API_KEY`. El visitante no ve esa clave. `ask_sunny` acepta un `session_id` opcional para seguir la conversación.
+
+### Conector en Claude Desktop / claude.ai
+
+1. Abre **Settings → Connectors** (Desktop) o **Customize → Connectors** (claude.ai).
+2. **Add custom connector**. Nombre: `Sunday Properties`. URL: `https://www.sundayproperties.co/mcp` (incluye `/mcp`). Autenticación: **None**.
+3. En un preview de Vercel usa `https://<tu-preview>.vercel.app/mcp`.
+4. Prueba: *“¿qué arriendos hay en Laureles?”*. Para seguimiento, el modelo debe reenviar el `session_id` que devolvió `ask_sunny`.
+
+### Plugin de Claude Code
+
+El repo es un marketplace (`/.claude-plugin/marketplace.json`) con el plugin en `plugins/sunday-properties/` (skill `ask_sunny` + MCP remoto).
+
+```bash
+claude plugin marketplace add dlr1251/sunday-properties-app
+claude plugin install sunday-properties@sunday-properties
+```
+
+O, desde un clone local:
+
+```bash
+claude plugin marketplace add .
+claude plugin install sunday-properties@sunday-properties
+# o una sola sesión:
+claude --plugin-dir ./plugins/sunday-properties
+```
+
+La skill `/sunday-properties:ask_sunny` indica cuándo usar `ask_sunny` frente a `search_listings` / `show_listings` / `listing_stats` / `compare_listings`.
+
+### Variables de entorno
+
+`SUNNY_MCP_API_KEY` es la misma variable en todo el proyecto Vercel `sunday-properties` (el MCP y Sunny viven juntos). El servidor MCP la envía como `Authorization: Bearer` a `/eve/v1`; el canal eve la acepta y etiqueta la sesión como `claude-mcp`.
+
+- **Preview:** define un valor de prueba solo en el environment Preview. Sin esa variable, `ask_sunny` responde que Sunny no está configurada y `/eve/v1` sigue exigiendo el ticket anónimo de la web.
+- **Production:** la misma variable, un secreto distinto y largo. No la pongas en el cliente ni en el plugin. `SUNNY_URL` es opcional (por defecto el origen del deploy, si no `https://www.sundayproperties.co`).
+
+No hace falta auth en el conector de Claude: la clave es servidor a servidor.
+
+---
+
 ## Licencia
 
 MIT — ver archivo `LICENSE` si existe en el repositorio.

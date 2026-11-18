@@ -46,6 +46,7 @@ export default await withEve({
       functions: {
         'api/index.ts': {
           includeFiles: 'build/index.html',
+          maxDuration: 60,
         },
       },
     },

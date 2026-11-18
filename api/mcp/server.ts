@@ -17,6 +17,7 @@ import {
   showListingsOutputSchema,
   sunnyListingSearchSchema,
 } from './schemas';
+import { registerAskSunny, type AskSunnyFn } from './ask-sunny-tool';
 import {
   defaultListingsLoader,
   executeCompareListings,
@@ -73,7 +74,10 @@ function registerWidget(server: McpServer, kind: WidgetKind) {
   );
 }
 
-export function createSundayMcpServer(loader: ListingsLoader = defaultListingsLoader): McpServer {
+export function createSundayMcpServer(
+  loader: ListingsLoader = defaultListingsLoader,
+  options: { askSunny?: AskSunnyFn } = {},
+): McpServer {
   const server = new McpServer(
     { name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION },
     {
@@ -141,6 +145,8 @@ export function createSundayMcpServer(loader: ListingsLoader = defaultListingsLo
     },
     async (args) => executeCompareListings(args, loader),
   );
+
+  registerAskSunny(server, options.askSunny);
 
   return server;
 }
