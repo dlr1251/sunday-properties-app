@@ -2,6 +2,7 @@ import { defineTool } from 'eve/tools';
 import { never } from 'eve/tools/approval';
 import { z } from 'zod';
 
+import { logPublicSupabaseError } from '../../src/lib/publicSupabase';
 import { searchPublishedListings } from '../../src/lib/sunny/listings';
 
 const inputSchema = z.object({
@@ -24,7 +25,17 @@ export default defineTool({
   approval: never(),
   inputSchema,
   async execute(input) {
-    const result = await searchPublishedListings(input);
+    let result: Awaited<ReturnType<typeof searchPublishedListings>>;
+    try {
+      result = await searchPublishedListings(input);
+    } catch (error) {
+      logPublicSupabaseError('sunny-listings', error, { city: input.city });
+      return {
+        ok: false,
+        hits: [],
+        note: 'Could not load published listings. Offer a human follow-up; do not invent inventory.',
+      };
+    }
     if (!result.ok) {
       return {
         ok: false,

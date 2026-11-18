@@ -62,5 +62,27 @@ export const SUNNY_PRIVATE_COLUMNS = [
 
 export const SUNNY_LISTING_SELECT = SUNNY_LISTING_COLUMNS.join(',');
 
+/**
+ * Narrower public select used if the full PUBLIC_PROPERTY_COLUMNS list 400/403s
+ * (a column not yet granted or missing on the live schema). Matches listing OG.
+ */
+export const SUNNY_LISTING_CORE_COLUMNS = [
+  'id',
+  'slug',
+  'title',
+  'description',
+  'listing_type',
+  'price',
+  'rent_monthly',
+  'neighborhood',
+  'city',
+  'images',
+  'status',
+] as const;
+
+export const SUNNY_LISTING_CORE_SELECT = SUNNY_LISTING_CORE_COLUMNS.join(',');
+
+export const PUBLISHED_LISTING_STATUS = 'published';
+
 export type SunnyListingColumn = (typeof SUNNY_LISTING_COLUMNS)[number];
 export type SunnyPrivateColumn = (typeof SUNNY_PRIVATE_COLUMNS)[number];

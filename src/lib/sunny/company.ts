@@ -1,18 +1,25 @@
+import {
+  BRAND_CITY,
+  BRAND_COUNTRY,
+  BRAND_EMAIL,
+  BRAND_NAME,
+  BRAND_PHONE,
+  BRAND_TAGLINE,
+  BRAND_URL,
+} from '../../constants/brand';
 import { sunnyAgentName } from './config';
 
 export function sunnyCompanyFacts(env: Readonly<Record<string, string | undefined>> = process.env) {
   const name = sunnyAgentName(env);
   return {
     agentName: name,
-    brand: 'Sunday Properties',
-    url: 'https://sundayproperties.co',
-    city: 'Medellín',
-    country: 'Colombia',
-    phone: '+57 300 679 1123',
-    email: 'daniel@luquelaw.co',
-    taglineEs:
-      'Arrienda y compra en Colombia — con tradición, contrato y visita antes de decidir.',
-    taglineEn:
-      'Rent and buy in Colombia — with title, contract, and visit before you commit.',
+    brand: BRAND_NAME,
+    url: BRAND_URL,
+    city: BRAND_CITY,
+    country: BRAND_COUNTRY,
+    phone: BRAND_PHONE,
+    email: BRAND_EMAIL,
+    taglineEs: BRAND_TAGLINE.es,
+    taglineEn: BRAND_TAGLINE.en,
   };
 }
