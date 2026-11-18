@@ -1,12 +1,28 @@
 import { defineTool } from 'eve/tools';
 import { never } from 'eve/tools/approval';
 
-import { recordSunnyHandoff, sunnyHandoffInputSchema } from '../../src/lib/sunny/leads';
+import { persistSunnyLeadPreferringHostApi } from '../../src/lib/sunny/leads-host';
+import {
+  sunnyHandoffInputSchema,
+  sunnyHandoffRowFromInput,
+  sunnyLeadExecuteResult,
+  type SunnyLeadRow,
+} from '../../src/lib/sunny/leads';
+import { logPublicSupabaseError } from '../../src/lib/publicSupabase';
 import { detectMessageLocale, localeFromAttribute } from '../../src/lib/sunny/reply-locale';
 import {
   guardSensitiveToolFields,
   sensitiveToolBlockedResponse,
 } from '../../src/lib/sunny/sensitive-tool-guard';
+
+/**
+ * Host Node step (not the workflow VM). Prefer the Hono `api` service, which
+ * has normal Node egress to Supabase.
+ */
+async function persistSunnyHandoff(row: SunnyLeadRow) {
+  "use step";
+  return persistSunnyLeadPreferringHostApi(row);
+}
 
 export default defineTool({
   description:
@@ -29,16 +45,16 @@ export default defineTool({
         input.language ??
         localeFromAttribute(toolCtx.session.auth.current?.attributes?.locale) ??
         detectMessageLocale(input.summary);
-      const result = await recordSunnyHandoff({
-        ...input,
-        locale,
-        sessionId: toolCtx.session.id,
-      });
-      if (!result.ok) return { ok: false, recorded: false };
-      return { ok: true, recorded: true, handoff: true };
+      const result = await persistSunnyHandoff(
+        sunnyHandoffRowFromInput({
+          ...input,
+          locale,
+          sessionId: toolCtx.session.id,
+        }),
+      );
+      return sunnyLeadExecuteResult('sunny-handoff', result, { handoff: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'handoff_failed';
-      console.error(`[sunny-handoff] ${message.slice(0, 240)}`);
+      logPublicSupabaseError('sunny-handoff', error);
       return { ok: false, recorded: false };
     }
   },
