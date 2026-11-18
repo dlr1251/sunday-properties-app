@@ -98,7 +98,8 @@ async function handleRequest(request: Request): Promise<Response> {
 
   const rate = allowSunnyIp(ip);
   if (!rate.ok) {
-    return jsonResponse(429, { ok: false, error: rate.reason });
+    const error = 'reason' in rate ? rate.reason : 'ip_minute';
+    return jsonResponse(429, { ok: false, error });
   }
 
   let turnstileToken: string | undefined;
