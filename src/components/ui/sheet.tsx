@@ -110,22 +110,22 @@ const SheetContent: React.FC<SheetContentProps> = ({
   };
 
   const sizeClasses = {
-    left: 'w-80 max-w-[85vw]',
-    right: 'w-80 max-w-[85vw]',
+    left: 'w-full max-w-full sm:w-80 sm:max-w-[85vw]',
+    right: 'w-full max-w-full sm:w-80 sm:max-w-[85vw]',
     top: 'h-auto max-h-[85vh]',
-    bottom: 'h-auto max-h-[85vh]',
+    bottom: 'h-auto max-h-[min(85vh,100%)] rounded-t-2xl',
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm animate-fade-in"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
     >
       <div
         className={[
-          'fixed p-6',
+          'fixed p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]',
           'bg-background shadow-elevated',
           'border-border',
           sideClasses[side],
@@ -138,7 +138,7 @@ const SheetContent: React.FC<SheetContentProps> = ({
         {/* Close button */}
         <button
           onClick={() => context.setOpen(false)}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          className="absolute right-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
@@ -154,7 +154,7 @@ interface SheetHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const SheetHeader: React.FC<SheetHeaderProps> = ({ className = '', ...props }) => (
-  <div className={`flex flex-col space-y-2 mb-6 ${className}`} {...props} />
+  <div className={`mb-6 flex flex-col space-y-2 pr-12 ${className}`} {...props} />
 );
 
 interface SheetTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {

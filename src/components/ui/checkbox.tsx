@@ -33,10 +33,10 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(({
         {...props}
       />
       <div
-        className={`w-4 h-4 border-2 rounded cursor-pointer flex items-center justify-center transition-colors ${
+        className={`flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded border-2 transition-colors ${
           checked
-            ? 'bg-blue-600 border-blue-600'
-            : 'border-gray-300'
+            ? 'border-primary bg-primary'
+            : 'border-input bg-background'
         }`}
         onClick={handleClick}
       >

@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { PropertyCard } from '../PropertyCard';
 import { formatArea, formatListingPrice, getListingPriceValue } from '../../utils/format';
@@ -76,6 +76,43 @@ const FEATURE_I18N_KEY: Record<string, string> = {
   'Salón social': 'properties.features.socialRoom',
 };
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches : false
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
+function FilterCheckRow({
+  id,
+  checked,
+  onCheckedChange,
+  children,
+}: {
+  id: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-11 items-center gap-3">
+      <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
+      <Label htmlFor={id} className="flex-1 cursor-pointer py-2 text-sm leading-snug text-foreground">
+        {children}
+      </Label>
+    </div>
+  );
+}
+
 export interface PropertiesViewProps {
   /** When set (e.g. inside dashboard), property detail opens in-place instead of navigating to /properties/:id */
   onPropertyClick?: (propertyId: string) => void;
@@ -116,6 +153,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
   const [propertiesPerPage] = useState(12);
   const [uniqueCities, setUniqueCities] = useState<string[]>([]);
   const [uniqueNeighborhoods, setUniqueNeighborhoods] = useState<string[]>([]);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const listingType = searchParams.get('listing_type');
@@ -348,18 +386,18 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
   }, [filters]);
 
   const FilterSidebar = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* Search */}
       <div className="space-y-2">
         <Label htmlFor="search">{t('common.search')}</Label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="search"
             placeholder={t('properties.searchPlaceholder')}
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-            className="pl-10"
+            className="h-11 pl-10 text-base"
           />
         </div>
       </div>
@@ -367,27 +405,25 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       {/* Listing Type */}
       <div className="space-y-2">
         <Label>{t('properties.type')}</Label>
-        <div className="space-y-2">
+        <div className="space-y-1">
           {[
             { value: 'sale' as const, label: t('properties.listingTypes.sale') },
             { value: 'rental' as const, label: t('properties.listingTypes.rental') },
           ].map((opt) => (
-            <div key={opt.value} className="flex items-center space-x-2">
-              <Checkbox
-                id={`listing-${opt.value}`}
-                checked={filters.listingTypes.includes(opt.value)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setFilters((prev) => ({ ...prev, listingTypes: [...prev.listingTypes, opt.value] }));
-                  } else {
-                    setFilters((prev) => ({ ...prev, listingTypes: prev.listingTypes.filter((t) => t !== opt.value) }));
-                  }
-                }}
-              />
-              <Label htmlFor={`listing-${opt.value}`} className="text-sm">
-                {opt.label}
-              </Label>
-            </div>
+            <FilterCheckRow
+              key={opt.value}
+              id={`listing-${opt.value}`}
+              checked={filters.listingTypes.includes(opt.value)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setFilters((prev) => ({ ...prev, listingTypes: [...prev.listingTypes, opt.value] }));
+                } else {
+                  setFilters((prev) => ({ ...prev, listingTypes: prev.listingTypes.filter((t) => t !== opt.value) }));
+                }
+              }}
+            >
+              {opt.label}
+            </FilterCheckRow>
           ))}
         </div>
       </div>
@@ -433,22 +469,22 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       {/* Bedrooms */}
       <div className="space-y-2">
         <Label>{t('properties.bedrooms')}</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
           {[1, 2, 3, 4, 5].map(num => (
-            <div key={num} className="flex items-center space-x-2">
-              <Checkbox
-                id={`bed-${num}`}
-                checked={filters.bedrooms.includes(num)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setFilters(prev => ({ ...prev, bedrooms: [...prev.bedrooms, num] }));
-                  } else {
-                    setFilters(prev => ({ ...prev, bedrooms: prev.bedrooms.filter(b => b !== num) }));
-                  }
-                }}
-              />
-              <Label htmlFor={`bed-${num}`} className="text-sm">{num}+</Label>
-            </div>
+            <FilterCheckRow
+              key={num}
+              id={`bed-${num}`}
+              checked={filters.bedrooms.includes(num)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setFilters(prev => ({ ...prev, bedrooms: [...prev.bedrooms, num] }));
+                } else {
+                  setFilters(prev => ({ ...prev, bedrooms: prev.bedrooms.filter(b => b !== num) }));
+                }
+              }}
+            >
+              {num}+
+            </FilterCheckRow>
           ))}
         </div>
       </div>
@@ -456,22 +492,22 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       {/* Bathrooms */}
       <div className="space-y-2">
         <Label>{t('properties.bathrooms')}</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
           {[1, 2, 3, 4].map(num => (
-            <div key={num} className="flex items-center space-x-2">
-              <Checkbox
-                id={`bath-${num}`}
-                checked={filters.bathrooms.includes(num)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setFilters(prev => ({ ...prev, bathrooms: [...prev.bathrooms, num] }));
-                  } else {
-                    setFilters(prev => ({ ...prev, bathrooms: prev.bathrooms.filter(b => b !== num) }));
-                  }
-                }}
-              />
-              <Label htmlFor={`bath-${num}`} className="text-sm">{num}+</Label>
-            </div>
+            <FilterCheckRow
+              key={num}
+              id={`bath-${num}`}
+              checked={filters.bathrooms.includes(num)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setFilters(prev => ({ ...prev, bathrooms: [...prev.bathrooms, num] }));
+                } else {
+                  setFilters(prev => ({ ...prev, bathrooms: prev.bathrooms.filter(b => b !== num) }));
+                }
+              }}
+            >
+              {num}+
+            </FilterCheckRow>
           ))}
         </div>
       </div>
@@ -479,7 +515,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       {/* Property Types */}
       <div className="space-y-2">
         <Label>{t('properties.propertyType')}</Label>
-        <div className="space-y-2">
+        <div className="space-y-1">
           {[
             { value: 'apartment', label: t('properties.types.apartment') },
             { value: 'house', label: t('properties.types.house') },
@@ -487,20 +523,20 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
             { value: 'office', label: t('properties.types.office') },
             { value: 'commercial', label: t('properties.types.commercial') }
           ].map(type => (
-            <div key={type.value} className="flex items-center space-x-2">
-              <Checkbox
-                id={`type-${type.value}`}
-                checked={filters.propertyTypes.includes(type.value)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setFilters(prev => ({ ...prev, propertyTypes: [...prev.propertyTypes, type.value] }));
-                  } else {
-                    setFilters(prev => ({ ...prev, propertyTypes: prev.propertyTypes.filter(t => t !== type.value) }));
-                  }
-                }}
-              />
-              <Label htmlFor={`type-${type.value}`} className="text-sm">{type.label}</Label>
-            </div>
+            <FilterCheckRow
+              key={type.value}
+              id={`type-${type.value}`}
+              checked={filters.propertyTypes.includes(type.value)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setFilters(prev => ({ ...prev, propertyTypes: [...prev.propertyTypes, type.value] }));
+                } else {
+                  setFilters(prev => ({ ...prev, propertyTypes: prev.propertyTypes.filter(t => t !== type.value) }));
+                }
+              }}
+            >
+              {type.label}
+            </FilterCheckRow>
           ))}
         </div>
       </div>
@@ -509,22 +545,22 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       {uniqueCities.length > 0 && (
         <div className="space-y-2">
           <Label>{t('properties.city')}</Label>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
+          <div className="max-h-40 space-y-1 overflow-y-auto">
             {uniqueCities.map(city => (
-              <div key={city} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`city-${city}`}
-                  checked={filters.cities.includes(city)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setFilters(prev => ({ ...prev, cities: [...prev.cities, city] }));
-                    } else {
-                      setFilters(prev => ({ ...prev, cities: prev.cities.filter(c => c !== city) }));
-                    }
-                  }}
-                />
-                <Label htmlFor={`city-${city}`} className="text-sm">{city}</Label>
-              </div>
+              <FilterCheckRow
+                key={city}
+                id={`city-${city}`}
+                checked={filters.cities.includes(city)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setFilters(prev => ({ ...prev, cities: [...prev.cities, city] }));
+                  } else {
+                    setFilters(prev => ({ ...prev, cities: prev.cities.filter(c => c !== city) }));
+                  }
+                }}
+              >
+                {city}
+              </FilterCheckRow>
             ))}
           </div>
         </div>
@@ -533,22 +569,22 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       {/* Features */}
       <div className="space-y-2">
         <Label>{t('properties.amenities')}</Label>
-        <div className="space-y-2 max-h-60 overflow-y-auto">
+        <div className="max-h-60 space-y-1 overflow-y-auto">
           {COMMON_FEATURES.map(feature => (
-            <div key={feature} className="flex items-center space-x-2">
-              <Checkbox
-                id={`feature-${feature}`}
-                checked={filters.features.includes(feature)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setFilters(prev => ({ ...prev, features: [...prev.features, feature] }));
-                  } else {
-                    setFilters(prev => ({ ...prev, features: prev.features.filter(f => f !== feature) }));
-                  }
-                }}
-              />
-              <Label htmlFor={`feature-${feature}`} className="text-sm">{t(FEATURE_I18N_KEY[feature] ?? feature)}</Label>
-            </div>
+            <FilterCheckRow
+              key={feature}
+              id={`feature-${feature}`}
+              checked={filters.features.includes(feature)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setFilters(prev => ({ ...prev, features: [...prev.features, feature] }));
+                } else {
+                  setFilters(prev => ({ ...prev, features: prev.features.filter(f => f !== feature) }));
+                }
+              }}
+            >
+              {t(FEATURE_I18N_KEY[feature] ?? feature)}
+            </FilterCheckRow>
           ))}
         </div>
       </div>
@@ -556,22 +592,21 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       {/* Accepts Crypto */}
       <div className="space-y-2">
         <Label>{t('properties.paymentMethods')}</Label>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="crypto"
-              checked={filters.acceptsCrypto === true}
-              onCheckedChange={(checked) => {
-                setFilters(prev => ({ ...prev, acceptsCrypto: checked ? true : null }));
-              }}
-            />
-            <Label htmlFor="crypto" className="text-sm">{t('properties.acceptsCryptocurrency')}</Label>
-          </div>
+        <div className="space-y-1">
+          <FilterCheckRow
+            id="crypto"
+            checked={filters.acceptsCrypto === true}
+            onCheckedChange={(checked) => {
+              setFilters(prev => ({ ...prev, acceptsCrypto: checked ? true : null }));
+            }}
+          >
+            {t('properties.acceptsCryptocurrency')}
+          </FilterCheckRow>
         </div>
       </div>
 
       {/* Clear Filters */}
-      <Button variant="outline" onClick={clearFilters} className="w-full">
+      <Button variant="outline" onClick={clearFilters} className="h-11 min-h-11 w-full">
         {t('common.clearFilters')}
       </Button>
     </div>
@@ -589,27 +624,27 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 pb-28 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {t('properties.exploreTitle')}
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="mt-1 text-sm text-muted-foreground">
             {t('properties.found', { count: filteredAndSortedProperties.length })}
           </p>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           {/* View Mode */}
-          <div className="flex p-1 bg-secondary/50 rounded-lg">
+          <div className="flex rounded-lg bg-secondary/50 p-1">
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('grid')}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               aria-label={t('properties.gridView')}
             >
               <Grid3X3 className="h-4 w-4" />
@@ -618,7 +653,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('list')}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               aria-label={t('properties.listView')}
             >
               <List className="h-4 w-4" />
@@ -627,7 +662,7 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
               variant={viewMode === 'map' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('map')}
-              className="h-8 w-8 p-0"
+              className="h-11 w-11 p-0"
               aria-label={t('properties.mapView')}
             >
               <Map className="h-4 w-4" />
@@ -637,8 +672,8 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
           {/* Filter Sheet */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9">
-                <SlidersHorizontal className="h-4 w-4 mr-2" />
+              <Button variant="outline" className="h-11 min-h-11">
+                <SlidersHorizontal className="mr-2 h-4 w-4" />
                 {t('properties.filters')}
                 {activeFiltersCount > 0 && (
                   <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs">
@@ -647,7 +682,10 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
                 )}
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 overflow-y-auto scrollbar-thin">
+            <SheetContent
+              side={isMobile ? 'bottom' : 'right'}
+              className="w-full overflow-y-auto scrollbar-thin sm:w-80"
+            >
               <SheetHeader>
                 <SheetTitle>{t('properties.filters')}</SheetTitle>
               </SheetHeader>
@@ -660,12 +698,18 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
       </div>
 
       {/* Sort and Results */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-            <SelectTrigger className="w-48">
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              <SelectValue />
+            <SelectTrigger className="h-11 min-h-11 w-full min-w-0 text-base sm:w-56">
+              <ArrowUpDown className="mr-2 h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {sortBy === 'date-desc' && t('properties.sortOptions.newest')}
+                {sortBy === 'price-asc' && t('properties.sortOptions.priceAsc')}
+                {sortBy === 'price-desc' && t('properties.sortOptions.priceDesc')}
+                {sortBy === 'area-asc' && t('properties.sortOptions.areaAsc')}
+                {sortBy === 'area-desc' && t('properties.sortOptions.areaDesc')}
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="date-desc">{t('properties.sortOptions.newest')}</SelectItem>
@@ -677,14 +721,14 @@ export function PropertiesView({ onPropertyClick: onPropertyClickProp }: Propert
           </Select>
 
           {activeFiltersCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-2" />
+            <Button variant="ghost" className="h-11 min-h-11 w-full sm:w-auto" onClick={clearFilters}>
+              <X className="mr-2 h-4 w-4" />
               {t('properties.clearFiltersCount', { count: activeFiltersCount })}
             </Button>
           )}
         </div>
 
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground sm:text-right">
           {t('properties.showingOf', { shown: paginatedProperties.length, total: filteredAndSortedProperties.length })}
         </div>
       </div>

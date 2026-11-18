@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Home } from 'lucide-react';
+import { MapPin, Home, ChevronDown } from 'lucide-react';
 
 export interface HomeSearchValues {
   city: string;
@@ -17,6 +17,11 @@ interface SearchBarProps {
 }
 
 const PROPERTY_TYPES = ['all', 'apartment', 'house', 'office', 'commercial'] as const;
+
+const heroFieldClass =
+  'flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-xl bg-secondary/50 px-4 py-2.5 hover:bg-secondary transition-colors';
+const heroControlClass =
+  'min-w-0 flex-1 bg-transparent text-base font-medium text-foreground placeholder:text-muted-foreground focus:outline-none';
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
@@ -42,11 +47,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   if (variant === 'hero') {
     return (
-      <form onSubmit={handleSubmit} className={['w-full', className].join(' ')}>
-        <div className="relative bg-card/95 backdrop-blur-xl rounded-2xl border border-border/50 shadow-elevated p-2">
-          <div className="flex flex-col md:flex-row gap-2">
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors">
-              <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+      <form onSubmit={handleSubmit} className={['w-full min-w-0', className].join(' ')}>
+        <div className="relative rounded-2xl border border-border/50 bg-card/95 p-2 shadow-elevated backdrop-blur-xl">
+          <div className="flex flex-col gap-2 lg:flex-row">
+            <div className={heroFieldClass}>
+              <MapPin className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
               <input
                 type="text"
                 value={city}
@@ -56,12 +61,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   emitFilters({ city: next, neighborhood, propertyType });
                 }}
                 placeholder={t('home.search.cityPlaceholder')}
-                className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground text-sm font-medium focus:outline-none"
+                className={heroControlClass}
+                autoComplete="address-level2"
               />
             </div>
 
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors">
-              <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <div className={heroFieldClass}>
+              <MapPin className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
               <input
                 type="text"
                 value={neighborhood}
@@ -71,12 +77,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   emitFilters({ city, neighborhood: next, propertyType });
                 }}
                 placeholder={t('home.search.neighborhoodPlaceholder')}
-                className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground text-sm font-medium focus:outline-none"
+                className={heroControlClass}
+                autoComplete="address-level3"
               />
             </div>
 
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors">
-              <Home className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <div className={heroFieldClass}>
+              <Home className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
               <select
                 value={propertyType}
                 onChange={(event) => {
@@ -84,7 +91,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   setPropertyType(next);
                   emitFilters({ city, neighborhood, propertyType: next });
                 }}
-                className="flex-1 bg-transparent text-foreground text-sm font-medium focus:outline-none"
+                className={`${heroControlClass} w-full appearance-none truncate`}
+                aria-label={t('properties.propertyType')}
               >
                 {PROPERTY_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -92,6 +100,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   </option>
                 ))}
               </select>
+              <ChevronDown className="pointer-events-none h-4 w-4 flex-shrink-0 text-muted-foreground" />
             </div>
           </div>
         </div>
@@ -100,17 +109,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className={['flex items-center gap-2', className].join(' ')}>
-      <div className="relative flex-1">
+    <form onSubmit={handleSubmit} className={['flex min-w-0 items-center gap-2', className].join(' ')}>
+      <div className="relative min-w-0 flex-1">
         <input
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={placeholder || t('common.search')}
           className={[
-            'w-full h-10 pl-4 pr-4 rounded-lg',
-            'bg-background border border-input',
-            'text-sm text-foreground placeholder:text-muted-foreground',
+            'h-11 w-full rounded-lg pl-4 pr-4',
+            'border border-input bg-background',
+            'text-base text-foreground placeholder:text-muted-foreground',
             'focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring',
           ].join(' ')}
         />
