@@ -177,11 +177,16 @@ export async function insertSunnyLeadRow(
     .maybeSingle();
 
   if (error || !data?.id) {
-    logPublicSupabaseError('sunny-leads', error ?? new Error('lead_insert_failed'), {
-      error: 'lead_insert_failed',
+    const rawCode =
+      error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
+        ? error.code.replace(/[^A-Za-z0-9_]/g, '').slice(0, 32)
+        : '';
+    const code = rawCode || 'lead_insert_failed';
+    logPublicSupabaseError('sunny-leads', new Error(code), {
+      error: code,
       handoff: row.handoff_requested,
     });
-    return { ok: false, error: 'lead_insert_failed' };
+    return { ok: false, error: code };
   }
   return { ok: true, id: data.id };
 }

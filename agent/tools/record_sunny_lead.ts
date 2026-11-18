@@ -1,7 +1,11 @@
 import { defineTool } from 'eve/tools';
 import { never } from 'eve/tools/approval';
 
-import { persistSunnyLeadPreferringHostApi } from '../../src/lib/sunny/leads-host';
+import {
+  persistSunnyLeadPreferringHostApi,
+  sunnyHopAuthFromAttributes,
+  type SunnyLeadHopAuth,
+} from '../../src/lib/sunny/leads-host';
 import {
   sunnyLeadExecuteResult,
   sunnyLeadInputSchema,
@@ -19,9 +23,9 @@ import {
  * Host Node step (not the workflow VM). Prefer the Hono `api` service, which
  * has normal Node egress to Supabase.
  */
-async function persistSunnyLead(row: SunnyLeadRow) {
+async function persistSunnyLead(row: SunnyLeadRow, hopAuth: SunnyLeadHopAuth) {
   "use step";
-  return persistSunnyLeadPreferringHostApi(row);
+  return persistSunnyLeadPreferringHostApi(row, process.env, { hopAuth });
 }
 
 export default defineTool({
@@ -41,6 +45,10 @@ export default defineTool({
     );
     if (!guard.ok) return sensitiveToolBlockedResponse(guard.reason);
     try {
+      const hopAuth = sunnyHopAuthFromAttributes(
+        toolCtx.session.auth.current?.attributes,
+        toolCtx.session.id,
+      );
       const locale =
         input.language ??
         localeFromAttribute(toolCtx.session.auth.current?.attributes?.locale) ??
@@ -49,8 +57,9 @@ export default defineTool({
         sunnyLeadRowFromInput({
           ...input,
           locale,
-          sessionId: toolCtx.session.id,
+          sessionId: hopAuth.sessionId ?? toolCtx.session.id,
         }),
+        hopAuth,
       );
       return sunnyLeadExecuteResult('sunny-leads', result);
     } catch (error) {
