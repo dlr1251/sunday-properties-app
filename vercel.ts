@@ -9,35 +9,35 @@ import { withEve } from 'eve/vercel';
  * and the inert sandbox provider. `api/sunny/anon.ts` stays a thin Turnstile
  * + rate-limit gate; `/eve/v1/*` is the generated eve service.
  *
- * This file replaces vercel.json (Vercel allows one config source). Listing
- * HTML and SPA fallbacks from the previous vercel.json are preserved below.
+ * Vercel forbids top-level `framework` / `buildCommand` / `outputDirectory` /
+ * `installCommand` / `functions` next to `services` (owning service would be
+ * ambiguous). Those belong on `services.web`. Listing HTML and SPA fallbacks
+ * are rewrites inside that service so `/properties/:slug` still hits
+ * `api/listing-html.ts`.
  */
 export default await withEve({
-  installCommand: 'npm install',
-  buildCommand: 'npm run build',
-  outputDirectory: 'build',
-  framework: 'vite',
-  functions: {
-    'api/listing-html.ts': {
-      includeFiles: 'build/index.html',
-    },
-  },
-  rewrites: [
-    {
-      source: '/properties/:slugOrId',
-      destination: '/api/listing-html?slugOrId=:slugOrId',
-    },
-    {
-      source: '/((?!api/|docs/|assets/|eve/|\\.well-known/)(?!.*\\.[a-zA-Z0-9]+$).*)',
-      destination: '/index.html',
-    },
-  ],
   services: {
     web: {
       framework: 'vite',
       root: '.',
+      installCommand: 'npm install',
       buildCommand: 'npm run build',
       outputDirectory: 'build',
+      functions: {
+        'api/listing-html.ts': {
+          includeFiles: 'build/index.html',
+        },
+      },
+      rewrites: [
+        {
+          source: '/properties/:slugOrId',
+          destination: '/api/listing-html?slugOrId=:slugOrId',
+        },
+        {
+          source: '/((?!api/|docs/|assets/|eve/|\\.well-known/)(?!.*\\.[a-zA-Z0-9]+$).*)',
+          destination: '/index.html',
+        },
+      ],
     },
   },
   routes: [
