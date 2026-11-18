@@ -90,6 +90,34 @@ Detalle completo en [`docs/_legacy/testing/users.md`](docs/_legacy/testing/users
 
 ---
 
+## App de ChatGPT (Daniel)
+
+Sunday expone un servidor MCP de solo lectura en `/mcp` (Apps SDK, streamable HTTP). Las tools `search_listings`, `show_listings`, `listing_stats` y `compare_listings` leen el mismo camino que Sunny (`/api/sunny/listings` → Supabase `prtyuwdkrrqhtwolcrav`, solo `status = published`). No hay captura de leads. Los CTA del widget van a la ficha en [sundayproperties.co](https://www.sundayproperties.co) / Agendar visita.
+
+### Probar en local
+
+```bash
+npm run mcp:dev          # http://127.0.0.1:8787/mcp
+npx @modelcontextprotocol/inspector@latest
+```
+
+En Inspector elige **Streamable HTTP** y pega `http://127.0.0.1:8787/mcp`. Preview de widgets (light/dark): `http://127.0.0.1:8787/api/mcp/preview?kind=listings`.
+
+### Activar la app en ChatGPT
+
+1. En ChatGPT (web), abre **Settings → Apps & connectors** (o **Plugins**).
+2. Activa **Developer mode** (a veces está en Settings → Advanced / Apps). Sin eso no puedes pegar un conector propio.
+3. **Add custom MCP server** / connector. Nombre: `Sunday Properties`. URL: `https://<tu-preview>.vercel.app/mcp` (incluye `/mcp`). Autenticación: **None**.
+4. Acepta el aviso de riesgo y crea el plugin. En un chat de **Work**, escribe `@` y elige Sunday. Prueba: *“Muéstrame listados publicados en Medellín”*, *“¿cuánto cuesta el m² de Brisas?”*, *“compara estos tres arriendos”*.
+
+La URL de preview de Vercel sirve para desarrollo. No uses un túnel (ngrok) para el directorio público.
+
+### Enviar al directorio de ChatGPT
+
+Hace falta un endpoint HTTPS estable (el dominio de producción, no un preview), verificación de dominio (token en `/.well-known/openai-apps-challenge`), una política de privacidad pública, identidad de desarrollador verificada y un ZIP de plugin con el MCP. Guía: [Upload and submit](https://developers.openai.com/plugins/deploy/submission). Esta app es read-only y sin auth; no cambies env de producción ni el esquema para publicarla.
+
+---
+
 ## Licencia
 
 MIT — ver archivo `LICENSE` si existe en el repositorio.
