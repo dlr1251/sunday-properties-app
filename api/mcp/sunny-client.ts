@@ -47,10 +47,32 @@ function originFromHost(value: string): string {
   return `https://${trimmed}`;
 }
 
-/** SUNNY_URL, else this deployment, else the public site. */
+/** *.vercel.app sits behind Vercel Authentication; the public custom domain does not. */
+function originRequiresProtectionBypass(origin: string): boolean {
+  try {
+    const host = new URL(origin).hostname.toLowerCase();
+    return host === 'vercel.app' || host.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * SUNNY_URL, else this deployment when we can reach it (bypass present, or not
+ * a protected *.vercel.app host), else the public site.
+ */
 export function resolveSunnyUrl(env: Env = process.env): string {
-  const raw = firstNonEmpty([env.SUNNY_URL, env.VERCEL_URL, env.VERCEL_BRANCH_URL, SITE_ORIGIN]);
-  return originFromHost(raw || SITE_ORIGIN);
+  const explicit = env.SUNNY_URL?.trim();
+  if (explicit) return originFromHost(explicit);
+
+  const deployment = firstNonEmpty([env.VERCEL_URL, env.VERCEL_BRANCH_URL]);
+  if (deployment) {
+    const origin = originFromHost(deployment);
+    const bypass = env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+    if (!originRequiresProtectionBypass(origin) || bypass) return origin;
+  }
+
+  return SITE_ORIGIN;
 }
 
 export function eveRequestHeaders(env: Env = process.env): Record<string, string> {
@@ -131,7 +153,27 @@ export function replyFromSettledEvents(
   return { turnId, reply: lastCompleted };
 }
 
-function publicErrorMessage(status: number, body: { code?: string; error?: string } | null): string {
+function looksLikeVercelProtection(status: number, body: Record<string, unknown> | null, text: string): string {
+  if (status !== 401 && status !== 403) return '';
+  const hay = `${text} ${typeof body?.error === 'string' ? body.error : ''}`.toLowerCase();
+  const htmlGate =
+    hay.includes('<!doctype') ||
+    hay.includes('_vercel_sso') ||
+    hay.includes('authentication required') ||
+    hay.includes('vercel authentication');
+  if (htmlGate || !body) {
+    return 'Deployment protection blocked the hop to Sunny. Set VERCEL_AUTOMATION_BYPASS_SECRET on Preview, or SUNNY_URL to the public domain.';
+  }
+  return '';
+}
+
+function publicErrorMessage(
+  status: number,
+  body: { code?: string; error?: string } | null,
+  text = '',
+): string {
+  const protection = looksLikeVercelProtection(status, body, text);
+  if (protection) return protection;
   const code = body?.code ?? '';
   if (status === 401 || status === 403 || code === 'unauthorized' || code === 'authentication_required') {
     return 'Sunny rejected the request. Check SUNNY_MCP_API_KEY on this deployment.';
@@ -250,7 +292,10 @@ async function postSession(
   message: string,
   sessionId: string | undefined,
   signal: AbortSignal,
-): Promise<{ ok: true; receipt: SessionReceipt } | { ok: false; status: number; body: Record<string, unknown> | null }> {
+): Promise<
+  | { ok: true; receipt: SessionReceipt }
+  | { ok: false; status: number; body: Record<string, unknown> | null; text: string }
+> {
   const path = sessionId ? `/eve/v1/session/${encodeURIComponent(sessionId)}` : '/eve/v1/session';
   const response = await fetchImpl(`${origin}${path}`, {
     method: 'POST',
@@ -258,10 +303,10 @@ async function postSession(
     body: JSON.stringify({ message }),
     signal,
   });
-  const { status, body } = await readJson(response);
-  if (!response.ok) return { ok: false, status, body };
+  const { status, body, text } = await readJson(response);
+  if (!response.ok) return { ok: false, status, body, text };
   const receipt = receiptFrom(body, response.headers);
-  if (!receipt) return { ok: false, status, body };
+  if (!receipt) return { ok: false, status, body, text };
   return { ok: true, receipt };
 }
 
@@ -333,7 +378,11 @@ export async function askSunny(input: AskSunnyInput, deps: AskSunnyDeps = {}): P
     if (posted.ok === false) {
       return {
         ok: false,
-        error: publicErrorMessage(posted.status, posted.body as { code?: string; error?: string } | null),
+        error: publicErrorMessage(
+          posted.status,
+          posted.body as { code?: string; error?: string } | null,
+          posted.text,
+        ),
         session_id: existingId,
       };
     }

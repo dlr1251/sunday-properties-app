@@ -153,8 +153,8 @@ La skill `/sunday-properties:ask_sunny` indica cuándo usar `ask_sunny` frente a
 
 `SUNNY_MCP_API_KEY` es la misma variable en todo el proyecto Vercel `sunday-properties` (el MCP y Sunny viven juntos). El servidor MCP la envía como `Authorization: Bearer` a `/eve/v1`; el canal eve la acepta y etiqueta la sesión como `claude-mcp`.
 
-- **Preview:** define un valor de prueba solo en el environment Preview. Sin esa variable, `ask_sunny` responde que Sunny no está configurada y `/eve/v1` sigue exigiendo el ticket anónimo de la web.
-- **Production:** la misma variable, un secreto distinto y largo. No la pongas en el cliente ni en el plugin. `SUNNY_URL` es opcional (por defecto el origen del deploy, si no `https://www.sundayproperties.co`).
+- **Preview:** define un valor de prueba solo en el environment Preview. Sin esa variable, `ask_sunny` responde que Sunny no está configurada y `/eve/v1` sigue exigiendo el ticket anónimo de la web. Los `*.vercel.app` van detrás de Vercel Authentication: para que el MCP se hable con Sunny en el mismo preview, hace falta `VERCEL_AUTOMATION_BYPASS_SECRET` (Protection Bypass for Automation, solo Preview). Si no, `ask_sunny` usa `https://www.sundayproperties.co`.
+- **Production:** la misma variable, un secreto distinto y largo. No la pongas en el cliente ni en el plugin. `SUNNY_URL` es opcional; sin ella, producción usa `https://www.sundayproperties.co` (el `VERCEL_URL` de `*.vercel.app` está protegido).
 
 No hace falta auth en el conector de Claude: la clave es servidor a servidor.
 

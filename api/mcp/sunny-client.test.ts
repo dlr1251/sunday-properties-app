@@ -40,10 +40,16 @@ function streamResponse(body = `${settledLine}\n`) {
 }
 
 describe('ask_sunny eve client', () => {
-  it('resolves SUNNY_URL then the deployment origin then the public site', () => {
+  it('resolves SUNNY_URL then a reachable deployment origin then the public site', () => {
     expect(resolveSunnyUrl({ SUNNY_URL: 'https://preview.example' })).toBe('https://preview.example');
+    expect(
+      resolveSunnyUrl({
+        VERCEL_URL: 'sunday-properties-abc.vercel.app',
+        VERCEL_AUTOMATION_BYPASS_SECRET: 'bypass',
+      }),
+    ).toBe('https://sunday-properties-abc.vercel.app');
     expect(resolveSunnyUrl({ VERCEL_URL: 'sunday-properties-abc.vercel.app' })).toBe(
-      'https://sunday-properties-abc.vercel.app',
+      'https://www.sundayproperties.co',
     );
     expect(resolveSunnyUrl({})).toBe('https://www.sundayproperties.co');
   });
@@ -155,6 +161,37 @@ describe('ask_sunny eve client', () => {
     expect(streamCalls).toBe(2);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.reply).toMatch(/Laureles/);
+  });
+
+  it('tells operators to check the MCP key when eve returns JSON 401', async () => {
+    const result = await askSunny(
+      { message: 'hola' },
+      {
+        env: { SUNNY_MCP_API_KEY: 'test-key', SUNNY_URL: 'https://sunny.test' },
+        fetch: async () => jsonResponse({ ok: false, code: 'unauthorized', error: 'Authorization is required for this route.' }, 401),
+      },
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('expected error');
+    expect(result.error).toMatch(/SUNNY_MCP_API_KEY/);
+  });
+
+  it('explains Vercel Authentication when the hop gets an HTML 401', async () => {
+    const result = await askSunny(
+      { message: 'hola' },
+      {
+        env: { SUNNY_MCP_API_KEY: 'test-key', SUNNY_URL: 'https://preview.vercel.app' },
+        fetch: async () =>
+          new Response('<!doctype html><title>Authentication Required</title>', {
+            status: 401,
+            headers: { 'content-type': 'text/html' },
+          }),
+      },
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('expected error');
+    expect(result.error).toMatch(/Deployment protection/i);
+    expect(result.error).not.toMatch(/SUNNY_MCP_API_KEY/);
   });
 
   it('does not mention the API key when it is missing', async () => {
