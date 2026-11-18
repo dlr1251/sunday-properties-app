@@ -21,6 +21,9 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 const password = 'Password123!';
 
+// Seed-only local/test accounts. Rotate before any remote/production use.
+// Do not log or paste these credentials in tickets or PRs.
+
 // All test users with correct roles and realistic profiles
 // Roles: user, agent, lawyer, admin, super_admin
 // Verification statuses: unverified, verified, premium

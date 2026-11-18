@@ -97,6 +97,10 @@ let supabase;
 
 const DEFAULT_PASSWORD = 'RealProp2026!';
 
+/**
+ * Seed-only accounts. Rotate every password in Auth before treating a
+ * remote project as production. Do not log or paste these credentials.
+ */
 /** @type {Record<string, { email: string; fullName: string; role: 'user' | 'agent' }>} */
 const ACCOUNTS = {
   brisas: { email: 'brisas-estadio@sunday.com', fullName: 'Propietario Brisas del Estadio', role: 'user' },
@@ -159,6 +163,10 @@ Publicado en FincaRaiz: https://www.fincaraiz.com.co/apartamento-en-venta-en-lau
     coordinates: { lat: 6.2568, lng: -75.5901 },
     bedrooms: 2,
     bathrooms: 2,
+    // TODO(daniel): confirm the public area. Current seed value: 75.
+    // Repo/docs/FincaRaiz listing copy uses 75 m² (40+35). Notion
+    // (2026-09-23) also notes certificado apto ~45.54 m² + mezanine.
+    // Do not invent a replacement — pick the figure that should display.
     area: 75,
     parking: 1,
     floor: 5,
@@ -166,6 +174,10 @@ Publicado en FincaRaiz: https://www.fincaraiz.com.co/apartamento-en-venta-en-lau
     strata: 4,
     listing_type: 'sale',
     price: 390000000,
+    // TODO(daniel): confirm minimum_offer_price. Current seed value: 370000000.
+    // List price is 390000000 (confirmed). Notion has no approved offer floor
+    // (a 365000000 incoming offer is a case note, not a listing floor).
+    // Do not invent a replacement.
     minimum_offer_price: 370000000,
     status: 'published',
     verified: true,
@@ -536,7 +548,7 @@ async function main() {
     inserted.forEach(p => console.log(`   http://localhost:3000/properties/${p.slug || p.id}`));
   }
 
-  console.log('\n🔐 Test account passwords (if newly created):', DEFAULT_PASSWORD);
+  console.log('\n🔐 Seed accounts (rotate passwords in production Auth):');
   console.log('   Brisas owner:', ACCOUNTS.brisas.email);
   console.log('   Escorial owner:', ACCOUNTS.escorial.email);
   console.log('   Agent:', ACCOUNTS.daniel.email);
