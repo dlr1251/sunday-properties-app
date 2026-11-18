@@ -9,7 +9,7 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
       <ModernNavbar />
       <main className="pt-16 animate-fade-in flex-1">
         {children}

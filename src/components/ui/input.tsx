@@ -9,11 +9,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       ref={ref}
       className={[
         // Base styles
-        'flex h-10 w-full rounded-lg px-3 py-2',
+        'flex h-11 w-full rounded-lg px-3 py-2',
         // Border and background
         'border border-input bg-background',
         // Typography
-        'text-sm text-foreground',
+        'text-base text-foreground',
         'placeholder:text-muted-foreground',
         // File input specific
         'file:border-0 file:bg-transparent file:text-sm file:font-medium',

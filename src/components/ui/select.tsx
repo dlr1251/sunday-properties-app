@@ -53,7 +53,7 @@ export const Select: React.FC<SelectProps> = ({ value, onValueChange, children }
 
   return (
     <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, triggerRef, displayText }}>
-      <div className="relative">
+      <div className="relative min-w-0">
         {children}
       </div>
     </SelectContext.Provider>
@@ -70,7 +70,7 @@ export const SelectTrigger = React.forwardRef<HTMLDivElement, React.HTMLAttribut
         ref={context.triggerRef}
         className={[
           // Base styles
-          'flex h-10 w-full items-center justify-between rounded-lg px-3 py-2',
+          'flex h-11 min-h-11 w-full min-w-0 items-center justify-between rounded-lg px-3 py-2',
           // Border and background
           'border border-input bg-background',
           // Typography
@@ -113,7 +113,7 @@ export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
   if (!context) throw new Error('SelectValue must be used within Select');
 
   return (
-    <span className={context.displayText ? 'text-foreground' : 'text-muted-foreground'}>
+    <span className={`min-w-0 truncate ${context.displayText ? 'text-foreground' : 'text-muted-foreground'}`}>
       {context.displayText || placeholder}
     </span>
   );
@@ -131,7 +131,7 @@ export const SelectContent = React.forwardRef<HTMLDivElement, React.HTMLAttribut
         ref={ref}
         className={[
           // Positioning
-          'absolute top-full left-0 right-0 z-50 mt-1',
+          'absolute top-full left-0 right-0 z-[70] mt-1',
           // Appearance
           'rounded-lg border border-border bg-popover text-popover-foreground',
           // Shadow
@@ -172,7 +172,7 @@ export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
         ref={ref}
         className={[
           // Base styles
-          'relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-2',
+          'relative flex min-h-11 w-full cursor-pointer select-none items-center rounded-md py-2.5 pl-8 pr-2',
           // Typography
           'text-sm',
           // Interactive states

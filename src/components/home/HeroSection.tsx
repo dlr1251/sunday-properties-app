@@ -50,11 +50,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   ];
 
   return (
-    <section className={`relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-hero ${className}`}>
-      <div className="absolute inset-0 bg-black/20" />
-      <div className="absolute inset-0 bg-blueprint mask-blueprint-fade opacity-30" />
+    <section className={`relative flex min-h-0 items-start justify-center overflow-x-hidden bg-brand-hero py-16 pb-28 sm:min-h-[90vh] sm:items-center sm:pb-16 ${className}`}>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-blueprint mask-blueprint-fade opacity-30" />
+      </div>
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+      <div className="relative z-10 mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-8 lg:px-12">
         <motion.div
           className="flex flex-col items-center text-center"
           variants={containerVariants}
@@ -75,13 +77,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {t('home.hero.subtitle')}
           </motion.p>
 
-          <motion.div variants={itemVariants} className="w-full max-w-3xl mt-10">
+          <motion.div variants={itemVariants} className="mt-8 w-full min-w-0 max-w-3xl sm:mt-10">
             <SearchBar variant="hero" onFiltersChange={onFiltersChange} />
           </motion.div>
 
           <motion.div
             variants={itemVariants}
-            className="flex flex-wrap items-center justify-center gap-6 mt-10"
+            className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:mt-10 sm:gap-6"
           >
             {features.map((feature) => {
               const Icon = feature.icon;
@@ -98,16 +100,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           <motion.div
             variants={itemVariants}
-            className="flex flex-col sm:flex-row items-center gap-4 mt-10"
+            className="mt-8 flex w-full max-w-md flex-col items-stretch gap-3 pr-24 sm:mt-10 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4 sm:pr-0"
           >
-            <Button size="lg" variant="accent" asChild className="h-12 px-8 text-base">
+            <Button size="lg" variant="accent" asChild className="h-12 min-h-12 w-full px-8 text-base sm:w-auto">
               <Link to={rentalsHref}>{t('home.hero.rentals')}</Link>
             </Button>
             <Button
               variant="outline"
               size="lg"
               asChild
-              className="h-12 px-8 text-base !bg-transparent border-white/40 !text-white hover:!bg-white/10 hover:!text-white"
+              className="h-12 min-h-12 w-full px-8 text-base sm:w-auto !bg-transparent border-white/40 !text-white hover:!bg-white/10 hover:!text-white"
             >
               <Link to={salesHref}>{t('home.hero.sales')}</Link>
             </Button>
@@ -116,7 +118,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       </div>
 
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 md:block"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 1 }}

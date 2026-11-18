@@ -386,14 +386,14 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
 
         {/* Advanced Search Filters */}
         <motion.div
-          className="rounded-2xl border border-border/60 bg-card/50 backdrop-blur-sm shadow-sm p-8 mb-12"
+          className="mb-12 min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-card/50 p-4 shadow-sm backdrop-blur-sm sm:p-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           {/* Basic Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* Location */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground flex items-center">
@@ -407,7 +407,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                   placeholder={t('properties.searchLocation')}
                   value={searchFilters.location}
                   onChange={(e) => handleFilterChange('location', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
+                  className="h-11 w-full rounded-lg border border-border bg-background py-3 pl-10 pr-4 text-base focus:border-ring focus:ring-2 focus:ring-ring"
                 />
               </div>
             </div>
@@ -421,7 +421,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
               <select
                 value={searchFilters.propertyType}
                 onChange={(e) => handleFilterChange('propertyType', e.target.value)}
-                className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
+                className="h-11 w-full rounded-lg border border-border bg-background px-4 py-3 text-base focus:border-ring focus:ring-2 focus:ring-ring"
               >
                 {propertyTypes.map((type) => {
                   const Icon = type.icon;
@@ -448,7 +448,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
                   );
                   if (selected) handleFilterChange('priceRange', selected.value);
                 }}
-                className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
+                className="h-11 w-full rounded-lg border border-border bg-background px-4 py-3 text-base focus:border-ring focus:ring-2 focus:ring-ring"
               >
                 {priceRanges.map((range, index) => (
                   <option key={index} value={`${range.value[0]}-${range.value[1]}`}>
@@ -467,7 +467,7 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-3 border border-border rounded-lg bg-background focus:ring-2 focus:ring-ring focus:border-ring"
+                className="h-11 w-full rounded-lg border border-border bg-background px-4 py-3 text-base focus:border-ring focus:ring-2 focus:ring-ring"
               >
                 <option value="newest">{t('properties.sortOptions.newest')}</option>
                 <option value="price-low">{t('properties.sortOptions.priceAsc')}</option>
@@ -479,13 +479,13 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
           </div>
 
           {/* Advanced Filters Toggle */}
-          <div className="flex items-center justify-between border-t border-border pt-6">
+          <div className="flex min-w-0 flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <Button
               variant="outline"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center space-x-2"
+              className="flex h-11 min-h-11 w-full items-center sm:w-auto"
             >
-              <Filter className="w-4 h-4" />
+              <Filter className="mr-2 h-4 w-4" />
               <span>{t('common.advancedFilters')}</span>
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="ml-2">
@@ -494,47 +494,47 @@ export const ExploreProperties: React.FC<ExplorePropertiesProps> = ({
               )}
             </Button>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               {activeFiltersCount > 0 && (
                 <Button
                   variant="ghost"
                   onClick={clearFilters}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="h-11 min-h-11 w-full text-muted-foreground hover:text-foreground sm:w-auto"
                 >
-                  <X className="w-4 h-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   {t('common.clearFilters')}
                 </Button>
               )}
 
               {/* View Mode Controls */}
-              <div className="flex items-center space-x-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <span className="text-sm font-medium text-muted-foreground">{t('common.view')}:</span>
-                <div className="flex items-center bg-muted rounded-lg p-1">
+                <div className="flex min-w-0 flex-1 items-center rounded-lg bg-muted p-1">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
-                    className="px-3 py-1"
+                    className="h-11 min-h-11 flex-1 px-3 sm:flex-none"
                   >
-                    <Grid3X3 className="w-4 h-4 mr-1" />
+                    <Grid3X3 className="mr-1 h-4 w-4" />
                     {t('common.grid')}
                   </Button>
                   <Button
                     variant={viewMode === 'list' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('list')}
-                    className="px-3 py-1"
+                    className="h-11 min-h-11 flex-1 px-3 sm:flex-none"
                   >
-                    <List className="w-4 h-4 mr-1" />
+                    <List className="mr-1 h-4 w-4" />
                     {t('common.list')}
                   </Button>
                   <Button
                     variant={viewMode === 'map' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('map')}
-                    className="px-3 py-1"
+                    className="h-11 min-h-11 flex-1 px-3 sm:flex-none"
                   >
-                    <Map className="w-4 h-4 mr-1" />
+                    <Map className="mr-1 h-4 w-4" />
                     {t('common.map')}
                   </Button>
                 </div>
