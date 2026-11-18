@@ -115,6 +115,52 @@ describe('ask_sunny eve client', () => {
     expect(calls.some((call) => call.includes('/eve/v1/session/wrun_test/stream'))).toBe(true);
   });
 
+  it('waits for this delivery, not a previous turn.settled on the same stream', async () => {
+    const prior = JSON.stringify({
+      at: '2026-07-27T18:04:11.912Z',
+      facts: [
+        {
+          type: 'content.completed',
+          data: { partId: 'part_0', kind: 'text', phase: 'reply', value: 'Hay un arriendo en Laureles.' },
+        },
+        { type: 'turn.settled', data: { turnId: 'turn_0', outcome: 'completed', reply: ['part_0'] } },
+        { type: 'delivery.settled', data: { deliveryId: 'delivery_1', outcome: 'handled', turnId: 'turn_0' } },
+      ],
+    });
+    const next = JSON.stringify({
+      at: '2026-07-27T18:04:20.000Z',
+      facts: [
+        { type: 'delivery.consumed', data: { deliveryId: 'delivery_2', turnId: 'turn_1' } },
+        {
+          type: 'content.completed',
+          data: { partId: 'part_1', kind: 'text', phase: 'reply', value: 'Tiene 3 baños.' },
+        },
+        { type: 'turn.settled', data: { turnId: 'turn_1', outcome: 'completed', reply: ['part_1'] } },
+        { type: 'delivery.settled', data: { deliveryId: 'delivery_2', outcome: 'handled', turnId: 'turn_1' } },
+      ],
+    });
+    const result = await askSunny(
+      { message: '¿cuántos baños tiene?', session_id: 'wrun_existing' },
+      {
+        env: { SUNNY_MCP_API_KEY: 'test-key', SUNNY_URL: 'https://sunny.test' },
+        fetch: async (input, init) => {
+          const url = String(input);
+          if (url.endsWith('/eve/v1/session/wrun_existing') && init?.method === 'POST') {
+            return jsonResponse({ ok: true, sessionId: 'wrun_existing', deliveryId: 'delivery_2' });
+          }
+          if (url.includes('/stream')) return streamResponse(`${prior}\n${next}\n`);
+          throw new Error(`unexpected ${url}`);
+        },
+      },
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      reply: 'Tiene 3 baños.',
+      session_id: 'wrun_existing',
+      turn_id: 'turn_1',
+    });
+  });
+
   it('reuses session_id on follow-up questions', async () => {
     const calls: string[] = [];
     const result = await askSunny(

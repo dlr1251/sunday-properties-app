@@ -115,6 +115,7 @@ function eventData(value: unknown): Record<string, unknown> | undefined {
  */
 export function replyFromSettledEvents(
   events: readonly StreamEvent[],
+  targetTurnId?: string,
 ): { turnId?: string; reply: string } {
   const completed = new Map<string, string>();
   const deltas = new Map<string, string>();
@@ -133,7 +134,9 @@ export function replyFromSettledEvents(
       if (partId && delta) deltas.set(partId, `${deltas.get(partId) ?? ''}${delta}`);
     }
     if (event.type === 'turn.settled') {
-      if (typeof data?.turnId === 'string') turnId = data.turnId;
+      const settledTurn = typeof data?.turnId === 'string' ? data.turnId : undefined;
+      if (targetTurnId && settledTurn !== targetTurnId) continue;
+      if (settledTurn) turnId = settledTurn;
       if (Array.isArray(data?.reply)) {
         replyIds = data.reply.filter((id): id is string => typeof id === 'string');
       }
@@ -335,19 +338,21 @@ async function readTurn(
     if (
       deliveryId &&
       (event.type === 'delivery.consumed' || event.type === 'delivery.settled') &&
-      data?.deliveryId === deliveryId &&
-      typeof data.turnId === 'string'
+      data?.deliveryId === deliveryId
     ) {
-      linkedTurnId = data.turnId;
+      if (typeof data.turnId === 'string') linkedTurnId = data.turnId;
+      // Docs: wait for this delivery's delivery.settled, not the first turn.settled.
+      if (event.type === 'delivery.settled') return true;
     }
     if (event.type === 'turn.settled') {
       const turnId = typeof data?.turnId === 'string' ? data.turnId : undefined;
-      if (!deliveryId || !linkedTurnId || turnId === linkedTurnId) return true;
+      if (!deliveryId) return true;
+      if (linkedTurnId && turnId === linkedTurnId) return true;
     }
     return event.type === '$eve:stream.ended';
   });
 
-  const folded = replyFromSettledEvents(events);
+  const folded = replyFromSettledEvents(events, linkedTurnId);
   return { turnId: folded.turnId ?? linkedTurnId, reply: folded.reply, events };
 }
 
