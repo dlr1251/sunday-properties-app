@@ -71,3 +71,8 @@ export function sunnyIpHourLimit(env?: Env): number {
 export const SUNNY_TICKET_HEADER = 'x-sunny-anon-ticket';
 export const SUNNY_LOCALE_HEADER = 'x-sunny-locale';
 export const SUNNY_ANON_COOKIE = 'sp-sunny-anon';
+
+/** Shared by the public /mcp ask_sunny tool and Sunny's /eve/v1 mcpApiKeyAuth. */
+export function sunnyMcpApiKey(env?: Env): string {
+  return envOf(env).SUNNY_MCP_API_KEY?.trim() ?? '';
+}

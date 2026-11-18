@@ -1,9 +1,6 @@
-import { Client, SessionNotActiveError } from 'eve/client';
-import type { SessionStreamEvent } from 'eve/client';
-
 import { SITE_ORIGIN } from '../../src/lib/siteOrigin';
+import { sunnyMcpApiKey } from '../../src/lib/sunny/config';
 import { SUNNY_HOST_BYPASS_HEADER } from '../../src/lib/sunny/leads-host';
-import { sunnyMcpApiKey } from '../../agent/lib/mcp-auth';
 
 export const ASK_SUNNY_TIMEOUT_MS = 50_000;
 
@@ -29,33 +26,13 @@ export type AskSunnyErr = {
 
 export type AskSunnyResult = AskSunnyOk | AskSunnyErr;
 
-export type SunnyDelivery = {
-  result: (options?: { signal?: AbortSignal }) => Promise<{
-    reply?: string;
-    status: string;
-  }>;
-};
-
-export type SunnyEveHandle = {
-  id: string;
-  send: (message: string, options?: { signal?: AbortSignal }) => Promise<SunnyDelivery>;
-  snapshot: (options?: { signal?: AbortSignal }) => Promise<{ events: readonly SessionStreamEvent[] }>;
-};
-
-export type SunnyEveClient = {
-  sessions: {
-    create: (
-      input: { message: string; signal?: AbortSignal },
-    ) => Promise<{ session: SunnyEveHandle; delivery: SunnyDelivery }>;
-    attach: (sessionId: string) => SunnyEveHandle;
-  };
-};
-
 export type AskSunnyDeps = {
   env?: Env;
   timeoutMs?: number;
-  createClient?: (input: { baseUrl: string; apiKey: string; headers: Record<string, string> }) => SunnyEveClient;
+  fetch?: typeof fetch;
 };
+
+type StreamEvent = { type: string; data?: unknown };
 
 function firstNonEmpty(values: Array<string | undefined>): string {
   for (const value of values) {
@@ -77,7 +54,12 @@ export function resolveSunnyUrl(env: Env = process.env): string {
 }
 
 export function eveRequestHeaders(env: Env = process.env): Record<string, string> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    accept: 'application/json, application/x-ndjson, text/plain',
+    'content-type': 'application/json',
+  };
+  const apiKey = sunnyMcpApiKey(env);
+  if (apiKey) headers.authorization = `Bearer ${apiKey}`;
   const bypass = env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
   if (bypass) headers[SUNNY_HOST_BYPASS_HEADER] = bypass;
   return headers;
@@ -98,10 +80,6 @@ function partText(data: { value?: unknown; fallbackText?: unknown } | undefined)
   return '';
 }
 
-/**
- * Assemble the assistant reply from a stream snapshot.
- * `turn.settled.data.reply` is part ids; text lives on `content.completed`.
- */
 function eventData(value: unknown): Record<string, unknown> | undefined {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return value as Record<string, unknown>;
@@ -109,8 +87,12 @@ function eventData(value: unknown): Record<string, unknown> | undefined {
   return undefined;
 }
 
+/**
+ * Assemble the assistant reply from a stream snapshot.
+ * `turn.settled.data.reply` is part ids; text lives on `content.completed`.
+ */
 export function replyFromSettledEvents(
-  events: readonly { type: string; data?: unknown }[],
+  events: readonly StreamEvent[],
 ): { turnId?: string; reply: string } {
   const completed = new Map<string, string>();
   const deltas = new Map<string, string>();
@@ -121,7 +103,7 @@ export function replyFromSettledEvents(
     const data = eventData(event.data);
     if (event.type === 'content.completed') {
       const partId = typeof data?.partId === 'string' ? data.partId : '';
-      if (partId) completed.set(partId, partText(data ?? undefined));
+      if (partId) completed.set(partId, partText(data));
     }
     if (event.type === 'content.delta') {
       const partId = typeof data?.partId === 'string' ? data.partId : '';
@@ -149,55 +131,179 @@ export function replyFromSettledEvents(
   return { turnId, reply: lastCompleted };
 }
 
-function defaultCreateClient(input: {
-  baseUrl: string;
-  apiKey: string;
-  headers: Record<string, string>;
-}): SunnyEveClient {
-  const client = new Client({
-    baseUrl: input.baseUrl,
-    auth: { bearer: input.apiKey },
-    headers: input.headers,
-  });
-  return {
-    sessions: {
-      create: async ({ message, signal }) => {
-        const created = await client.sessions.create({ message, signal, turnPolicy: 'queue' });
-        return { session: wrapSession(created.session), delivery: created.delivery };
-      },
-      attach: (sessionId) => wrapSession(client.sessions.attach(sessionId)),
-    },
-  };
-}
-
-function wrapSession(session: {
-  id: string;
-  send: (
-    message: string,
-    options?: { signal?: AbortSignal; turnPolicy?: 'queue' | 'steer' },
-  ) => Promise<SunnyDelivery>;
-  snapshot: (options?: { signal?: AbortSignal }) => Promise<{ events: readonly SessionStreamEvent[] }>;
-}): SunnyEveHandle {
-  return {
-    id: session.id,
-    send: (message, options) => session.send(message, { ...options, turnPolicy: 'queue' }),
-    snapshot: (options) => session.snapshot(options),
-  };
-}
-
-function publicErrorMessage(error: unknown): string {
-  if (SessionNotActiveError.is(error)) return 'That Sunny session is no longer active. Ask again without session_id.';
-  if (error instanceof Error && error.name === 'AbortError') {
-    return 'Sunny took too long to answer. Try again in a moment.';
-  }
-  const code =
-    error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
-      ? error.code
-      : '';
-  if (code === 'http_error' || code === 'unauthorized' || code === 'authentication_required') {
+function publicErrorMessage(status: number, body: { code?: string; error?: string } | null): string {
+  const code = body?.code ?? '';
+  if (status === 401 || status === 403 || code === 'unauthorized' || code === 'authentication_required') {
     return 'Sunny rejected the request. Check SUNNY_MCP_API_KEY on this deployment.';
   }
-  return 'Sunny is unavailable right now.';
+  if (status === 409 || code === 'session_not_active') {
+    return 'That Sunny session is no longer active. Ask again without session_id.';
+  }
+  return body?.error?.trim() || 'Sunny is unavailable right now.';
+}
+
+function parseJsonObject(text: string): Record<string, unknown> | null {
+  try {
+    const value = JSON.parse(text) as unknown;
+    return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+function eventsFromStreamLine(raw: string): StreamEvent[] {
+  const line = raw.startsWith('data:') ? raw.slice(5).trim() : raw.trim();
+  if (!line || line === '[DONE]') return [];
+  const parsed = parseJsonObject(line);
+  if (!parsed) return [];
+  if (typeof parsed.$eve === 'string') return [{ type: `$eve:${parsed.$eve}`, data: parsed }];
+  if (parsed.progress && typeof parsed.progress === 'object') {
+    const progress = parsed.progress as StreamEvent;
+    return progress.type ? [progress] : [];
+  }
+  if (Array.isArray(parsed.facts)) {
+    return parsed.facts.filter(
+      (fact): fact is StreamEvent =>
+        Boolean(fact) && typeof fact === 'object' && typeof (fact as StreamEvent).type === 'string',
+    );
+  }
+  if (typeof parsed.type === 'string') return [parsed as StreamEvent];
+  return [];
+}
+
+async function readJson(
+  response: Response,
+): Promise<{ status: number; body: Record<string, unknown> | null; text: string }> {
+  const text = await response.text();
+  return { status: response.status, body: parseJsonObject(text), text };
+}
+
+async function collectStreamEvents(
+  response: Response,
+  signal: AbortSignal,
+  onEvent?: (event: StreamEvent) => boolean,
+): Promise<StreamEvent[]> {
+  const events: StreamEvent[] = [];
+  if (!response.body) {
+    const text = await response.text();
+    for (const line of text.split('\n')) {
+      for (const event of eventsFromStreamLine(line)) {
+        events.push(event);
+        if (onEvent?.(event)) return events;
+      }
+    }
+    return events;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  try {
+    while (!signal.aborted) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+      let newline = buffer.indexOf('\n');
+      while (newline >= 0) {
+        const line = buffer.slice(0, newline);
+        buffer = buffer.slice(newline + 1);
+        for (const event of eventsFromStreamLine(line)) {
+          events.push(event);
+          if (onEvent?.(event)) {
+            await reader.cancel().catch(() => undefined);
+            return events;
+          }
+        }
+        newline = buffer.indexOf('\n');
+      }
+      if (done) break;
+    }
+    if (buffer.trim()) {
+      for (const event of eventsFromStreamLine(buffer)) events.push(event);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return events;
+}
+
+type SessionReceipt = { sessionId: string; deliveryId?: string };
+
+function receiptFrom(body: Record<string, unknown> | null, headers: Headers): SessionReceipt | null {
+  const sessionId =
+    (typeof body?.sessionId === 'string' && body.sessionId) ||
+    headers.get('x-eve-session-id')?.trim() ||
+    '';
+  if (!sessionId) return null;
+  const deliveryId = typeof body?.deliveryId === 'string' ? body.deliveryId : undefined;
+  return { sessionId, deliveryId };
+}
+
+function isInactiveSession(status: number, body: Record<string, unknown> | null): boolean {
+  const code = typeof body?.code === 'string' ? body.code : '';
+  return status === 409 && (code === 'session_not_active' || code === 'session_stranded');
+}
+
+async function postSession(
+  fetchImpl: typeof fetch,
+  origin: string,
+  headers: Record<string, string>,
+  message: string,
+  sessionId: string | undefined,
+  signal: AbortSignal,
+): Promise<{ ok: true; receipt: SessionReceipt } | { ok: false; status: number; body: Record<string, unknown> | null }> {
+  const path = sessionId ? `/eve/v1/session/${encodeURIComponent(sessionId)}` : '/eve/v1/session';
+  const response = await fetchImpl(`${origin}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ message }),
+    signal,
+  });
+  const { status, body } = await readJson(response);
+  if (!response.ok) return { ok: false, status, body };
+  const receipt = receiptFrom(body, response.headers);
+  if (!receipt) return { ok: false, status, body };
+  return { ok: true, receipt };
+}
+
+async function readTurn(
+  fetchImpl: typeof fetch,
+  origin: string,
+  headers: Record<string, string>,
+  sessionId: string,
+  deliveryId: string | undefined,
+  follow: boolean,
+  signal: AbortSignal,
+): Promise<{ turnId?: string; reply: string; events: StreamEvent[] }> {
+  const query = follow ? '' : '?follow=false';
+  const response = await fetchImpl(`${origin}/eve/v1/session/${encodeURIComponent(sessionId)}/stream${query}`, {
+    method: 'GET',
+    headers,
+    signal,
+  });
+  if (!response.ok) {
+    return { reply: '', events: [] };
+  }
+
+  let linkedTurnId: string | undefined;
+  const events = await collectStreamEvents(response, signal, (event) => {
+    const data = eventData(event.data);
+    if (
+      deliveryId &&
+      (event.type === 'delivery.consumed' || event.type === 'delivery.settled') &&
+      data?.deliveryId === deliveryId &&
+      typeof data.turnId === 'string'
+    ) {
+      linkedTurnId = data.turnId;
+    }
+    if (event.type === 'turn.settled') {
+      const turnId = typeof data?.turnId === 'string' ? data.turnId : undefined;
+      if (!deliveryId || !linkedTurnId || turnId === linkedTurnId) return true;
+    }
+    return event.type === '$eve:stream.ended';
+  });
+
+  const folded = replyFromSettledEvents(events);
+  return { turnId: folded.turnId ?? linkedTurnId, reply: folded.reply, events };
 }
 
 export async function askSunny(input: AskSunnyInput, deps: AskSunnyDeps = {}): Promise<AskSunnyResult> {
@@ -211,68 +317,52 @@ export async function askSunny(input: AskSunnyInput, deps: AskSunnyDeps = {}): P
   }
 
   const timeoutMs = deps.timeoutMs ?? ASK_SUNNY_TIMEOUT_MS;
-  const createClient = deps.createClient ?? defaultCreateClient;
-  const client = createClient({
-    baseUrl: resolveSunnyUrl(env),
-    apiKey,
-    headers: eveRequestHeaders(env),
-  });
-
+  const fetchImpl = deps.fetch ?? fetch;
+  const origin = resolveSunnyUrl(env);
+  const headers = eveRequestHeaders(env);
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), timeoutMs);
   const signal = abort.signal;
 
   try {
-    let session: SunnyEveHandle;
-    let delivery: SunnyDelivery;
-    const existingId = input.session_id?.trim();
-
-    if (existingId) {
-      session = client.sessions.attach(existingId);
-      try {
-        delivery = await session.send(message, { signal });
-      } catch (error) {
-        if (!SessionNotActiveError.is(error)) throw error;
-        const created = await client.sessions.create({ message, signal });
-        session = created.session;
-        delivery = created.delivery;
-      }
-    } else {
-      const created = await client.sessions.create({ message, signal });
-      session = created.session;
-      delivery = created.delivery;
+    const existingId = input.session_id?.trim() || undefined;
+    let posted = await postSession(fetchImpl, origin, headers, message, existingId, signal);
+    if (posted.ok === false && existingId && isInactiveSession(posted.status, posted.body)) {
+      posted = await postSession(fetchImpl, origin, headers, message, undefined, signal);
     }
-
-    const settled = await delivery.result({ signal });
-    const snapshot = await session.snapshot({ signal });
-    const folded = replyFromSettledEvents(snapshot.events);
-    const reply = (settled.reply?.trim() || folded.reply).trim();
-    const turnId = folded.turnId;
-
-    if (settled.status === 'failed') {
+    if (posted.ok === false) {
       return {
         ok: false,
-        error: 'Sunny could not finish that turn.',
-        session_id: session.id,
+        error: publicErrorMessage(posted.status, posted.body as { code?: string; error?: string } | null),
+        session_id: existingId,
       };
     }
 
-    if (!reply) {
+    const { sessionId, deliveryId } = posted.receipt;
+    let turn = await readTurn(fetchImpl, origin, headers, sessionId, deliveryId, true, signal);
+    if (!turn.reply.trim()) {
+      turn = await readTurn(fetchImpl, origin, headers, sessionId, deliveryId, false, signal);
+    }
+
+    if (!turn.reply.trim()) {
       return {
         ok: false,
         error: 'Sunny returned an empty reply. Retry, or inspect /eve/v1/session/<id>/stream?follow=false.',
-        session_id: session.id,
+        session_id: sessionId,
       };
     }
 
     return {
       ok: true,
-      reply,
-      session_id: session.id,
-      ...(turnId ? { turn_id: turnId } : {}),
+      reply: turn.reply.trim(),
+      session_id: sessionId,
+      ...(turn.turnId ? { turn_id: turn.turnId } : {}),
     };
   } catch (error) {
-    return { ok: false, error: publicErrorMessage(error), session_id: input.session_id?.trim() };
+    if (error instanceof Error && error.name === 'AbortError') {
+      return { ok: false, error: 'Sunny took too long to answer. Try again in a moment.', session_id: input.session_id?.trim() };
+    }
+    return { ok: false, error: 'Sunny is unavailable right now.', session_id: input.session_id?.trim() };
   } finally {
     clearTimeout(timer);
   }

@@ -6,15 +6,15 @@ import {
   type AuthFn,
 } from 'eve/channels/auth';
 
+import { sunnyMcpApiKey } from '../../src/lib/sunny/config';
+
+export { sunnyMcpApiKey };
+
 export const CLAUDE_MCP_CHANNEL = 'claude-mcp';
 export const SUNNY_MCP_API_KEY_HEADER = 'x-sunny-mcp-api-key';
 export const SUNNY_MCP_AUTHENTICATOR = 'claude-mcp';
 
 type Env = Readonly<Record<string, string | undefined>>;
-
-export function sunnyMcpApiKey(env: Env = process.env): string {
-  return env.SUNNY_MCP_API_KEY?.trim() ?? '';
-}
 
 export function safeEqualSecret(left: string, right: string): boolean {
   const a = Buffer.from(left);
