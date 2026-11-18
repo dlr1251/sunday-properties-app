@@ -343,6 +343,8 @@
     "passwordUpdated": "Your password has been updated.",
     "passwordUpdateFailed": "Could not update the password",
     "passwordRequirements": "Password must have at least 8 characters, one letter and one number",
+    "recoveryLinkInvalid": "This recovery link is invalid or has expired. Request a new one.",
+    "recoveryRequestNew": "Request a new link",
     "emailNotVerified": "Your email is not verified yet. Some actions will be restricted (listing properties, scheduling visits, making offers).",
     "resendVerification": "Resend verification email",
     "verificationSent": "Verification email sent. Check your inbox.",

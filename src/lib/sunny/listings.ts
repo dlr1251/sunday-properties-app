@@ -1,3 +1,4 @@
+import { SITE_ORIGIN } from '../siteOrigin';
 import { logPublicSupabaseError, resolvePublicSupabaseConfig } from '../publicSupabase';
 import { matchesPublicLocation, normalizeSearch } from '../../utils/publicLocation';
 import {
@@ -105,8 +106,6 @@ export function publicSunnyListingHits(raw: unknown): SunnyListingHit[] {
   }
   return hits;
 }
-
-const SITE_ORIGIN = 'https://www.sundayproperties.co';
 
 const STREET_TYPE =
   '(?:carrera|cra\\.?|cr\\.?|calle|cll\\.?|cl\\.?|transversal|tv\\.?|diagonal|dg\\.?|avenida|av\\.?|circular|circ\\.?|autopista)';

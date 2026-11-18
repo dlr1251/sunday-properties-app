@@ -23,7 +23,14 @@ if (!isDevelopment && !envKey) {
 // VITE_ENABLE_REALTIME=true en .env.local
 const realtimeConfig = isDevelopment ? {} : {};
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, realtimeConfig);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  ...realtimeConfig,
+  auth: {
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+    persistSession: true,
+  },
+});
 
 // Re-export Database type for convenience
 export type { Database } from '../types/database';
