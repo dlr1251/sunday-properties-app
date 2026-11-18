@@ -20,7 +20,7 @@ beforeAll(() => {
 });
 
 const agentState = {
-  messages: [] as Array<{ id: string; role: string; parts: Array<{ type: string; text: string }> }>,
+  messages: [] as Array<{ id: string; role: string; parts: Array<Record<string, unknown>> }>,
   status: 'idle',
   send: vi.fn(),
 };
@@ -34,9 +34,12 @@ vi.mock('../../lib/sunny/anon-client', () => ({
   consumeSunnyAnonTurn: vi.fn(),
 }));
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, opts?: { name?: string; count?: number }) => {
+vi.mock('react-i18next', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-i18next')>();
+  return {
+    ...actual,
+    useTranslation: () => ({
+    t: (key: string, opts?: { name?: string; count?: number; current?: number; total?: number; title?: string }) => {
       const name = opts?.name ?? 'Sunny';
       const map: Record<string, string> = {
         'sunnyChat.title': name,
@@ -50,12 +53,33 @@ vi.mock('react-i18next', () => ({
         'sunnyChat.rateLimit': 'rate',
         'sunnyChat.turnstile': 'turnstile',
         'sunnyChat.error': 'error',
+        'sunnyChat.viewListing': 'Ver listado',
+        'sunnyChat.scheduleVisit': 'Agendar visita',
+        'sunnyChat.photoOf': `Foto ${opts?.current ?? 1} de ${opts?.total ?? 1}: ${opts?.title ?? ''}`,
+        'sunnyChat.previousPhoto': 'Foto anterior',
+        'sunnyChat.nextPhoto': 'Foto siguiente',
+        'sunnyChat.noPhoto': 'Sin fotos publicadas',
+        'sunnyChat.statsHeading': 'Cifras del listado',
+        'sunnyChat.compareHeading': 'Comparar listados',
+        'sunnyChat.chartHeading': 'Precio por m²',
+        'sunnyChat.pricePerM2': 'Precio / m²',
+        'sunnyChat.adminFee': 'Administración',
+        'sunnyChat.strata': 'Estrato',
+        'sunnyChat.area': 'Área',
+        'sunnyChat.bedrooms': 'Habitaciones',
+        'sunnyChat.bathrooms': 'Baños',
+        'sunnyChat.zone': 'Zona',
+        'sunnyChat.price': 'Precio',
+        'sunnyChat.listing': 'Listado',
+        'sunnyChat.best': 'Mejor valor',
+        'sunnyChat.loadingUi': 'Preparando listados…',
       };
       return map[key] ?? key;
     },
     i18n: { language: 'es' },
   }),
-}));
+  };
+});
 
 import SunnyChatPanel from './SunnyChatPanel';
 
@@ -110,6 +134,67 @@ describe('SunnyChatPanel', () => {
     expect(screen.getByRole('link', { name: '/properties/el-escorial-701' })).toHaveAttribute(
       'href',
       '/properties/el-escorial-701',
+    );
+  });
+
+  it('renders listing cards from a show_listings tool part', () => {
+    agentState.messages = [
+      {
+        id: 'u1',
+        role: 'user',
+        parts: [{ type: 'text', text: 'Muéstrame fotos de Brisas' }],
+      },
+      {
+        id: 'a1',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'tool',
+            name: 'show_listings',
+            callId: 'c1',
+            state: 'completed',
+            output: {
+              ok: true,
+              listings: [
+                {
+                  id: 'brisas',
+                  slug: 'brisas-del-estadio',
+                  title: 'Brisas del Estadio',
+                  listing_type: 'sale',
+                  neighborhood: 'Estadio',
+                  city: 'Medellín',
+                  bedrooms: 1,
+                  bathrooms: 2,
+                  area: 45.54,
+                  price: 390_000_000,
+                  images: ['https://cdn.example/brisas.webp'],
+                },
+              ],
+            },
+          },
+          { type: 'text', text: 'Aquí tienes **Brisas del Estadio**.' },
+        ],
+      },
+    ];
+    renderPanel();
+    fireEvent.click(screen.getByTestId('sunny-launcher'));
+    expect(screen.getByTestId('sunny-listings')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Brisas del Estadio' })).toHaveAttribute(
+      'href',
+      '/properties/brisas-del-estadio',
+    );
+    expect(screen.getByRole('link', { name: 'Agendar visita' })).toBeTruthy();
+    expect(screen.getAllByText('Brisas del Estadio').some((node) => node.tagName === 'STRONG')).toBe(true);
+  });
+
+  it('auto-opens listing preview cards from sunny_preview=listings', () => {
+    window.history.replaceState({}, '', '/?sunny_preview=listings');
+    renderPanel();
+    expect(screen.getByTestId('sunny-chat-panel')).toBeTruthy();
+    expect(screen.getByTestId('sunny-listings')).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Brisas del Estadio/ })).toHaveAttribute(
+      'href',
+      '/properties/brisas-del-estadio',
     );
   });
 });

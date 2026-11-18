@@ -9,7 +9,7 @@ const NAV_ONLY =
   /^[\s¿¡]*(?:hi|hello|hey|hola|buenas|good (?:morning|afternoon|evening)|what (?:can you|do you) do|who are you|qué (?:puedes|sabes) hacer|quién eres|cómo funciona)[\s!.,?¡¿]*$/iu;
 
 const LISTING_SUBSTANCE =
-  /\b(?:precio|price|m2|m²|metro|área|area|habitacion|bedroom|baño|bath|arriendo|rent|venta|sale|barrio|neighborhood|poblado|laureles|envigado|sabaneta|belén|belen|disponible|available|visita|visit|estrato|listing|inmueble|apartamento|casa|propiedad)\b/iu;
+  /\b(?:precio|price|m2|m²|metro|área|area|habitacion|bedroom|baño|bath|arriendo|rent|venta|sale|barrio|neighborhood|poblado|laureles|envigado|sabaneta|belén|belen|disponible|available|visita|visit|estrato|listing|inmueble|apartamento|casa|propiedad|foto|fotos|galer[ií]a|muestra|muéstrame|compara|comparar|photo|photos|compare)\b/iu;
 
 function textFromContent(content: unknown): string {
   if (typeof content === 'string') return content;

@@ -1,0 +1,43 @@
+.sunny-gallery-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.sunny-gallery-track::-webkit-scrollbar {
+  display: none;
+}
+
+.sunny-gallery-slide {
+  min-width: 100%;
+  scroll-snap-align: start;
+}
+
+.sunny-gallery-track img,
+.sunny-card-motion {
+  transition: transform 0.35s ease;
+}
+
+.sunny-compare-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sunny-bar-fill {
+  height: 100%;
+  background: #f0a80d;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sunny-gallery-track {
+    scroll-behavior: auto;
+  }
+
+  .sunny-gallery-track img,
+  .sunny-card-motion,
+  .sunny-bar-fill {
+    transition: none !important;
+  }
+}

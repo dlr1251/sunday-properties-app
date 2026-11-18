@@ -8,7 +8,7 @@ const INSTRUCTION_PATTERNS: readonly RegExp[] = [
   /\b(?:ignore|disregard|forget|olvida|ignora|omite)\b.{0,72}\b(?:all\s+)?(?:previous|prior|above|anterior|previas?)\b.{0,48}\b(?:instructions?|prompt|rules?|reglas?)\b/i,
   /\b(?:you are now|ahora eres|act as|actúa como|pretend to be)\b/i,
   /\b(?:reveal|show|print|dump|exp[oó]n|muestra)\b.{0,36}\b(?:system prompt|hidden instructions?|instrucciones ocultas)\b/i,
-  /\b(?:call|invoke|run|execute|llama|ejecuta)\b.{0,24}\b(?:record_sunny_lead|request_human_handoff|search_listings)\b/i,
+  /\b(?:call|invoke|run|execute|llama|ejecuta)\b.{0,24}\b(?:record_sunny_lead|request_human_handoff|search_listings|show_listings|listing_stats|compare_listings)\b/i,
   /\b(?:DAN|jailbreak|developer mode|modo desarrollador)\b/i,
 ];
 
