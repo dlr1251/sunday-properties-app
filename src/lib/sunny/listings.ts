@@ -41,6 +41,71 @@ export type SunnyListingSearchInput = {
   slug_or_id?: string;
 };
 
+function clipText(value: string | null | undefined, max: number): string {
+  return (value ?? '').trim().slice(0, max);
+}
+
+export function parseListingSearchInput(
+  search: URLSearchParams | Record<string, string | undefined>,
+): SunnyListingSearchInput {
+  const read = (key: string): string => {
+    if (search instanceof URLSearchParams) return search.get(key) ?? '';
+    return search[key] ?? '';
+  };
+  const input: SunnyListingSearchInput = {};
+  const query = clipText(read('query'), 180);
+  if (query) input.query = query;
+  const city = clipText(read('city'), 80);
+  if (city) input.city = city;
+  const neighborhood = clipText(read('neighborhood'), 80);
+  if (neighborhood) input.neighborhood = neighborhood;
+  const listingType = clipText(read('listing_type'), 16);
+  if (listingType === 'sale' || listingType === 'rental') input.listing_type = listingType;
+  const bedroomsRaw = read('bedrooms_min').trim();
+  if (bedroomsRaw) {
+    const bedrooms = Number(bedroomsRaw);
+    if (Number.isInteger(bedrooms) && bedrooms >= 0 && bedrooms <= 20) input.bedrooms_min = bedrooms;
+  }
+  const maxPriceRaw = read('max_price').trim();
+  if (maxPriceRaw) {
+    const maxPrice = Number(maxPriceRaw);
+    if (Number.isFinite(maxPrice) && maxPrice >= 0) input.max_price = maxPrice;
+  }
+  const slugOrId = clipText(read('slug_or_id'), 120);
+  if (slugOrId) input.slug_or_id = slugOrId;
+  return input;
+}
+
+export function listingSearchParams(input: SunnyListingSearchInput): URLSearchParams {
+  const params = new URLSearchParams();
+  if (input.query) params.set('query', input.query);
+  if (input.city) params.set('city', input.city);
+  if (input.neighborhood) params.set('neighborhood', input.neighborhood);
+  if (input.listing_type) params.set('listing_type', input.listing_type);
+  if (typeof input.bedrooms_min === 'number') params.set('bedrooms_min', String(input.bedrooms_min));
+  if (typeof input.max_price === 'number') params.set('max_price', String(input.max_price));
+  if (input.slug_or_id) params.set('slug_or_id', input.slug_or_id);
+  return params;
+}
+
+export function publicSunnyListingHits(raw: unknown): SunnyListingHit[] {
+  if (!Array.isArray(raw)) return [];
+  const hits: SunnyListingHit[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue;
+    const record = row as Record<string, unknown>;
+    if (assertNoPrivateListingFields(record).length > 0) continue;
+    const mapped = mapSunnyListing({
+      ...record,
+      images: record.images ?? (typeof record.image === 'string' ? [record.image] : undefined),
+    });
+    if (!mapped.id) continue;
+    if (typeof record.image === 'string' && !mapped.image) mapped.image = record.image;
+    hits.push(mapped);
+  }
+  return hits;
+}
+
 const SITE_ORIGIN = 'https://www.sundayproperties.co';
 
 const STREET_TYPE =
@@ -189,6 +254,13 @@ export async function searchPublishedListings(
   input: SunnyListingSearchInput,
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): Promise<{ ok: true; hits: SunnyListingHit[] } | { ok: false; error: string }> {
+  try {
+    const { setDefaultResultOrder } = await import('node:dns');
+    setDefaultResultOrder('ipv4first');
+  } catch {
+    // Edge / browsers have no dns module; Hono Node does.
+  }
+
   const config = resolvePublicSupabaseConfig(env);
   const { url, anonKey } = config;
   if (!url || !anonKey) {
