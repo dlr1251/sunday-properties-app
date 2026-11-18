@@ -20,6 +20,8 @@
   "include": [
     "agent/**/*.ts",
     "api/**/*.ts",
+    "src/chatgpt-app/**/*.ts",
+    "src/chatgpt-app/**/*.tsx",
     "src/lib/sunny/**/*.ts",
     "src/components/sunny/**/*.ts",
     "src/components/sunny/**/*.tsx",

@@ -28,7 +28,7 @@ export default await withEve({
       outputDirectory: 'build',
       rewrites: [
         {
-          source: '/((?!api/|docs/|assets/|eve/|\\.well-known/)(?!.*\\.[a-zA-Z0-9]+$).*)',
+          source: '/((?!api/|mcp(?:/|$)|docs/|assets/|eve/|\\.well-known/)(?!.*\\.[a-zA-Z0-9]+$).*)',
           destination: '/index.html',
         },
       ],
@@ -42,6 +42,7 @@ export default await withEve({
       runtime: 'node',
       entrypoint: 'api/index.ts',
       installCommand: 'npm install',
+      buildCommand: 'npm run mcp:build-widgets',
       functions: {
         'api/index.ts': {
           includeFiles: 'build/index.html',
@@ -51,11 +52,17 @@ export default await withEve({
   },
   rewrites: [
     { source: '/api/:path*', destination: { service: 'api' } },
+    { source: '/mcp', destination: { service: 'api' } },
+    { source: '/mcp/:path*', destination: { service: 'api' } },
     { source: '/properties/:slug', destination: { service: 'api' } },
   ],
   routes: [
     {
       src: '^/api(?:/.*)?$',
+      destination: { type: 'service', service: 'api' },
+    },
+    {
+      src: '^/mcp(?:/.*)?$',
       destination: { type: 'service', service: 'api' },
     },
     {
