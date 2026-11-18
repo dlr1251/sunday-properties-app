@@ -19,7 +19,7 @@
   },
   "include": [
     "agent/**/*.ts",
-    "api/sunny/**/*.ts",
+    "api/**/*.ts",
     "src/lib/sunny/**/*.ts",
     "src/components/sunny/**/*.tsx",
     "evals/**/*.ts",
