@@ -15,7 +15,8 @@ import { withEve } from 'eve/vercel';
  * (`root: 'api'` or `root: '.'` + `entrypoint` under `api/`). The `api` service
  * is a Hono entrypoint (`api/index.ts`) so listing HTML, Sunny anon tickets,
  * public listings, and any later `api/` handlers still deploy. Public `/api/*`
- * and `/properties/:slug` go to that service; everything else goes to `web`.
+ * and `/properties/:slug` go to that service; `/properties` and `/properties/`
+ * stay on `web` for the SPA index. Everything else goes to `web`.
  */
 export default await withEve({
   services: {
@@ -50,7 +51,7 @@ export default await withEve({
   },
   rewrites: [
     { source: '/api/:path*', destination: { service: 'api' } },
-    { source: '/properties/:path*', destination: { service: 'api' } },
+    { source: '/properties/:slug', destination: { service: 'api' } },
   ],
   routes: [
     {
@@ -58,7 +59,7 @@ export default await withEve({
       destination: { type: 'service', service: 'api' },
     },
     {
-      src: '^/properties(?:/.*)?$',
+      src: '^/properties/(.+)$',
       destination: { type: 'service', service: 'api' },
     },
     {
