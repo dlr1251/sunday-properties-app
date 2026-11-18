@@ -10,7 +10,27 @@
     "quota": "This session has used its free messages. A teammate can continue by phone or the contact form.",
     "rateLimit": "Too many messages in a short time. Wait a minute and try again.",
     "turnstile": "Confirm you are not a robot to continue.",
-    "error": "The message could not be sent. Please try again."
+    "error": "The message could not be sent. Please try again.",
+    "viewListing": "View listing",
+    "scheduleVisit": "Schedule visit",
+    "photoOf": "Photo {{current}} of {{total}}: {{title}}",
+    "previousPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
+    "noPhoto": "No published photos",
+    "statsHeading": "Listing figures",
+    "compareHeading": "Compare listings",
+    "chartHeading": "Price per m²",
+    "pricePerM2": "Price / m²",
+    "adminFee": "Admin fee",
+    "strata": "Stratum",
+    "area": "Area",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "zone": "Zone",
+    "price": "Price",
+    "listing": "Listing",
+    "best": "Best value",
+    "loadingUi": "Preparing listings…"
   },
   "home": {
     "hero": {

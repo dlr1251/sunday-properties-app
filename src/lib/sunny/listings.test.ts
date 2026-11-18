@@ -58,6 +58,10 @@ describe('parseListingSearchInput', () => {
       slug_or_id: 'brisas',
     });
     expect(parseListingSearchInput({ listing_type: 'rental' }).listing_type).toBe('rental');
+    expect(parseListingSearchInput({ slugs: 'el-escorial-701,casa-lauret' }).slugs).toEqual([
+      'el-escorial-701',
+      'casa-lauret',
+    ]);
     expect(parseListingSearchInput(new URLSearchParams())).toEqual({});
   });
 
@@ -84,6 +88,37 @@ describe('publicSunnyListingHits', () => {
     expect(publicSunnyListingHits([publicHit])[0]).not.toHaveProperty('minimum_offer_price');
     expect(publicSunnyListingHits([publicHit])[0]).not.toHaveProperty('address');
     expect(publicSunnyListingHits([publicHit])[0]).not.toHaveProperty('owner_id');
+  });
+});
+
+describe('mapSunnyListing public extras', () => {
+  it('keeps https photos, admin fee and strata, and never invents missing ones', () => {
+    const withPhotos = hit({
+      images: ['https://cdn.example/a.webp', 'http://insecure.example/b.jpg', 'https://cdn.example/c.webp'],
+      admin_fee: 322_000,
+      strata: 4,
+    });
+    expect(withPhotos.images).toEqual(['https://cdn.example/a.webp', 'https://cdn.example/c.webp']);
+    expect(withPhotos.image).toBe('https://cdn.example/a.webp');
+    expect(withPhotos.admin_fee).toBe(322_000);
+    expect(withPhotos.strata).toBe(4);
+
+    const sparse = hit();
+    expect(sparse.images).toEqual([]);
+    expect(sparse.image).toBeNull();
+    expect(sparse.admin_fee).toBeNull();
+    expect(sparse.strata).toBeNull();
+  });
+
+  it('filters and preserves slug order for compare queries', () => {
+    const hits = [
+      hit({ slug: 'casa-lauret' }),
+      hit({ slug: 'brisas-del-estadio' }),
+      hit({ slug: 'el-escorial-701' }),
+    ];
+    expect(
+      filterSunnyListingHits(hits, { slugs: ['el-escorial-701', 'casa-lauret'] }).map((row) => row.slug),
+    ).toEqual(['el-escorial-701', 'casa-lauret']);
   });
 });
 

@@ -6,11 +6,28 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { consumeSunnyAnonTurn, fetchSunnyAnonStatus } from '../../lib/sunny/anon-client';
 import { SUNNY_LOCALE_HEADER, SUNNY_TICKET_HEADER } from '../../lib/sunny/config';
+import { parseSunnyPreviewMode, previewMessages } from '../../lib/sunny/preview-fixtures';
 import { SUNNY_TURNSTILE_SITE_KEY, SUNNY_WIDGET_AGENT_NAME } from '../../lib/sunny/widget-flag';
 import { SunnyFace } from './SunnyFace';
 import { SunnyMessageMarkdown } from './SunnyMessageMarkdown';
+import { SunnyToolResult, type SunnyToolPartView } from './SunnyToolResult';
 
-type ChatLine = { id: string; role: 'user' | 'assistant'; text: string };
+type ChatPart = {
+  type?: string;
+  text?: string;
+  id?: string;
+  name?: string;
+  callId?: string;
+  state?: SunnyToolPartView['state'];
+  output?: unknown;
+  label?: string;
+};
+
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  parts: readonly ChatPart[];
+};
 
 declare global {
   interface Window {
@@ -33,28 +50,54 @@ function textFromParts(parts: ReadonlyArray<{ type?: string; text?: string }>): 
     .trim();
 }
 
-const PREVIEW_LINES: ChatLine[] = [
-  {
-    id: 'preview-user',
-    role: 'user',
-    text: '¿Tienen un 3 habitaciones en El Poblado?',
-  },
-  {
-    id: 'preview-sunny',
-    role: 'assistant',
-    text: 'Sí. **El Escorial 701** es un 3 habitaciones publicado en El Poblado.\n\n→ /properties/el-escorial-701',
-  },
-];
+function hasRenderableParts(parts: ReadonlyArray<{ type?: string }>): boolean {
+  return parts.some((part) => part.type === 'text' || part.type === 'tool');
+}
+
+function AssistantParts({ parts }: { parts: readonly ChatPart[] }) {
+  return (
+    <div className="mr-2 flex items-start gap-2">
+      <SunnyFace size={24} variant="static" className="mt-0.5 shrink-0" />
+      <div className="min-w-0 flex-1 space-y-2">
+        {parts.map((part, index) => {
+          if (part.type === 'text' && part.text) {
+            return (
+              <div key={part.id ?? `text-${index}`} className="rounded-xl bg-white/10 px-3 py-2">
+                <SunnyMessageMarkdown text={part.text} />
+              </div>
+            );
+          }
+          if (part.type === 'tool' && part.name && part.state) {
+            return (
+              <SunnyToolResult
+                key={part.callId ?? `tool-${index}`}
+                part={{
+                  name: part.name,
+                  state: part.state,
+                  output: part.output,
+                  label: part.label ?? '',
+                }}
+              />
+            );
+          }
+          return null;
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function SunnyChatPanel() {
   const { t, i18n } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const initialPreview =
+    typeof window === 'undefined' ? null : parseSunnyPreviewMode(window.location.search);
+  const [open, setOpen] = useState(Boolean(initialPreview));
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [turnstileRequired, setTurnstileRequired] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [preview, setPreview] = useState(false);
+  const [previewMode] = useState(initialPreview);
   const ticketRef = useRef<string | null>(null);
   const widgetRef = useRef<HTMLDivElement | null>(null);
   const locale = i18n.language?.toLowerCase().startsWith('en') ? 'en' : 'es';
@@ -67,32 +110,25 @@ export default function SunnyChatPanel() {
     },
   });
 
-  const lines = useMemo<ChatLine[]>(() => {
-    return agent.messages
-      .map((message) => {
-        if (message.role !== 'user' && message.role !== 'assistant') return null;
-        const text = textFromParts(message.parts as Array<{ type?: string; text?: string }>);
-        if (!text) return null;
-        return { id: message.id, role: message.role, text };
-      })
-      .filter((row): row is ChatLine => Boolean(row));
+  const liveMessages = useMemo<ChatMessage[]>(() => {
+    return agent.messages.flatMap((message) => {
+      if (message.role !== 'user' && message.role !== 'assistant') return [];
+      if (!hasRenderableParts(message.parts)) return [];
+      return [{ id: message.id, role: message.role, parts: message.parts as ChatPart[] }];
+    });
   }, [agent.messages]);
 
-  const visibleLines = lines.length > 0 ? lines : preview ? PREVIEW_LINES : [];
+  const previewChat = useMemo(() => (previewMode ? previewMessages(previewMode) : []), [previewMode]);
+  const messages = liveMessages.length > 0 ? liveMessages : previewChat;
   const busy = agent.status === 'busy' || agent.status === 'resuming';
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    setPreview(new URLSearchParams(window.location.search).get('sunny_preview') === '1');
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
+    if (!open || previewMode) return;
     void fetchSunnyAnonStatus().then((status) => {
       setRemaining(status.remaining);
       setTurnstileRequired(status.turnstileRequired);
     });
-  }, [open]);
+  }, [open, previewMode]);
 
   useEffect(() => {
     if (!open || !turnstileRequired || !SUNNY_TURNSTILE_SITE_KEY || !widgetRef.current) return;
@@ -155,8 +191,9 @@ export default function SunnyChatPanel() {
     <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3">
       {open ? (
         <section
-          className="flex h-[min(28rem,70vh)] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#1a2441] text-white shadow-2xl dark:border-[#f5d15a]/15"
+          className="flex h-[min(36rem,72vh)] w-[min(24rem,calc(100vw-1.25rem))] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#1a2441] text-white shadow-2xl dark:border-[#f5d15a]/15 sm:h-[min(38rem,78vh)] sm:w-[min(30rem,calc(100vw-2rem))]"
           aria-label={t('sunnyChat.title', { name: SUNNY_WIDGET_AGENT_NAME })}
+          data-testid="sunny-chat-panel"
         >
           <header className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -171,21 +208,16 @@ export default function SunnyChatPanel() {
             </button>
           </header>
           <div className="flex-1 space-y-3 overflow-y-auto bg-[#132033] px-4 py-3 text-sm">
-            {visibleLines.length === 0 ? (
+            {messages.length === 0 ? (
               <p className="text-white/80">{t('sunnyChat.welcome', { name: SUNNY_WIDGET_AGENT_NAME })}</p>
             ) : null}
-            {visibleLines.map((line) =>
-              line.role === 'user' ? (
-                <div key={line.id} className="ml-8 rounded-xl bg-[#2f8ac0] px-3 py-2">
-                  {line.text}
+            {messages.map((message) =>
+              message.role === 'user' ? (
+                <div key={message.id} className="ml-8 rounded-xl bg-[#2f8ac0] px-3 py-2">
+                  {textFromParts(message.parts)}
                 </div>
               ) : (
-                <div key={line.id} className="mr-2 flex items-start gap-2">
-                  <SunnyFace size={24} variant="static" className="mt-0.5 shrink-0" />
-                  <div className="min-w-0 flex-1 rounded-xl bg-white/10 px-3 py-2">
-                    <SunnyMessageMarkdown text={line.text} />
-                  </div>
-                </div>
+                <AssistantParts key={message.id} parts={message.parts} />
               ),
             )}
             {busy ? <p className="text-xs text-white/60">{t('sunnyChat.thinking')}</p> : null}

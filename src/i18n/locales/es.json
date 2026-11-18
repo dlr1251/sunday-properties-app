@@ -10,7 +10,27 @@
     "quota": "Llegaste al límite de mensajes de esta sesión. Un asesor puede seguir por teléfono o el formulario de contacto.",
     "rateLimit": "Demasiados mensajes seguidos. Espera un minuto e inténtalo de nuevo.",
     "turnstile": "Confirma que no eres un robot para continuar.",
-    "error": "No pude enviar el mensaje. Inténtalo de nuevo."
+    "error": "No pude enviar el mensaje. Inténtalo de nuevo.",
+    "viewListing": "Ver listado",
+    "scheduleVisit": "Agendar visita",
+    "photoOf": "Foto {{current}} de {{total}}: {{title}}",
+    "previousPhoto": "Foto anterior",
+    "nextPhoto": "Foto siguiente",
+    "noPhoto": "Sin fotos publicadas",
+    "statsHeading": "Cifras del listado",
+    "compareHeading": "Comparar listados",
+    "chartHeading": "Precio por m²",
+    "pricePerM2": "Precio / m²",
+    "adminFee": "Administración",
+    "strata": "Estrato",
+    "area": "Área",
+    "bedrooms": "Habitaciones",
+    "bathrooms": "Baños",
+    "zone": "Zona",
+    "price": "Precio",
+    "listing": "Listado",
+    "best": "Mejor valor",
+    "loadingUi": "Preparando listados…"
   },
   "home": {
     "hero": {

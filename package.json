@@ -112,7 +112,7 @@
             "typecheck:api": "tsc -p api/tsconfig.json",
             "eve:info": "npx eve info",
             "eve:build": "npx eve build",
-            "eve:check-tools": "node scripts/check-eve-tools.mjs --expect=search_listings --expect=record_sunny_lead --expect=request_human_handoff",
+            "eve:check-tools": "node scripts/check-eve-tools.mjs --expect=search_listings --expect=record_sunny_lead --expect=request_human_handoff --expect=show_listings --expect=listing_stats --expect=compare_listings",
             "eval": "npx eve eval",
             "vercel:env-push": "node scripts/vercel-env-push.mjs .env.local production",
             "setup": "./scripts/setup/setup.sh",

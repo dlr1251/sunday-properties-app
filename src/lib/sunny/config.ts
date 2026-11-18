@@ -45,7 +45,7 @@ export function sunnyMaxOutputTokens(env?: Env): number | null {
 }
 
 export function sunnyMaxSteps(env?: Env): number {
-  const raw = Number(envOf(env).SUNNY_MAX_STEPS?.trim() ?? '3');
+  const raw = Number(envOf(env).SUNNY_MAX_STEPS?.trim() ?? '5');
   if (!Number.isFinite(raw) || raw < 1) return 3;
   return Math.min(8, Math.floor(raw));
 }
