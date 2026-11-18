@@ -1,5 +1,5 @@
 import { useEveAgent } from 'eve/react';
-import { MessageCircle, Send, X } from 'lucide-react';
+import { Send, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,6 +7,8 @@ import { Button } from '../ui/button';
 import { consumeSunnyAnonTurn, fetchSunnyAnonStatus } from '../../lib/sunny/anon-client';
 import { SUNNY_LOCALE_HEADER, SUNNY_TICKET_HEADER } from '../../lib/sunny/config';
 import { SUNNY_TURNSTILE_SITE_KEY, SUNNY_WIDGET_AGENT_NAME } from '../../lib/sunny/widget-flag';
+import { SunnyFace } from './SunnyFace';
+import { SunnyMessageMarkdown } from './SunnyMessageMarkdown';
 
 type ChatLine = { id: string; role: 'user' | 'assistant'; text: string };
 
@@ -31,6 +33,19 @@ function textFromParts(parts: ReadonlyArray<{ type?: string; text?: string }>): 
     .trim();
 }
 
+const PREVIEW_LINES: ChatLine[] = [
+  {
+    id: 'preview-user',
+    role: 'user',
+    text: '¿Tienen un 3 habitaciones en El Poblado?',
+  },
+  {
+    id: 'preview-sunny',
+    role: 'assistant',
+    text: 'Sí. **El Escorial 701** es un 3 habitaciones publicado en El Poblado.\n\n→ /properties/el-escorial-701',
+  },
+];
+
 export default function SunnyChatPanel() {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -39,6 +54,7 @@ export default function SunnyChatPanel() {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [turnstileRequired, setTurnstileRequired] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [preview, setPreview] = useState(false);
   const ticketRef = useRef<string | null>(null);
   const widgetRef = useRef<HTMLDivElement | null>(null);
   const locale = i18n.language?.toLowerCase().startsWith('en') ? 'en' : 'es';
@@ -62,7 +78,13 @@ export default function SunnyChatPanel() {
       .filter((row): row is ChatLine => Boolean(row));
   }, [agent.messages]);
 
+  const visibleLines = lines.length > 0 ? lines : preview ? PREVIEW_LINES : [];
   const busy = agent.status === 'busy' || agent.status === 'resuming';
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setPreview(new URLSearchParams(window.location.search).get('sunny_preview') === '1');
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -133,34 +155,39 @@ export default function SunnyChatPanel() {
     <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3">
       {open ? (
         <section
-          className="flex h-[min(28rem,70vh)] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#1a2441] text-white shadow-2xl"
+          className="flex h-[min(28rem,70vh)] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#1a2441] text-white shadow-2xl dark:border-[#f5d15a]/15"
           aria-label={t('sunnyChat.title', { name: SUNNY_WIDGET_AGENT_NAME })}
         >
-          <header className="flex items-center justify-between px-4 py-3">
-            <div>
-              <p className="text-sm font-semibold">{t('sunnyChat.title', { name: SUNNY_WIDGET_AGENT_NAME })}</p>
-              <p className="text-xs text-white/70">{t('sunnyChat.subtitle')}</p>
+          <header className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <SunnyFace size={44} variant="interactive" thinking={busy} />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">{t('sunnyChat.title', { name: SUNNY_WIDGET_AGENT_NAME })}</p>
+                <p className="text-xs text-white/70">{t('sunnyChat.subtitle')}</p>
+              </div>
             </div>
-            <button type="button" className="rounded-full p-1 hover:bg-white/10" onClick={() => setOpen(false)}>
+            <button type="button" className="shrink-0 rounded-full p-1 hover:bg-white/10" onClick={() => setOpen(false)}>
               <X className="h-4 w-4" />
             </button>
           </header>
           <div className="flex-1 space-y-3 overflow-y-auto bg-[#132033] px-4 py-3 text-sm">
-            {lines.length === 0 ? (
+            {visibleLines.length === 0 ? (
               <p className="text-white/80">{t('sunnyChat.welcome', { name: SUNNY_WIDGET_AGENT_NAME })}</p>
             ) : null}
-            {lines.map((line) => (
-              <div
-                key={line.id}
-                className={
-                  line.role === 'user'
-                    ? 'ml-6 rounded-xl bg-[#2f8ac0] px-3 py-2'
-                    : 'mr-6 rounded-xl bg-white/10 px-3 py-2'
-                }
-              >
-                {line.text}
-              </div>
-            ))}
+            {visibleLines.map((line) =>
+              line.role === 'user' ? (
+                <div key={line.id} className="ml-8 rounded-xl bg-[#2f8ac0] px-3 py-2">
+                  {line.text}
+                </div>
+              ) : (
+                <div key={line.id} className="mr-2 flex items-start gap-2">
+                  <SunnyFace size={24} variant="static" className="mt-0.5 shrink-0" />
+                  <div className="min-w-0 flex-1 rounded-xl bg-white/10 px-3 py-2">
+                    <SunnyMessageMarkdown text={line.text} />
+                  </div>
+                </div>
+              ),
+            )}
             {busy ? <p className="text-xs text-white/60">{t('sunnyChat.thinking')}</p> : null}
           </div>
           <form
@@ -194,10 +221,12 @@ export default function SunnyChatPanel() {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f0a80d] text-[#1a2441] shadow-lg hover:bg-[#d9940b]"
+        className={`sunny-launcher flex h-16 w-16 items-center justify-center overflow-visible rounded-full bg-transparent p-0 text-[#1a2441] ${busy ? 'is-thinking' : ''}`}
         aria-label={t('sunnyChat.open', { name: SUNNY_WIDGET_AGENT_NAME })}
+        aria-expanded={open}
+        data-testid="sunny-launcher"
       >
-        <MessageCircle className="h-6 w-6" />
+        <SunnyFace size={64} variant="interactive" thinking={busy} />
       </button>
     </div>
   );

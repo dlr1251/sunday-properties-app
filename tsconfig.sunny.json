@@ -21,6 +21,7 @@
     "agent/**/*.ts",
     "api/**/*.ts",
     "src/lib/sunny/**/*.ts",
+    "src/components/sunny/**/*.ts",
     "src/components/sunny/**/*.tsx",
     "evals/**/*.ts",
     "src/vite-env.d.ts",
