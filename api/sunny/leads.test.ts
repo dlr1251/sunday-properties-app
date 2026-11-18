@@ -132,4 +132,41 @@ describe('POST /api/sunny/leads', () => {
     expect(response.status).toBe(200);
     expect(insertSunnyLeadRow).toHaveBeenCalledTimes(1);
   });
+
+  it('accepts a matching ticket+session on a public origin with no bypass secret', async () => {
+    insertSunnyLeadRow.mockResolvedValue({ ok: true, id: 'lead-3' });
+    const env = { SUNNY_ANON_SESSION_SECRET: 'test-secret-not-for-production' };
+    const created = createSunnyAnonSession(env);
+    expect(created).not.toBeNull();
+    const ticket = issueSunnyTicket(created!.payload.id, 1, env);
+    expect(ticket).toBeTruthy();
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const response = await POST(
+      leadRequest({
+        body: { ...VALID_LEAD, session_id: created!.payload.id },
+        headers: { [SUNNY_TICKET_HEADER]: ticket! },
+      }),
+      env,
+    );
+    expect(response.status).toBe(200);
+    expect(insertSunnyLeadRow).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('Ana');
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('ana@example.com');
+  });
+
+  it('rejects a ticket bound to a different session_id', async () => {
+    const env = { SUNNY_ANON_SESSION_SECRET: 'test-secret-not-for-production' };
+    const created = createSunnyAnonSession(env)!;
+    const ticket = issueSunnyTicket(created.payload.id, 1, env)!;
+    const response = await POST(
+      leadRequest({
+        body: { ...VALID_LEAD, session_id: '00000000-0000-0000-0000-000000000000' },
+        headers: { [SUNNY_TICKET_HEADER]: ticket },
+      }),
+      env,
+    );
+    expect(response.status).toBe(401);
+    expect(insertSunnyLeadRow).not.toHaveBeenCalled();
+  });
 });

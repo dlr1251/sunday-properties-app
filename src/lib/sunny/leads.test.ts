@@ -12,6 +12,8 @@ import {
   persistSunnyLeadPreferringHostApi,
   recordSunnyLeadViaHostApi,
   authorizeSunnyLeadsRequest,
+  hostOriginRequiresProtectionBypass,
+  sunnyHopAuthFromAttributes,
   sunnyHostApiHeaders,
 } from './leads-host';
 import {
@@ -71,6 +73,7 @@ describe('sunnyLeadRowSchema', () => {
 describe('sunny lead host API', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
     maybeSingle.mockReset();
     createClient.mockClear();
   });
@@ -124,7 +127,7 @@ describe('sunny lead host API', () => {
   });
 
   it('does not fall back to a second insert when the host hop fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const fetchMock = vi.fn(
       async () => new Response(JSON.stringify({ ok: false }), { status: 503 }),
     );
@@ -135,11 +138,16 @@ describe('sunny lead host API', () => {
       VITE_SUPABASE_URL: 'https://vite.example.supabase.co',
       SUPABASE_SERVICE_ROLE_KEY: 'service-role-test-key',
     });
-    expect(result).toEqual({ ok: false, error: 'lead_insert_failed' });
+    expect(result).toEqual({ ok: false, error: 'hop_http_503' });
     expect(createClient).not.toHaveBeenCalled();
+    const logged = JSON.stringify(spy.mock.calls);
+    expect(logged).toContain('hop_http_503');
+    expect(logged).not.toContain('Ana');
+    expect(logged).not.toContain('ana@example.com');
   });
 
-  it('skips the host hop when there is no bypass secret even if an origin exists', async () => {
+  it('skips a protected *.vercel.app hop without bypass and logs hop_skipped', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     maybeSingle.mockResolvedValue({ data: { id: 'lead-direct' }, error: null });
@@ -150,9 +158,89 @@ describe('sunny lead host API', () => {
     });
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result).toEqual({ ok: true, id: 'lead-direct' });
+    const logged = JSON.stringify(spy.mock.calls);
+    expect(logged).toContain('hop_skipped');
+    expect(logged).not.toContain('Ana');
+    expect(logged).not.toContain('ana@example.com');
+  });
+
+  it('POSTs to a public custom domain with the anon ticket and no bypass header', async () => {
+    const env = {
+      SUNNY_LISTINGS_API_ORIGIN: 'https://www.sundayproperties.co',
+      SUNNY_ANON_SESSION_SECRET: 'test-secret-not-for-production',
+    };
+    const created = createSunnyAnonSession(env)!;
+    const ticket = issueSunnyTicket(created.payload.id, 1, env)!;
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const headers = init?.headers as Record<string, string>;
+      expect(String(_input)).toBe('https://www.sundayproperties.co/api/sunny/leads');
+      expect(headers[SUNNY_TICKET_HEADER]).toBe(ticket);
+      expect(headers['x-vercel-protection-bypass']).toBeUndefined();
+      const body = JSON.parse(String(init?.body));
+      expect(body.session_id).toBe(created.payload.id);
+      expect(body).not.toHaveProperty('email');
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await recordSunnyLeadViaHostApi(LEAD_ROW, env, {
+      hopAuth: { ticket, sessionId: created.payload.id },
+    });
+    expect(result).toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(
+      sunnyHostApiHeaders(env, { ticket })[SUNNY_TICKET_HEADER],
+    ).toBe(ticket);
+    expect(sunnyHostApiHeaders(env)['x-vercel-protection-bypass']).toBeUndefined();
+  });
+
+  it('prefers the public-domain ticket hop over a direct insert', async () => {
+    const env = {
+      SUNNY_LISTINGS_API_ORIGIN: 'https://www.sundayproperties.co',
+      SUNNY_ANON_SESSION_SECRET: 'test-secret-not-for-production',
+      VITE_SUPABASE_URL: 'https://vite.example.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role-test-key',
+    };
+    const created = createSunnyAnonSession(env)!;
+    const ticket = issueSunnyTicket(created.payload.id, 1, env)!;
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await persistSunnyLeadPreferringHostApi(LEAD_ROW, env, {
+      hopAuth: sunnyHopAuthFromAttributes(
+        { ticket, visitorId: created.payload.id },
+        'eve-session-id',
+      ),
+    });
+    expect(result).toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it('logs direct_insert_<code> when the skipped hop falls back and PostgREST fails', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    maybeSingle.mockResolvedValue({
+      data: null,
+      error: { code: 'PGRST204', message: 'Could not find the column for Ana Pérez' },
+    });
+    const result = await persistSunnyLeadPreferringHostApi(LEAD_ROW, {
+      VITE_SUPABASE_URL: 'https://vite.example.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role-test-key',
+    });
+    expect(result).toEqual({ ok: false, error: 'direct_insert_PGRST204' });
+    const logged = JSON.stringify(spy.mock.calls);
+    expect(logged).toContain('hop_skipped');
+    expect(logged).toContain('direct_insert_PGRST204');
+    expect(logged).not.toContain('Ana');
+    expect(logged).not.toContain('ana@example.com');
+    expect(logged).not.toContain('Pérez');
   });
 
   it('falls back to direct insert when no host origin is configured', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     maybeSingle.mockResolvedValue({ data: { id: 'lead-direct' }, error: null });
     const result = await persistSunnyLeadPreferringHostApi(LEAD_ROW, {
       VITE_SUPABASE_URL: 'https://vite.example.supabase.co',
@@ -188,6 +276,44 @@ describe('sunny lead host API', () => {
     });
     expect(authorizeSunnyLeadsRequest(withTicket, created.payload.id, env)).toBe(true);
   });
+
+  it('authorizes a matching ticket+session on a public origin with no bypass secret', () => {
+    const env = { SUNNY_ANON_SESSION_SECRET: 'test-secret-not-for-production' };
+    const created = createSunnyAnonSession(env)!;
+    const ticket = issueSunnyTicket(created.payload.id, 1, env)!;
+    const matching = new Request('https://www.sundayproperties.co/api/sunny/leads', {
+      method: 'POST',
+      headers: { [SUNNY_TICKET_HEADER]: ticket },
+    });
+    expect(authorizeSunnyLeadsRequest(matching, created.payload.id, env)).toBe(true);
+
+    const mismatched = new Request('https://www.sundayproperties.co/api/sunny/leads', {
+      method: 'POST',
+      headers: { [SUNNY_TICKET_HEADER]: ticket },
+    });
+    expect(authorizeSunnyLeadsRequest(mismatched, '00000000-0000-0000-0000-000000000000', env)).toBe(
+      false,
+    );
+    expect(authorizeSunnyLeadsRequest(matching, null, env)).toBe(false);
+    expect(
+      authorizeSunnyLeadsRequest(
+        new Request('https://www.sundayproperties.co/api/sunny/leads', { method: 'POST' }),
+        created.payload.id,
+        env,
+      ),
+    ).toBe(false);
+  });
+
+  it('treats *.vercel.app as protection-gated and a custom domain as public', () => {
+    expect(hostOriginRequiresProtectionBypass('https://sunday-preview.vercel.app')).toBe(true);
+    expect(hostOriginRequiresProtectionBypass('https://www.sundayproperties.co')).toBe(false);
+    expect(
+      sunnyHopAuthFromAttributes(
+        { ticket: 'ticket-1', visitorId: 'visitor-1' },
+        'eve-session',
+      ),
+    ).toEqual({ ticket: 'ticket-1', sessionId: 'visitor-1' });
+  });
 });
 
 describe('insertSunnyLeadRow', () => {
@@ -213,6 +339,8 @@ describe('Sunny lead tools', () => {
       const source = readFileSync(join(root, 'agent/tools', file), 'utf8');
       expect(source).toContain('"use step"');
       expect(source).toContain('persistSunnyLeadPreferringHostApi');
+      expect(source).toContain('sunnyHopAuthFromAttributes');
+      expect(source).toContain('hopAuth');
       expect(source).not.toMatch(/async execute[\s\S]*recordSunnyLead\(/);
       expect(source).not.toMatch(/async execute[\s\S]*recordSunnyHandoff\(/);
     }

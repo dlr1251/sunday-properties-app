@@ -37,6 +37,7 @@ export function sunnyAnonSessionAuth(): AuthFn<Request> {
     }
 
     const localeHeader = request.headers.get('x-sunny-locale');
+    const ticketHeader = request.headers.get(SUNNY_TICKET_HEADER)?.trim() || '';
 
     return {
       authenticator: 'sunny-anon',
@@ -46,6 +47,7 @@ export function sunnyAnonSessionAuth(): AuthFn<Request> {
       attributes: {
         anonymous: '1',
         visitorId: session.id,
+        ...(ticketHeader ? { ticket: ticketHeader } : {}),
         ...(localeHeader === 'es' || localeHeader === 'en' ? { locale: localeHeader } : {}),
       },
     };
