@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "types": ["node", "vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "agent/**/*.ts",
+    "api/**/*.ts",
+    "src/lib/sunny/**/*.ts",
+    "src/components/sunny/**/*.tsx",
+    "evals/**/*.ts",
+    "src/vite-env.d.ts",
+    "vercel.ts"
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx"]
+}

@@ -1,8 +1,9 @@
+import { getSupabasePublicConfig, logPublicSupabaseError } from '../lib/publicSupabase';
 import { publicLocationLabel, sanitizePublicDescription } from './publicLocation';
 import { isPropertyUuid } from './propertyPath';
-import { SITE_ORIGIN } from '../lib/siteUrl';
+import { SITE_ORIGIN } from '../lib/siteOrigin';
 
-export { SITE_ORIGIN };
+export { SITE_ORIGIN, getSupabasePublicConfig };
 export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-image.png`;
 export const DEFAULT_PAGE_TITLE = 'Sunday Properties — Rent and buy in Medellín';
 export const DEFAULT_OG_TITLE = 'Sunday Properties';
@@ -74,27 +75,6 @@ export type ListingPageMeta = {
 const CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=86400';
 
 export const LISTING_HTML_CACHE_CONTROL = CACHE_CONTROL;
-
-const PUBLIC_SUPABASE_URL = 'https://prtyuwdkrrqhtwolcrav.supabase.co';
-/** Same public anon key the browser already ships. RLS still applies. */
-const PUBLIC_SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydHl1d2RrcnJxaHR3b2xjcmF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4OTA1MDUsImV4cCI6MjA3NjQ2NjUwNX0.0n7zBh6TvTdHtEDn_lNE0IaPkIVK3Ujhf6hZ2yNFOGo';
-
-export function getSupabasePublicConfig(): { url: string; anonKey: string } {
-  // Prefer VITE_* (Production). Skip leftover NEXT_PUBLIC_* keys — they are
-  // older than the current anon key and 401 on Preview.
-  const url = (
-    process.env.VITE_SUPABASE_URL ||
-    process.env.SUPABASE_URL ||
-    PUBLIC_SUPABASE_URL
-  ).trim();
-  const anonKey = (
-    process.env.VITE_SUPABASE_ANON_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    PUBLIC_SUPABASE_ANON_KEY
-  ).trim();
-  return { url: url.replace(/\/$/, ''), anonKey };
-}
 
 /** Read `/properties/:slug` or `?slugOrId=` from a request URL. Never treat `/api/...` as a listing. */
 export function parseListingSlug(urlOrPath: string, querySlug?: string | null): string {
@@ -340,7 +320,10 @@ export async function fetchPublishedListingForOg(
   });
 
   if (!response.ok) {
-    console.error('[listing-og] properties lookup failed', response.status);
+    logPublicSupabaseError('listing-og', new Error(`properties lookup failed ${response.status}`), {
+      status: response.status,
+      url: config.url,
+    });
     return null;
   }
   const rows = (await response.json()) as ListingForOg[];
@@ -358,7 +341,7 @@ export async function renderListingIndexHtml(
   try {
     listing = await fetchPublishedListingForOg(slugOrId);
   } catch (error) {
-    console.error('[listing-og] properties lookup threw', error);
+    logPublicSupabaseError('listing-og', error, { url: getSupabasePublicConfig().url });
     listing = null;
   }
   const meta = buildListingMeta(listing) || genericSiteMeta();

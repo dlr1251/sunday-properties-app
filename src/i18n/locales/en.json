@@ -1,4 +1,17 @@
 {
+  "sunnyChat": {
+    "title": "{{name}}",
+    "subtitle": "Sunday Properties · published listings",
+    "welcome": "Hi, I'm {{name}}. Ask about published listings in Medellín, or leave your details so a person can follow up.",
+    "placeholder": "Type your question…",
+    "thinking": "One moment…",
+    "open": "Open chat with {{name}}",
+    "remaining": "{{count}} messages left",
+    "quota": "This session has used its free messages. A teammate can continue by phone or the contact form.",
+    "rateLimit": "Too many messages in a short time. Wait a minute and try again.",
+    "turnstile": "Confirm you are not a robot to continue.",
+    "error": "The message could not be sent. Please try again."
+  },
   "home": {
     "hero": {
       "title": "Find your next",

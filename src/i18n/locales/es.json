@@ -1,4 +1,17 @@
 {
+  "sunnyChat": {
+    "title": "{{name}}",
+    "subtitle": "Sunday Properties · listados publicados",
+    "welcome": "Hola, soy {{name}}. Pregúntame por listados publicados en Medellín o deja tus datos para que una persona te contacte.",
+    "placeholder": "Escribe tu pregunta…",
+    "thinking": "Un momento…",
+    "open": "Abrir chat con {{name}}",
+    "remaining": "{{count}} mensajes restantes",
+    "quota": "Llegaste al límite de mensajes de esta sesión. Un asesor puede seguir por teléfono o el formulario de contacto.",
+    "rateLimit": "Demasiados mensajes seguidos. Espera un minuto e inténtalo de nuevo.",
+    "turnstile": "Confirma que no eres un robot para continuar.",
+    "error": "No pude enviar el mensaje. Inténtalo de nuevo."
+  },
   "home": {
     "hero": {
       "title": "Encuentra tu próximo",

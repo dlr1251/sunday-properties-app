@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SITE_ORIGIN, passwordRecoveryRedirectTo, resolvePublicSiteOrigin } from './siteUrl';
+import { SITE_ORIGIN, passwordRecoveryRedirectTo, resolvePublicSiteOrigin } from './siteOrigin';
 
 describe('resolvePublicSiteOrigin', () => {
   it('prefers VITE_PUBLIC_SITE_URL when set, including in dev', () => {

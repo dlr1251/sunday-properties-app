@@ -1,0 +1,17 @@
+{
+  // Mirrors @vercel/backends when no root tsconfig.json exists:
+  // module NodeNext + strict false, CJS because package.json is not "type": "module".
+  // Keep Vite `import.meta` out of this graph (api/index.ts and its imports).
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "types": ["node"]
+  },
+  "files": ["index.ts"]
+}
